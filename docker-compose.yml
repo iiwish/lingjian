@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: lingjian
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./internal/model/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./internal/model/schema_application.sql:/docker-entrypoint-initdb.d/02-schema_application.sql
+      - ./internal/model/schema_config.sql:/docker-entrypoint-initdb.d/03-schema_config.sql
+      - ./internal/model/schema_task.sql:/docker-entrypoint-initdb.d/04-schema_task.sql
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:6.0-alpine
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3.8-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  server:
+    build: .
+    environment:
+      SERVICE_TYPE: server
+    volumes:
+      - ./config:/app/config
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+      - redis
+      - rabbitmq
+
+  worker:
+    build: .
+    environment:
+      SERVICE_TYPE: worker
+    volumes:
+      - ./config:/app/config
+    depends_on:
+      - mysql
+      - redis
+      - rabbitmq
+
+volumes:
+  mysql_data:

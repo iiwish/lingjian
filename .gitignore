@@ -1,52 +1,40 @@
-# 编译产物
+# Binaries for programs and plugins
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+
+# Test binary, built with `go test -c`
 *.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# IDE相关
+# Dependency directories (remove the comment below to include it)
+vendor/
+
+# IDE specific files
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# OS specific files
 .DS_Store
+Thumbs.db
 
-# 依赖目录
-/vendor/
+# Config files
+config/config.yaml
 
-# 日志文件
-/logs/
+# Log files
 *.log
+logs/
 
-# 配置文件（除了示例配置）
-/config/config.yaml
+# Temporary files
+tmp/
+temp/
 
-# 上传文件目录
-/uploads/
-
-# 临时文件
-*.tmp
-*.temp
-.env
-
-# Go工具链
-/bin/
-/pkg/
-
-# 测试覆盖率文件
-*.cover
-coverage.txt
-coverage.html
-
-# 数据库文件
-*.db
-*.sqlite
-
-# 其他
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# Build output
+bin/
+dist/
