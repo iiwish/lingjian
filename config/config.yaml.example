@@ -1,0 +1,82 @@
+server:
+  port: 8080
+  mode: debug  # debug or release
+
+mysql:
+  host: localhost
+  port: 3306
+  username: root
+  password: root  # 请修改为实际的数据库密码
+  database: lingjian
+  max_idle_conns: 10
+  max_open_conns: 100
+
+redis:
+  host: localhost
+  port: 6379
+  password: ""  # 如果有密码，请填写
+  db: 0
+
+jwt:
+  secret: "your_jwt_secret_key"  # 请修改为随机的密钥
+  access_token_expire: 7200    # 访问令牌过期时间（秒）
+  refresh_token_expire: 604800 # 刷新令牌过期时间（秒）
+
+rbac:
+  super_admin_role: "super_admin"
+
+# 日志配置
+log:
+  level: debug  # debug, info, warn, error
+  filename: logs/lingjian.log
+  max_size: 100    # 单个日志文件最大尺寸，单位MB
+  max_age: 30      # 日志文件保留天数
+  max_backups: 10  # 最大保留的旧日志文件数量
+  compress: true   # 是否压缩旧日志文件
+
+# 跨域配置
+cors:
+  allowed_origins:
+    - "http://localhost:3000"
+  allowed_methods:
+    - "GET"
+    - "POST"
+    - "PUT"
+    - "DELETE"
+    - "OPTIONS"
+  allowed_headers:
+    - "Authorization"
+    - "Content-Type"
+  allow_credentials: true
+  max_age: 86400  # 预检请求结果缓存时间（秒）
+
+# 上传配置
+upload:
+  save_path: "uploads"  # 文件保存路径
+  allowed_types:        # 允许上传的文件类型
+    - "image/jpeg"
+    - "image/png"
+    - "image/gif"
+  max_size: 5242880    # 最大文件大小（字节）：5MB
+
+# 缓存配置
+cache:
+  default_ttl: 3600  # 默认缓存时间（秒）
+
+# 限流配置
+rate_limit:
+  enabled: true
+  requests: 100   # 请求数
+  duration: 60    # 时间窗口（秒）
+
+# OAuth2.0配置
+oauth2:
+  providers:
+    github:
+      client_id: "your_github_client_id"
+      client_secret: "your_github_client_secret"
+      redirect_url: "http://localhost:8080/api/v1/auth/github/callback"
+    google:
+      client_id: "your_google_client_id"
+      client_secret: "your_google_client_secret"
+      redirect_url: "http://localhost:8080/api/v1/auth/google/callback"
