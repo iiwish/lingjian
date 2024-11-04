@@ -1,303 +1,430 @@
 package service
 
 import (
-	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"strings"
-	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/jmoiron/sqlx"
 )
 
-type ConfigService struct{}
+// ConfigService 配置服务
+type ConfigService struct {
+	db *sqlx.DB
+}
+
+// NewConfigService 创建配置服务实例
+func NewConfigService(db *sqlx.DB) *ConfigService {
+	return &ConfigService{db: db}
+}
 
 // CreateTableRequest 创建数据表配置请求
 type CreateTableRequest struct {
-	ApplicationID  uint         `json:"application_id" binding:"required"`
-	Name           string       `json:"name" binding:"required"`
-	Code           string       `json:"code" binding:"required"`
-	Description    string       `json:"description"`
-	MySQLTableName string       `json:"mysql_table_name" binding:"required"`
-	Fields         []TableField `json:"fields" binding:"required"`
-	Indexes        []TableIndex `json:"indexes"`
-}
-
-// TableField 表字段定义
-type TableField struct {
-	Name     string `json:"name" binding:"required"`
-	Type     string `json:"type" binding:"required"` // int, varchar, text, datetime等
-	Length   int    `json:"length,omitempty"`
-	Required bool   `json:"required"`
-	Default  any    `json:"default,omitempty"`
-}
-
-// TableIndex 表索引定义
-type TableIndex struct {
-	Name   string   `json:"name" binding:"required"`
-	Type   string   `json:"type" binding:"required"` // normal, unique
-	Fields []string `json:"fields" binding:"required"`
+	ApplicationID  uint               `json:"application_id" binding:"required"`
+	Name           string             `json:"name" binding:"required"`
+	Code           string             `json:"code" binding:"required"`
+	Description    string             `json:"description"`
+	MySQLTableName string             `json:"mysql_table_name" binding:"required"`
+	Fields         []model.TableField `json:"fields" binding:"required"`
+	Indexes        []model.TableIndex `json:"indexes"`
 }
 
 // CreateTable 创建数据表配置
 func (s *ConfigService) CreateTable(req *CreateTableRequest, creatorID uint) error {
-	// 验证MySQL表是否存在
-	var exists bool
-	err := model.DB.Get(&exists, `
-		SELECT EXISTS (
-			SELECT 1 FROM information_schema.tables 
-			WHERE table_schema = DATABASE() 
-			AND table_name = ?
-		)
-	`, req.MySQLTableName)
+	// 将字段和索引转换为JSON字符串
+	fields, err := json.Marshal(req.Fields)
 	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("MySQL表 %s 不存在", req.MySQLTableName)
+		return fmt.Errorf("marshal fields failed: %v", err)
 	}
 
-	// 验证字段是否与MySQL表匹配
-	for _, field := range req.Fields {
-		var columnExists bool
-		err := model.DB.Get(&columnExists, `
-			SELECT EXISTS (
-				SELECT 1 FROM information_schema.columns 
-				WHERE table_schema = DATABASE() 
-				AND table_name = ? 
-				AND column_name = ?
-			)
-		`, req.MySQLTableName, field.Name)
-		if err != nil {
-			return err
-		}
-		if !columnExists {
-			return fmt.Errorf("字段 %s 在MySQL表中不存在", field.Name)
-		}
+	indexes, err := json.Marshal(req.Indexes)
+	if err != nil {
+		return fmt.Errorf("marshal indexes failed: %v", err)
 	}
 
-	fieldsJSON, err := json.Marshal(req.Fields)
-	if err != nil {
-		return err
+	// 创建数据表配置
+	table := &model.ConfigTable{
+		ApplicationID:  req.ApplicationID,
+		Name:           req.Name,
+		Code:           req.Code,
+		Description:    req.Description,
+		MySQLTableName: req.MySQLTableName,
+		Fields:         string(fields),
+		Indexes:        string(indexes),
+		Status:         1,
+		Version:        1,
 	}
 
-	indexesJSON, err := json.Marshal(req.Indexes)
+	// 开启事务
+	tx, err := s.db.Beginx()
 	if err != nil {
-		return err
-	}
-
-	tx, err := model.DB.Beginx()
-	if err != nil {
-		return err
+		return fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
 
-	// 创建表配置
-	result, err := tx.Exec(`
+	// 插入数据表配置
+	result, err := tx.NamedExec(`
 		INSERT INTO config_tables (
-			application_id, name, code, description, 
-			mysql_table_name, fields, indexes, status, version, 
-			created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, ?, 1, 1, ?, ?)
-	`, req.ApplicationID, req.Name, req.Code, req.Description,
-		req.MySQLTableName, fieldsJSON, indexesJSON,
-		time.Now(), time.Now())
+			application_id, name, code, description, mysql_table_name,
+			fields, indexes, status, version, created_at, updated_at
+		) VALUES (
+			:application_id, :name, :code, :description, :mysql_table_name,
+			:fields, :indexes, :status, :version, NOW(), NOW()
+		)
+	`, table)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert config_tables failed: %v", err)
 	}
 
-	configID, err := result.LastInsertId()
+	// 获取插入的ID
+	id, err := result.LastInsertId()
 	if err != nil {
-		return err
+		return fmt.Errorf("get last insert id failed: %v", err)
 	}
 
-	// 记录版本
-	content := map[string]interface{}{
-		"name":             req.Name,
-		"code":             req.Code,
-		"description":      req.Description,
-		"mysql_table_name": req.MySQLTableName,
-		"fields":           req.Fields,
-		"indexes":          req.Indexes,
-	}
-	contentJSON, err := json.Marshal(content)
-	if err != nil {
-		return err
+	// 创建版本记录
+	version := &model.ConfigVersion{
+		ApplicationID: req.ApplicationID,
+		ConfigType:    "table",
+		ConfigID:      uint(id),
+		Version:       1,
+		Content:       string(fields), // 使用字段定义作为版本内容
+		CreatorID:     creatorID,
 	}
 
-	_, err = tx.Exec(`
+	_, err = tx.NamedExec(`
 		INSERT INTO config_versions (
-			application_id, config_type, config_id,
-			version, content, creator_id, created_at
-		) VALUES (?, 'table', ?, 1, ?, ?, ?)
-	`, req.ApplicationID, configID, contentJSON, creatorID, time.Now())
+			application_id, config_type, config_id, version,
+			content, creator_id, created_at
+		) VALUES (
+			:application_id, :config_type, :config_id, :version,
+			:content, :creator_id, NOW()
+		)
+	`, version)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert config_versions failed: %v", err)
 	}
 
-	return tx.Commit()
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction failed: %v", err)
+	}
+
+	return nil
 }
 
 // CreateDimensionRequest 创建维度配置请求
 type CreateDimensionRequest struct {
-	ApplicationID  uint            `json:"application_id" binding:"required"`
-	Name           string          `json:"name" binding:"required"`
-	Code           string          `json:"code" binding:"required"`
-	Type           string          `json:"type" binding:"required"`
-	MySQLTableName string          `json:"mysql_table_name" binding:"required"`
-	Configuration  DimensionConfig `json:"configuration" binding:"required"`
-}
-
-// DimensionConfig 维度配置
-type DimensionConfig struct {
-	Fields       []string       `json:"fields" binding:"required"`        // MySQL表中的字段
-	DisplayField string         `json:"display_field" binding:"required"` // 显示字段
-	ValueField   string         `json:"value_field" binding:"required"`   // 值字段
-	Filter       map[string]any `json:"filter,omitempty"`                 // 过滤条件
-	Sort         []string       `json:"sort,omitempty"`                   // 排序字段
+	ApplicationID  uint                  `json:"application_id" binding:"required"`
+	Name           string                `json:"name" binding:"required"`
+	Code           string                `json:"code" binding:"required"`
+	Type           string                `json:"type" binding:"required"`
+	MySQLTableName string                `json:"mysql_table_name" binding:"required"`
+	Configuration  model.DimensionConfig `json:"configuration" binding:"required"`
 }
 
 // CreateDimension 创建维度配置
 func (s *ConfigService) CreateDimension(req *CreateDimensionRequest, creatorID uint) error {
-	// 验证MySQL表是否存在
-	var exists bool
-	err := model.DB.Get(&exists, `
-		SELECT EXISTS (
-			SELECT 1 FROM information_schema.tables 
-			WHERE table_schema = DATABASE() 
-			AND table_name = ?
-		)
-	`, req.MySQLTableName)
+	// 将配置转换为JSON字符串
+	config, err := json.Marshal(req.Configuration)
 	if err != nil {
-		return err
-	}
-	if !exists {
-		return fmt.Errorf("MySQL表 %s 不存在", req.MySQLTableName)
+		return fmt.Errorf("marshal configuration failed: %v", err)
 	}
 
-	// 验证字段是否与MySQL表匹配
-	for _, field := range req.Configuration.Fields {
-		var columnExists bool
-		err := model.DB.Get(&columnExists, `
-			SELECT EXISTS (
-				SELECT 1 FROM information_schema.columns 
-				WHERE table_schema = DATABASE() 
-				AND table_name = ? 
-				AND column_name = ?
-			)
-		`, req.MySQLTableName, field)
-		if err != nil {
-			return err
-		}
-		if !columnExists {
-			return fmt.Errorf("字段 %s 在MySQL表中不存在", field)
-		}
+	// 创建维度配置
+	dimension := &model.ConfigDimension{
+		ApplicationID:  req.ApplicationID,
+		Name:           req.Name,
+		Code:           req.Code,
+		Type:           req.Type,
+		MySQLTableName: req.MySQLTableName,
+		Configuration:  string(config),
+		Status:         1,
+		Version:        1,
 	}
 
-	configJSON, err := json.Marshal(req.Configuration)
+	// 开启事务
+	tx, err := s.db.Beginx()
 	if err != nil {
-		return err
-	}
-
-	tx, err := model.DB.Beginx()
-	if err != nil {
-		return err
+		return fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
 
-	// 创建维度配置
-	result, err := tx.Exec(`
+	// 插入维度配置
+	result, err := tx.NamedExec(`
 		INSERT INTO config_dimensions (
-			application_id, name, code, type,
-			mysql_table_name, configuration, status, version,
-			created_at, updated_at
-		) VALUES (?, ?, ?, ?, ?, ?, 1, 1, ?, ?)
-	`, req.ApplicationID, req.Name, req.Code, req.Type,
-		req.MySQLTableName, configJSON,
-		time.Now(), time.Now())
+			application_id, name, code, type, mysql_table_name,
+			configuration, status, version, created_at, updated_at
+		) VALUES (
+			:application_id, :name, :code, :type, :mysql_table_name,
+			:configuration, :status, :version, NOW(), NOW()
+		)
+	`, dimension)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert config_dimensions failed: %v", err)
 	}
 
-	configID, err := result.LastInsertId()
+	// 获取插入的ID
+	id, err := result.LastInsertId()
 	if err != nil {
-		return err
+		return fmt.Errorf("get last insert id failed: %v", err)
 	}
 
-	// 记录版本
-	content := map[string]interface{}{
-		"name":             req.Name,
-		"code":             req.Code,
-		"type":             req.Type,
-		"mysql_table_name": req.MySQLTableName,
-		"configuration":    req.Configuration,
-	}
-	contentJSON, err := json.Marshal(content)
-	if err != nil {
-		return err
+	// 创建版本记录
+	version := &model.ConfigVersion{
+		ApplicationID: req.ApplicationID,
+		ConfigType:    "dimension",
+		ConfigID:      uint(id),
+		Version:       1,
+		Content:       string(config),
+		CreatorID:     creatorID,
 	}
 
-	_, err = tx.Exec(`
+	_, err = tx.NamedExec(`
 		INSERT INTO config_versions (
-			application_id, config_type, config_id,
-			version, content, creator_id, created_at
-		) VALUES (?, 'dimension', ?, 1, ?, ?, ?)
-	`, req.ApplicationID, configID, contentJSON, creatorID, time.Now())
+			application_id, config_type, config_id, version,
+			content, creator_id, created_at
+		) VALUES (
+			:application_id, :config_type, :config_id, :version,
+			:content, :creator_id, NOW()
+		)
+	`, version)
 	if err != nil {
-		return err
+		return fmt.Errorf("insert config_versions failed: %v", err)
 	}
 
-	return tx.Commit()
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction failed: %v", err)
+	}
+
+	return nil
 }
 
 // GetDimensionValues 获取维度值列表
 func (s *ConfigService) GetDimensionValues(dimensionID uint, filter map[string]any) ([]map[string]any, error) {
+	// 获取维度配置
 	var dimension model.ConfigDimension
-	err := model.DB.Get(&dimension, "SELECT * FROM config_dimensions WHERE id = ?", dimensionID)
-	if err == sql.ErrNoRows {
-		return nil, errors.New("维度不存在")
-	}
+	err := s.db.Get(&dimension, "SELECT * FROM config_dimensions WHERE id = ?", dimensionID)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get dimension failed: %v", err)
 	}
 
-	var config DimensionConfig
-	err = json.Unmarshal([]byte(dimension.Configuration), &config)
-	if err != nil {
-		return nil, err
+	// 解析维度配置
+	var config model.DimensionConfig
+	if err := json.Unmarshal([]byte(dimension.Configuration), &config); err != nil {
+		return nil, fmt.Errorf("unmarshal configuration failed: %v", err)
 	}
 
 	// 构建查询SQL
-	query := fmt.Sprintf("SELECT %s FROM %s WHERE 1=1",
-		strings.Join(config.Fields, ","),
-		dimension.MySQLTableName,
-	)
+	query := fmt.Sprintf("SELECT * FROM %s", dimension.MySQLTableName)
+	var params []any
 
 	// 添加过滤条件
-	args := make([]interface{}, 0)
-	if filter != nil {
-		for field, value := range filter {
-			query += " AND " + field + " = ?"
-			args = append(args, value)
+	if len(filter) > 0 {
+		query += " WHERE "
+		var conditions []string
+		for k, v := range filter {
+			conditions = append(conditions, fmt.Sprintf("%s = ?", k))
+			params = append(params, v)
 		}
-	}
-
-	// 添加配置中的过滤条件
-	if config.Filter != nil {
-		for field, value := range config.Filter {
-			query += " AND " + field + " = ?"
-			args = append(args, value)
+		query += fmt.Sprint(conditions[0])
+		for i := 1; i < len(conditions); i++ {
+			query += fmt.Sprintf(" AND %s", conditions[i])
 		}
 	}
 
 	// 添加排序
-	if len(config.Sort) > 0 {
-		query += " ORDER BY " + strings.Join(config.Sort, ",")
+	if config.OrderField != "" {
+		query += fmt.Sprintf(" ORDER BY %s", config.OrderField)
 	}
 
 	// 执行查询
 	var values []map[string]any
-	err = model.DB.Select(&values, query, args...)
-	return values, err
+	err = s.db.Select(&values, query, params...)
+	if err != nil {
+		return nil, fmt.Errorf("query dimension values failed: %v", err)
+	}
+
+	return values, nil
+}
+
+// UpdateTable 更新数据表配置
+func (s *ConfigService) UpdateTable(table *model.ConfigTable) error {
+	// TODO: 实现更新数据表配置的逻辑
+	return nil
+}
+
+// GetTable 获取数据表配置
+func (s *ConfigService) GetTable(id uint) (*model.ConfigTable, error) {
+	// TODO: 实现获取数据表配置的逻辑
+	return nil, nil
+}
+
+// DeleteTable 删除数据表配置
+func (s *ConfigService) DeleteTable(id uint) error {
+	// TODO: 实现删除数据表配置的逻辑
+	return nil
+}
+
+// ListTables 获取数据表配置列表
+func (s *ConfigService) ListTables(appID uint) ([]model.ConfigTable, error) {
+	// TODO: 实现获取数据表配置列表的逻辑
+	return nil, nil
+}
+
+// GetTableVersions 获取数据表配置版本历史
+func (s *ConfigService) GetTableVersions(id uint) ([]model.ConfigVersion, error) {
+	// TODO: 实现获取数据表配置版本历史的逻辑
+	return nil, nil
+}
+
+// RollbackTable 回滚数据表配置到指定版本
+func (s *ConfigService) RollbackTable(id uint, version int) error {
+	// TODO: 实现回滚数据表配置的逻辑
+	return nil
+}
+
+// UpdateDimension 更新维度配置
+func (s *ConfigService) UpdateDimension(dimension *model.ConfigDimension) error {
+	// TODO: 实现更新维度配置的逻辑
+	return nil
+}
+
+// GetDimension 获取维度配置
+func (s *ConfigService) GetDimension(id uint) (*model.ConfigDimension, error) {
+	// TODO: 实现获取维度配置的逻辑
+	return nil, nil
+}
+
+// DeleteDimension 删除维度配置
+func (s *ConfigService) DeleteDimension(id uint) error {
+	// TODO: 实现删除维度配置的逻辑
+	return nil
+}
+
+// ListDimensions 获取维度配置列表
+func (s *ConfigService) ListDimensions(appID uint) ([]model.ConfigDimension, error) {
+	// TODO: 实现获取维度配置列表的逻辑
+	return nil, nil
+}
+
+// GetDimensionVersions 获取维度配置版本历史
+func (s *ConfigService) GetDimensionVersions(id uint) ([]model.ConfigVersion, error) {
+	// TODO: 实现获取维度配置版本历史的逻辑
+	return nil, nil
+}
+
+// RollbackDimension 回滚维度配置到指定版本
+func (s *ConfigService) RollbackDimension(id uint, version int) error {
+	// TODO: 实现回滚维度配置的逻辑
+	return nil
+}
+
+// 以下是数据模型配置的服务方法...
+func (s *ConfigService) CreateModel(model *model.ConfigDataModel) error {
+	// TODO: 实现创建数据模型配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) UpdateModel(model *model.ConfigDataModel) error {
+	// TODO: 实现更新数据模型配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) GetModel(id uint) (*model.ConfigDataModel, error) {
+	// TODO: 实现获取数据模型配置的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) DeleteModel(id uint) error {
+	// TODO: 实现删除数据模型配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) ListModels(appID uint) ([]model.ConfigDataModel, error) {
+	// TODO: 实现获取数据模型配置列表的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) GetModelVersions(id uint) ([]model.ConfigVersion, error) {
+	// TODO: 实现获取数据模型配置版本历史的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) RollbackModel(id uint, version int) error {
+	// TODO: 实现回滚数据模型配置的逻辑
+	return nil
+}
+
+// 以下是表单配置的服务方法...
+func (s *ConfigService) CreateForm(form *model.ConfigForm) error {
+	// TODO: 实现创建表单配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) UpdateForm(form *model.ConfigForm) error {
+	// TODO: 实现更新表单配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) GetForm(id uint) (*model.ConfigForm, error) {
+	// TODO: 实现获取表单配置的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) DeleteForm(id uint) error {
+	// TODO: 实现删除表单配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) ListForms(appID uint) ([]model.ConfigForm, error) {
+	// TODO: 实现获取表单配置列表的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) GetFormVersions(id uint) ([]model.ConfigVersion, error) {
+	// TODO: 实现获取表单配置版本历史的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) RollbackForm(id uint, version int) error {
+	// TODO: 实现回滚表单配置的逻辑
+	return nil
+}
+
+// 以下是菜单配置的服务方法...
+func (s *ConfigService) CreateMenu(menu *model.ConfigMenu) error {
+	// TODO: 实现创建菜单配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) UpdateMenu(menu *model.ConfigMenu) error {
+	// TODO: 实现更新菜单配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) GetMenu(id uint) (*model.ConfigMenu, error) {
+	// TODO: 实现获取菜单配置的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) DeleteMenu(id uint) error {
+	// TODO: 实现删除菜单配置的逻辑
+	return nil
+}
+
+func (s *ConfigService) ListMenus(appID uint) ([]model.ConfigMenu, error) {
+	// TODO: 实现获取菜单配置列表的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) GetMenuVersions(id uint) ([]model.ConfigVersion, error) {
+	// TODO: 实现获取菜单配置版本历史的逻辑
+	return nil, nil
+}
+
+func (s *ConfigService) RollbackMenu(id uint, version int) error {
+	// TODO: 实现回滚菜单配置的逻辑
+	return nil
 }
