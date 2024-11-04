@@ -9,6 +9,13 @@ import (
 	"github.com/iiwish/lingjian/internal/service"
 )
 
+// RegisterConfigRoutes 注册配置相关路由
+func RegisterConfigRoutes(router *gin.RouterGroup) {
+	configService := service.NewConfigService(model.DB)
+	configAPI := NewConfigAPI(configService)
+	configAPI.RegisterRoutes(router)
+}
+
 // ConfigAPI 配置相关API处理器
 type ConfigAPI struct {
 	configService *service.ConfigService
@@ -74,18 +81,21 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 
 // CreateTable 创建数据表配置
 func (api *ConfigAPI) CreateTable(c *gin.Context) {
-	var table model.ConfigTable
-	if err := c.ShouldBindJSON(&table); err != nil {
+	var req service.CreateTableRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := api.configService.CreateTable(&table); err != nil {
+	// 从上下文中获取当前用户ID
+	userID := uint(c.GetInt64("user_id"))
+
+	if err := api.configService.CreateTable(&req, userID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, table)
+	c.JSON(http.StatusCreated, gin.H{"message": "数据表配置创建成功"})
 }
 
 // UpdateTable 更新数据表配置
@@ -200,21 +210,23 @@ func (api *ConfigAPI) RollbackTable(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// 以下是维度配置的API处理函数
 // CreateDimension 创建维度配置
 func (api *ConfigAPI) CreateDimension(c *gin.Context) {
-	var dimension model.ConfigDimension
-	if err := c.ShouldBindJSON(&dimension); err != nil {
+	var req service.CreateDimensionRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := api.configService.CreateDimension(&dimension); err != nil {
+	// 从上下文中获取当前用户ID
+	userID := uint(c.GetInt64("user_id"))
+
+	if err := api.configService.CreateDimension(&req, userID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, dimension)
+	c.JSON(http.StatusCreated, gin.H{"message": "维度配置创建成功"})
 }
 
 // UpdateDimension 更新维度配置
@@ -329,7 +341,6 @@ func (api *ConfigAPI) RollbackDimension(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// 以下是数据模型配置的API处理函数...
 // CreateModel 创建数据模型配置
 func (api *ConfigAPI) CreateModel(c *gin.Context) {
 	var model model.ConfigDataModel
@@ -458,7 +469,6 @@ func (api *ConfigAPI) RollbackModel(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// 以下是表单配置的API处理函数...
 // CreateForm 创建表单配置
 func (api *ConfigAPI) CreateForm(c *gin.Context) {
 	var form model.ConfigForm
@@ -587,7 +597,6 @@ func (api *ConfigAPI) RollbackForm(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// 以下是菜单配置的API处理函数...
 // CreateMenu 创建菜单配置
 func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 	var menu model.ConfigMenu
