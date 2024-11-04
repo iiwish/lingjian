@@ -6,20 +6,38 @@ import (
 	"errors"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/pkg/store"
 	"github.com/iiwish/lingjian/pkg/utils"
+	"github.com/mojocn/base64Captcha"
+	"github.com/redis/go-redis/v9"
 )
 
-type AuthService struct{}
+type AuthService struct {
+	store *store.RedisStore
+}
+
+func NewAuthService(redisClient *redis.Client) *AuthService {
+	return &AuthService{
+		store: store.NewRedisStore(redisClient),
+	}
+}
 
 type LoginRequest struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username   string `json:"username" binding:"required"`
+	Password   string `json:"password" binding:"required"`
+	CaptchaId  string `json:"captcha_id" binding:"required"`
+	CaptchaVal string `json:"captcha_val" binding:"required"`
 }
 
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 	ExpiresIn    int    `json:"expires_in"`
+}
+
+type CaptchaResponse struct {
+	CaptchaId  string `json:"captcha_id"`
+	CaptchaImg string `json:"captcha_img"`
 }
 
 // hashPassword 密码加密
@@ -29,8 +47,31 @@ func hashPassword(password string) string {
 	return hex.EncodeToString(hash.Sum(nil))
 }
 
+// GenerateCaptcha 生成验证码
+func (s *AuthService) GenerateCaptcha() (*CaptchaResponse, error) {
+	// 配置验证码参数
+	driver := base64Captcha.NewDriverDigit(40, 120, 4, 0.7, 80)
+	c := base64Captcha.NewCaptcha(driver, s.store)
+
+	// 生成验证码
+	id, b64s, _, err := c.Generate()
+	if err != nil {
+		return nil, errors.New("生成验证码失败")
+	}
+
+	return &CaptchaResponse{
+		CaptchaId:  id,
+		CaptchaImg: b64s,
+	}, nil
+}
+
 // Login 用户登录
 func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
+	// 验证验证码
+	if !s.store.Verify(req.CaptchaId, req.CaptchaVal, true) {
+		return nil, errors.New("验证码错误")
+	}
+
 	var user model.User
 	err := model.DB.Get(&user, "SELECT * FROM users WHERE username = ?", req.Username)
 	if err != nil {
@@ -57,6 +98,14 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 		return nil, err
 	}
 
+	// 存储令牌
+	if err := s.store.StoreAccessToken(user.ID, accessToken); err != nil {
+		return nil, err
+	}
+	if err := s.store.StoreRefreshToken(user.ID, refreshToken); err != nil {
+		return nil, err
+	}
+
 	return &LoginResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
@@ -66,13 +115,14 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 
 // RefreshToken 刷新访问令牌
 func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) {
-	claims, err := utils.ParseToken(refreshToken, utils.RefreshToken)
+	// 验证刷新令牌
+	userId, err := s.store.VerifyToken(refreshToken, "refresh")
 	if err != nil {
-		return nil, err
+		return nil, errors.New("无效的刷新令牌")
 	}
 
 	var user model.User
-	err = model.DB.Get(&user, "SELECT * FROM users WHERE id = ?", claims.UserID)
+	err = model.DB.Get(&user, "SELECT * FROM users WHERE id = ?", userId)
 	if err != nil {
 		return nil, errors.New("用户不存在")
 	}
@@ -87,9 +137,19 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 		return nil, err
 	}
 
+	// 存储新的访问令牌
+	if err := s.store.StoreAccessToken(user.ID, newAccessToken); err != nil {
+		return nil, err
+	}
+
 	return &LoginResponse{
 		AccessToken:  newAccessToken,
 		RefreshToken: refreshToken,
 		ExpiresIn:    7200, // 2小时
 	}, nil
+}
+
+// Logout 用户登出
+func (s *AuthService) Logout(userId uint) error {
+	return s.store.RemoveUserTokens(userId)
 }

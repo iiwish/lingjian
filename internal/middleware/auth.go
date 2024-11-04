@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/iiwish/lingjian/pkg/store"
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
@@ -24,8 +25,27 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		claims, err := utils.ParseToken(parts[1], utils.AccessToken)
+		token := parts[1]
+
+		// 从Redis验证token
+		redisStore := store.NewRedisStore(store.RedisClient)
+		userId, err := redisStore.VerifyToken(token, "access")
 		if err != nil {
+			utils.Error(c, 401, "无效的token")
+			c.Abort()
+			return
+		}
+
+		// 解析JWT获取详细信息
+		claims, err := utils.ParseToken(token, utils.AccessToken)
+		if err != nil {
+			utils.Error(c, 401, "无效的token")
+			c.Abort()
+			return
+		}
+
+		// 验证token中的用户ID是否匹配
+		if claims.UserID != userId {
 			utils.Error(c, 401, "无效的token")
 			c.Abort()
 			return
