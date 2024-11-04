@@ -23,13 +23,13 @@ func RegisterTaskRoutes(r *gin.RouterGroup) {
 }
 
 type CreateScheduledTaskRequest struct {
-	ApplicationID uint           `json:"application_id" binding:"required"`
-	Name          string         `json:"name" binding:"required"`
-	Type          string         `json:"type" binding:"required"`
-	Cron          string         `json:"cron" binding:"required"`
-	Content       map[string]any `json:"content" binding:"required"`
-	Timeout       int            `json:"timeout"`
-	RetryTimes    int            `json:"retry_times"`
+	AppID      uint           `json:"app_id" binding:"required"`
+	Name       string         `json:"name" binding:"required"`
+	Type       string         `json:"type" binding:"required"`
+	Cron       string         `json:"cron" binding:"required"`
+	Content    map[string]any `json:"content" binding:"required"`
+	Timeout    int            `json:"timeout"`
+	RetryTimes int            `json:"retry_times"`
 }
 
 // CreateScheduledTask 创建定时任务
@@ -42,7 +42,7 @@ func CreateScheduledTask(c *gin.Context) {
 
 	taskService := &service.TaskService{}
 	if err := taskService.CreateScheduledTask(
-		req.ApplicationID,
+		req.AppID,
 		req.Name,
 		req.Type,
 		req.Cron,
@@ -134,12 +134,12 @@ func ExecuteTask(c *gin.Context) {
 }
 
 type CreateElementTriggerRequest struct {
-	ApplicationID uint           `json:"application_id" binding:"required"`
-	ElementType   string         `json:"element_type" binding:"required"`
-	ElementID     uint           `json:"element_id" binding:"required"`
-	TriggerPoint  string         `json:"trigger_point" binding:"required"`
-	Type          string         `json:"type" binding:"required"`
-	Content       map[string]any `json:"content" binding:"required"`
+	AppID        uint           `json:"app_id" binding:"required"`
+	ElementType  string         `json:"element_type" binding:"required"`
+	ElementID    uint           `json:"element_id" binding:"required"`
+	TriggerPoint string         `json:"trigger_point" binding:"required"`
+	Type         string         `json:"type" binding:"required"`
+	Content      map[string]any `json:"content" binding:"required"`
 }
 
 // CreateElementTrigger 创建元素触发器
@@ -152,7 +152,7 @@ func CreateElementTrigger(c *gin.Context) {
 
 	taskService := &service.TaskService{}
 	if err := taskService.CreateElementTrigger(
-		req.ApplicationID,
+		req.AppID,
 		req.ElementType,
 		req.ElementID,
 		req.TriggerPoint,

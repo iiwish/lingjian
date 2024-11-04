@@ -20,7 +20,7 @@ func NewConfigService(db *sqlx.DB) *ConfigService {
 
 // CreateTableRequest 创建数据表配置请求
 type CreateTableRequest struct {
-	ApplicationID  uint               `json:"application_id" binding:"required"`
+	AppID          uint               `json:"app_id" binding:"required"`
 	Name           string             `json:"name" binding:"required"`
 	Code           string             `json:"code" binding:"required"`
 	Description    string             `json:"description"`
@@ -44,7 +44,7 @@ func (s *ConfigService) CreateTable(req *CreateTableRequest, creatorID uint) err
 
 	// 创建数据表配置
 	table := &model.ConfigTable{
-		ApplicationID:  req.ApplicationID,
+		AppID:          req.AppID,
 		Name:           req.Name,
 		Code:           req.Code,
 		Description:    req.Description,
@@ -65,10 +65,10 @@ func (s *ConfigService) CreateTable(req *CreateTableRequest, creatorID uint) err
 	// 插入数据表配置
 	result, err := tx.NamedExec(`
 		INSERT INTO config_tables (
-			application_id, name, code, description, mysql_table_name,
+			app_id, name, code, description, mysql_table_name,
 			fields, indexes, status, version, created_at, updated_at
 		) VALUES (
-			:application_id, :name, :code, :description, :mysql_table_name,
+			:app_id, :name, :code, :description, :mysql_table_name,
 			:fields, :indexes, :status, :version, NOW(), NOW()
 		)
 	`, table)
@@ -84,20 +84,20 @@ func (s *ConfigService) CreateTable(req *CreateTableRequest, creatorID uint) err
 
 	// 创建版本记录
 	version := &model.ConfigVersion{
-		ApplicationID: req.ApplicationID,
-		ConfigType:    "table",
-		ConfigID:      uint(id),
-		Version:       1,
-		Content:       string(fields), // 使用字段定义作为版本内容
-		CreatorID:     creatorID,
+		AppID:      req.AppID,
+		ConfigType: "table",
+		ConfigID:   uint(id),
+		Version:    1,
+		Content:    string(fields), // 使用字段定义作为版本内容
+		CreatorID:  creatorID,
 	}
 
 	_, err = tx.NamedExec(`
 		INSERT INTO config_versions (
-			application_id, config_type, config_id, version,
+			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
-			:application_id, :config_type, :config_id, :version,
+			:app_id, :config_type, :config_id, :version,
 			:content, :creator_id, NOW()
 		)
 	`, version)
@@ -115,7 +115,7 @@ func (s *ConfigService) CreateTable(req *CreateTableRequest, creatorID uint) err
 
 // CreateDimensionRequest 创建维度配置请求
 type CreateDimensionRequest struct {
-	ApplicationID  uint                  `json:"application_id" binding:"required"`
+	AppID          uint                  `json:"app_id" binding:"required"`
 	Name           string                `json:"name" binding:"required"`
 	Code           string                `json:"code" binding:"required"`
 	Type           string                `json:"type" binding:"required"`
@@ -133,7 +133,7 @@ func (s *ConfigService) CreateDimension(req *CreateDimensionRequest, creatorID u
 
 	// 创建维度配置
 	dimension := &model.ConfigDimension{
-		ApplicationID:  req.ApplicationID,
+		AppID:          req.AppID,
 		Name:           req.Name,
 		Code:           req.Code,
 		Type:           req.Type,
@@ -153,10 +153,10 @@ func (s *ConfigService) CreateDimension(req *CreateDimensionRequest, creatorID u
 	// 插入维度配置
 	result, err := tx.NamedExec(`
 		INSERT INTO config_dimensions (
-			application_id, name, code, type, mysql_table_name,
+			app_id, name, code, type, mysql_table_name,
 			configuration, status, version, created_at, updated_at
 		) VALUES (
-			:application_id, :name, :code, :type, :mysql_table_name,
+			:app_id, :name, :code, :type, :mysql_table_name,
 			:configuration, :status, :version, NOW(), NOW()
 		)
 	`, dimension)
@@ -172,20 +172,20 @@ func (s *ConfigService) CreateDimension(req *CreateDimensionRequest, creatorID u
 
 	// 创建版本记录
 	version := &model.ConfigVersion{
-		ApplicationID: req.ApplicationID,
-		ConfigType:    "dimension",
-		ConfigID:      uint(id),
-		Version:       1,
-		Content:       string(config),
-		CreatorID:     creatorID,
+		AppID:      req.AppID,
+		ConfigType: "dimension",
+		ConfigID:   uint(id),
+		Version:    1,
+		Content:    string(config),
+		CreatorID:  creatorID,
 	}
 
 	_, err = tx.NamedExec(`
 		INSERT INTO config_versions (
-			application_id, config_type, config_id, version,
+			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
-			:application_id, :config_type, :config_id, :version,
+			:app_id, :config_type, :config_id, :version,
 			:content, :creator_id, NOW()
 		)
 	`, version)

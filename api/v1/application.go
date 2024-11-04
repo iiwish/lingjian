@@ -6,14 +6,14 @@ import (
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
-// RegisterApplicationRoutes 注册应用相关路由
-func RegisterApplicationRoutes(r *gin.RouterGroup) {
-	app := r.Group("/applications")
+// RegisterAppRoutes 注册应用相关路由
+func RegisterAppRoutes(r *gin.RouterGroup) {
+	app := r.Group("/apps")
 	{
-		app.POST("", CreateApplication)
-		app.POST("/:app_id/users/:user_id", AssignApplicationToUser)
-		app.GET("/users/:user_id", GetUserApplications)
-		app.GET("/users/:user_id/default", GetDefaultApplication)
+		app.POST("", CreateApp)
+		app.POST("/:app_id/users/:user_id", AssignAppToUser)
+		app.GET("/users/:user_id", GetUserApps)
+		app.GET("/users/:user_id/default", GetDefaultApp)
 
 		// 模板相关路由
 		template := app.Group("/templates")
@@ -26,22 +26,22 @@ func RegisterApplicationRoutes(r *gin.RouterGroup) {
 	}
 }
 
-type CreateApplicationRequest struct {
+type CreateAppRequest struct {
 	Name        string `json:"name" binding:"required"`
 	Code        string `json:"code" binding:"required"`
 	Description string `json:"description"`
 }
 
-// CreateApplication 创建应用
-func CreateApplication(c *gin.Context) {
-	var req CreateApplicationRequest
+// CreateApp 创建应用
+func CreateApp(c *gin.Context) {
+	var req CreateAppRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
 	}
 
-	appService := &service.ApplicationService{}
-	if err := appService.CreateApplication(req.Name, req.Code, req.Description); err != nil {
+	appService := &service.AppService{}
+	if err := appService.CreateApp(req.Name, req.Code, req.Description); err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
@@ -49,13 +49,13 @@ func CreateApplication(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-type AssignApplicationRequest struct {
+type AssignAppRequest struct {
 	IsDefault bool `json:"is_default"`
 }
 
-// AssignApplicationToUser 为用户分配应用
-func AssignApplicationToUser(c *gin.Context) {
-	var req AssignApplicationRequest
+// AssignAppToUser 为用户分配应用
+func AssignAppToUser(c *gin.Context) {
+	var req AssignAppRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
@@ -64,8 +64,8 @@ func AssignApplicationToUser(c *gin.Context) {
 	userID := utils.ParseUint(c.Param("user_id"))
 	appID := utils.ParseUint(c.Param("app_id"))
 
-	appService := &service.ApplicationService{}
-	if err := appService.AssignApplicationToUser(userID, appID, req.IsDefault); err != nil {
+	appService := &service.AppService{}
+	if err := appService.AssignAppToUser(userID, appID, req.IsDefault); err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
@@ -73,12 +73,12 @@ func AssignApplicationToUser(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// GetUserApplications 获取用户的所有应用
-func GetUserApplications(c *gin.Context) {
+// GetUserApps 获取用户的所有应用
+func GetUserApps(c *gin.Context) {
 	userID := utils.ParseUint(c.Param("user_id"))
 
-	appService := &service.ApplicationService{}
-	apps, err := appService.GetUserApplications(userID)
+	appService := &service.AppService{}
+	apps, err := appService.GetUserApps(userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
 		return
@@ -87,12 +87,12 @@ func GetUserApplications(c *gin.Context) {
 	utils.Success(c, apps)
 }
 
-// GetDefaultApplication 获取用户的默认应用
-func GetDefaultApplication(c *gin.Context) {
+// GetDefaultApp 获取用户的默认应用
+func GetDefaultApp(c *gin.Context) {
 	userID := utils.ParseUint(c.Param("user_id"))
 
-	appService := &service.ApplicationService{}
-	app, err := appService.GetDefaultApplication(userID)
+	appService := &service.AppService{}
+	app, err := appService.GetDefaultApp(userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
 		return
@@ -117,8 +117,8 @@ func CreateTemplate(c *gin.Context) {
 	}
 
 	creatorID, _ := c.Get("user_id")
-	appService := &service.ApplicationService{}
-	if err := appService.CreateApplicationTemplate(
+	appService := &service.AppService{}
+	if err := appService.CreateAppTemplate(
 		req.Name,
 		req.Description,
 		req.Configuration,
@@ -134,8 +134,8 @@ func CreateTemplate(c *gin.Context) {
 
 // ListTemplates 列出应用模板
 func ListTemplates(c *gin.Context) {
-	appService := &service.ApplicationService{}
-	templates, err := appService.ListApplicationTemplates(1) // 只列出已上架的模板
+	appService := &service.AppService{}
+	templates, err := appService.ListAppTemplates(1) // 只列出已上架的模板
 	if err != nil {
 		utils.Error(c, 500, err.Error())
 		return
@@ -160,8 +160,8 @@ func CreateFromTemplate(c *gin.Context) {
 	templateID := utils.ParseUint(c.Param("template_id"))
 	userID, _ := c.Get("user_id")
 
-	appService := &service.ApplicationService{}
-	if err := appService.CreateApplicationFromTemplate(templateID, userID.(uint), req.Name, req.Code); err != nil {
+	appService := &service.AppService{}
+	if err := appService.CreateAppFromTemplate(templateID, userID.(uint), req.Name, req.Code); err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
@@ -173,7 +173,7 @@ func CreateFromTemplate(c *gin.Context) {
 func PublishTemplate(c *gin.Context) {
 	templateID := utils.ParseUint(c.Param("template_id"))
 
-	appService := &service.ApplicationService{}
+	appService := &service.AppService{}
 	if err := appService.PublishTemplate(templateID); err != nil {
 		utils.Error(c, 500, err.Error())
 		return

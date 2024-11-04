@@ -64,7 +64,7 @@ func main() {
 					// 注册RBAC相关路由
 					v1.RegisterRBACRoutes(rbacProtected)
 					// 注册应用相关路由
-					v1.RegisterApplicationRoutes(rbacProtected)
+					v1.RegisterAppRoutes(rbacProtected)
 					// 注册配置相关路由
 					v1.RegisterConfigRoutes(rbacProtected)
 					// 注册任务相关路由

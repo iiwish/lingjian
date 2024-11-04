@@ -21,7 +21,7 @@ type TaskMessage struct {
 }
 
 // CreateScheduledTask 创建定时任务
-func (s *TaskService) CreateScheduledTask(applicationID uint, name, taskType, cron string, content map[string]any, timeout, retryTimes int) error {
+func (s *TaskService) CreateScheduledTask(appID uint, name, taskType, cron string, content map[string]any, timeout, retryTimes int) error {
 	contentJSON, err := json.Marshal(content)
 	if err != nil {
 		return err
@@ -29,11 +29,11 @@ func (s *TaskService) CreateScheduledTask(applicationID uint, name, taskType, cr
 
 	_, err = model.DB.Exec(`
 		INSERT INTO scheduled_tasks (
-			application_id, name, type, cron,
+			app_id, name, type, cron,
 			content, timeout, retry_times, status,
 			created_at, updated_at
 		) VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-	`, applicationID, name, taskType, cron,
+	`, appID, name, taskType, cron,
 		contentJSON, timeout, retryTimes,
 		time.Now(), time.Now())
 
@@ -107,7 +107,7 @@ func (s *TaskService) GetTaskLogs(taskID uint, limit, offset int) ([]model.TaskL
 
 // CreateElementTrigger 创建元素触发器
 func (s *TaskService) CreateElementTrigger(
-	applicationID uint,
+	appID uint,
 	elementType string,
 	elementID uint,
 	triggerPoint string,
@@ -121,11 +121,11 @@ func (s *TaskService) CreateElementTrigger(
 
 	_, err = model.DB.Exec(`
 		INSERT INTO element_triggers (
-			application_id, element_type, element_id,
+			app_id, element_type, element_id,
 			trigger_point, type, content, status,
 			created_at, updated_at
 		) VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
-	`, applicationID, elementType, elementID,
+	`, appID, elementType, elementID,
 		triggerPoint, taskType, contentJSON,
 		time.Now(), time.Now())
 
