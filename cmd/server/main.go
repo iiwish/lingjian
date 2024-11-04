@@ -9,7 +9,7 @@ import (
 	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/queue"
-	"github.com/iiwish/lingjian/pkg/store"
+	"github.com/iiwish/lingjian/pkg/redis"
 	"github.com/spf13/viper"
 )
 
@@ -29,9 +29,7 @@ func init() {
 	}
 
 	// 初始化Redis连接
-	if err := store.InitRedis(); err != nil {
-		log.Fatalf("Failed to initialize Redis: %v", err)
-	}
+	redis.InitRedis()
 
 	// 初始化RabbitMQ连接
 	if err := queue.InitRabbitMQ(); err != nil {
@@ -39,7 +37,7 @@ func init() {
 	}
 
 	// 初始化认证服务
-	v1.InitAuthService(store.RedisClient)
+	v1.InitAuthService()
 }
 
 func main() {

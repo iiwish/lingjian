@@ -5,12 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	"github.com/iiwish/lingjian/pkg/redis"
 )
 
-type RedisStore struct {
-	client *redis.Client
-}
+type RedisStore struct{}
 
 var (
 	// 验证码相关
@@ -23,67 +21,76 @@ var (
 	userTokensKeyPrefix   = "user:tokens:"
 	accessTokenTTL        = 2 * time.Hour
 	refreshTokenTTL       = 7 * 24 * time.Hour
+
+	// 全局单例
+	globalStore *RedisStore
 )
 
-func NewRedisStore(client *redis.Client) *RedisStore {
-	return &RedisStore{
-		client: client,
+// NewRedisStore 获取RedisStore实例
+func NewRedisStore() *RedisStore {
+	if globalStore == nil {
+		globalStore = &RedisStore{}
 	}
+	return globalStore
 }
 
-// 验证码相关方法
+// Set 实现验证码存储接口
 func (s *RedisStore) Set(id string, value string) error {
 	key := captchaKeyPrefix + id
-	return s.client.Set(context.Background(), key, value, captchaTTL).Err()
+	return redis.Set(context.Background(), key, value, int(captchaTTL.Seconds()))
 }
 
+// Get 实现验证码存储接口
 func (s *RedisStore) Get(id string, clear bool) string {
 	key := captchaKeyPrefix + id
 	ctx := context.Background()
-	val, err := s.client.Get(ctx, key).Result()
+	val, err := redis.Get(ctx, key)
 	if err != nil {
 		return ""
 	}
 	if clear {
-		s.client.Del(ctx, key)
+		redis.Del(ctx, key)
 	}
 	return val
 }
 
+// Verify 实现验证码存储接口
 func (s *RedisStore) Verify(id, answer string, clear bool) bool {
 	v := s.Get(id, clear)
 	return v == answer
 }
 
-// token相关方法
+// StoreAccessToken 存储访问令牌
 func (s *RedisStore) StoreAccessToken(userId uint, token string) error {
 	ctx := context.Background()
 	key := fmt.Sprintf("%s%s", accessTokenKeyPrefix, token)
 	userKey := fmt.Sprintf("%s%d", userTokensKeyPrefix, userId)
 
 	// 存储token
-	if err := s.client.Set(ctx, key, userId, accessTokenTTL).Err(); err != nil {
+	if err := redis.Set(ctx, key, userId, int(accessTokenTTL.Seconds())); err != nil {
 		return err
 	}
 
 	// 将token添加到用户的token列表
-	return s.client.SAdd(ctx, userKey, token).Err()
+	return redis.Set(ctx, userKey, token, int(accessTokenTTL.Seconds()))
 }
 
+// StoreRefreshToken 存储刷新令牌
 func (s *RedisStore) StoreRefreshToken(userId uint, token string) error {
 	ctx := context.Background()
 	key := fmt.Sprintf("%s%s", refreshTokenKeyPrefix, token)
 	userKey := fmt.Sprintf("%s%d", userTokensKeyPrefix, userId)
 
 	// 存储token
-	if err := s.client.Set(ctx, key, userId, refreshTokenTTL).Err(); err != nil {
+	if err := redis.Set(ctx, key, userId, int(refreshTokenTTL.Seconds())); err != nil {
 		return err
 	}
 
 	// 将token添加到用户的token列表
-	return s.client.SAdd(ctx, userKey, token).Err()
+	return redis.Set(ctx, userKey, token, int(refreshTokenTTL.Seconds()))
 }
 
+// VerifyToken 验证令牌
 func (s *RedisStore) VerifyToken(token, tokenType string) (uint, error) {
 	ctx := context.Background()
 	var key string
@@ -97,31 +104,42 @@ func (s *RedisStore) VerifyToken(token, tokenType string) (uint, error) {
 		return 0, fmt.Errorf("invalid token type")
 	}
 
-	userId, err := s.client.Get(ctx, key).Uint64()
+	val, err := redis.Get(ctx, key)
 	if err != nil {
 		return 0, err
 	}
 
-	return uint(userId), nil
+	var userId uint
+	_, err = fmt.Sscanf(val, "%d", &userId)
+	if err != nil {
+		return 0, err
+	}
+
+	return userId, nil
 }
 
+// RemoveUserTokens 移除用户的所有令牌
 func (s *RedisStore) RemoveUserTokens(userId uint) error {
 	ctx := context.Background()
 	userKey := fmt.Sprintf("%s%d", userTokensKeyPrefix, userId)
 
-	// 获取用户的所有token
-	tokens, err := s.client.SMembers(ctx, userKey).Result()
+	// 获取用户的token
+	token, err := redis.Get(ctx, userKey)
 	if err != nil {
+		return nil // 如果没有找到token，视为成功
+	}
+
+	// 删除access token和refresh token
+	accessKey := fmt.Sprintf("%s%s", accessTokenKeyPrefix, token)
+	refreshKey := fmt.Sprintf("%s%s", refreshTokenKeyPrefix, token)
+
+	if err := redis.Del(ctx, accessKey); err != nil {
+		return err
+	}
+	if err := redis.Del(ctx, refreshKey); err != nil {
 		return err
 	}
 
-	// 删除所有token
-	for _, token := range tokens {
-		accessKey := fmt.Sprintf("%s%s", accessTokenKeyPrefix, token)
-		refreshKey := fmt.Sprintf("%s%s", refreshTokenKeyPrefix, token)
-		s.client.Del(ctx, accessKey, refreshKey)
-	}
-
-	// 删除用户的token集合
-	return s.client.Del(ctx, userKey).Err()
+	// 删除用户的token记录
+	return redis.Del(ctx, userKey)
 }

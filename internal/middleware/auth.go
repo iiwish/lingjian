@@ -10,6 +10,8 @@ import (
 
 // AuthMiddleware 认证中间件
 func AuthMiddleware() gin.HandlerFunc {
+	redisStore := store.NewRedisStore()
+
 	return func(c *gin.Context) {
 		auth := c.GetHeader("Authorization")
 		if auth == "" {
@@ -28,7 +30,6 @@ func AuthMiddleware() gin.HandlerFunc {
 		token := parts[1]
 
 		// 从Redis验证token
-		redisStore := store.NewRedisStore(store.RedisClient)
 		userId, err := redisStore.VerifyToken(token, "access")
 		if err != nil {
 			utils.Error(c, 401, "无效的token")

@@ -9,16 +9,15 @@ import (
 	"github.com/iiwish/lingjian/pkg/store"
 	"github.com/iiwish/lingjian/pkg/utils"
 	"github.com/mojocn/base64Captcha"
-	"github.com/redis/go-redis/v9"
 )
 
 type AuthService struct {
 	store *store.RedisStore
 }
 
-func NewAuthService(redisClient *redis.Client) *AuthService {
+func NewAuthService() *AuthService {
 	return &AuthService{
-		store: store.NewRedisStore(redisClient),
+		store: store.NewRedisStore(),
 	}
 }
 

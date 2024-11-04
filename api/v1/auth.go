@@ -4,14 +4,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/service"
 	"github.com/iiwish/lingjian/pkg/utils"
-	"github.com/redis/go-redis/v9"
 )
 
 var authService *service.AuthService
 
 // InitAuthService 初始化认证服务
-func InitAuthService(redisClient *redis.Client) {
-	authService = service.NewAuthService(redisClient)
+func InitAuthService() {
+	authService = service.NewAuthService()
 }
 
 // RegisterAuthRoutes 注册认证相关路由
