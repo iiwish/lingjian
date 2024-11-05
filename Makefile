@@ -79,14 +79,15 @@ init-db:
 
 # 生成API文档
 swagger:
-	@echo "Generating Swagger documentation..."
-	@if command -v swag >/dev/null; then \
-		swag init -g cmd/server/main.go; \
-	else \
-		echo "swag is not installed. Installing..."; \
-		go install github.com/swaggo/swag/cmd/swag@latest; \
-		swag init -g cmd/server/main.go; \
-	fi
+    @echo "Generating Swagger documentation..."
+    @if command -v swag >/dev/null; then \
+        swag init -g cmd/server/main.go; \
+    else \
+        echo "swag is not installed. Installing..."; \
+        go install github.com/swaggo/swag/cmd/swag@latest; \
+        export PATH=$$PATH:$(shell go env GOPATH)/bin; \
+        swag init -g cmd/server/main.go; \
+    fi
 
 # 依赖管理
 deps:
@@ -110,8 +111,8 @@ dev-server:
 		air -c .air.toml; \
 	else \
 		echo "air is not installed. Installing..."; \
-		go install github.com/cosmtrek/air@latest; \
-		air -c .air.toml; \
+		GO111MODULE=on go install github.com/air-verse/air@latest; \
+		$(HOME)/go/bin/air -c .air.toml; \
 	fi
 
 # 帮助信息
