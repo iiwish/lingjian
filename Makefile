@@ -79,15 +79,15 @@ init-db:
 
 # 生成API文档
 swagger:
-    @echo "Generating Swagger documentation..."
-    @if command -v swag >/dev/null; then \
-        swag init -g cmd/server/main.go; \
-    else \
-        echo "swag is not installed. Installing..."; \
-        go install github.com/swaggo/swag/cmd/swag@latest; \
-        export PATH=$$PATH:$(shell go env GOPATH)/bin; \
-        swag init -g cmd/server/main.go; \
-    fi
+	@echo "Generating Swagger documentation..."
+	@if command -v swag >/dev/null; then \
+		swag init -g cmd/server/main.go; \
+	else \
+		echo "swag is not installed. Installing..."; \
+		go install github.com/swaggo/swag/cmd/swag@latest; \
+		$(shell go env GOPATH)/bin/swag init -g cmd/server/main.go; \
+	fi
+	@echo "Swagger documentation generated. Visit http://localhost:8081/swagger/index.html when server is running."
 
 # 依赖管理
 deps:
@@ -106,7 +106,7 @@ vet:
 	@go vet ./...
 
 # 开发模式运行（支持热重载）
-dev-server:
+dev-server: swagger
 	@if command -v air >/dev/null; then \
 		air -c .air.toml; \
 	else \
@@ -130,4 +130,4 @@ help:
 	@echo "  deps         - Download and tidy dependencies"
 	@echo "  fmt          - Format code"
 	@echo "  vet          - Check code for common errors"
-	@echo "  dev-server   - Run server in development mode with hot reload"
+	@echo "  dev-server   - Run server in development mode with hot reload (includes swagger generation)"

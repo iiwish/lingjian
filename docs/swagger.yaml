@@ -1,5 +1,79 @@
 basePath: /api/v1
-host: localhost:8080
+definitions:
+  service.CaptchaResponse:
+    properties:
+      captcha_id:
+        description: 验证码ID
+        example: captcha-123
+        type: string
+      captcha_img:
+        description: Base64编码的验证码图片
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+        type: string
+    type: object
+  service.LoginRequest:
+    properties:
+      captcha_id:
+        description: 验证码ID
+        example: captcha-123
+        type: string
+      captcha_val:
+        description: 验证码值
+        example: "1234"
+        type: string
+      password:
+        description: 密码
+        example: "123456"
+        type: string
+      username:
+        description: 用户名
+        example: admin
+        type: string
+    required:
+    - captcha_id
+    - captcha_val
+    - password
+    - username
+    type: object
+  service.LoginResponse:
+    properties:
+      access_token:
+        description: 访问令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_in:
+        description: 访问令牌过期时间（秒）
+        example: 7200
+        type: integer
+      refresh_token:
+        description: 刷新令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  service.TokenResponse:
+    properties:
+      access_token:
+        description: 访问令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_in:
+        description: 访问令牌过期时间（秒）
+        example: 7200
+        type: integer
+      refresh_token:
+        description: 刷新令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  utils.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+host: localhost:8081
 info:
   contact:
     email: support@swagger.io
@@ -12,7 +86,117 @@ info:
   termsOfService: http://swagger.io/terms/
   title: 灵剑服务器API
   version: "1.0"
-paths: {}
+paths:
+  /auth/captcha:
+    get:
+      consumes:
+      - application/json
+      description: 生成图形验证码
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.CaptchaResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取验证码
+      tags:
+      - 认证
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用用户名和密码登录
+      parameters:
+      - description: 登录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 用户登录
+      tags:
+      - 认证
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: 注销用户登录状态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: 用户登出
+      tags:
+      - 认证
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: 使用刷新令牌获取新的访问令牌
+      parameters:
+      - description: 刷新令牌
+        in: header
+        name: X-Refresh-Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/service.TokenResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 刷新令牌
+      tags:
+      - 认证
 securityDefinitions:
   Bearer:
     description: Type "Bearer" followed by a space and JWT token.

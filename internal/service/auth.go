@@ -21,22 +21,44 @@ func NewAuthService() *AuthService {
 	}
 }
 
+// LoginRequest 登录请求参数
 type LoginRequest struct {
-	Username   string `json:"username" binding:"required"`
-	Password   string `json:"password" binding:"required"`
-	CaptchaId  string `json:"captcha_id" binding:"required"`
-	CaptchaVal string `json:"captcha_val" binding:"required"`
+	// 用户名
+	Username string `json:"username" binding:"required" example:"admin"`
+	// 密码
+	Password string `json:"password" binding:"required" example:"123456"`
+	// 验证码ID
+	CaptchaId string `json:"captcha_id" binding:"required" example:"captcha-123"`
+	// 验证码值
+	CaptchaVal string `json:"captcha_val" binding:"required" example:"1234"`
 }
 
+// LoginResponse 登录响应
 type LoginResponse struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ExpiresIn    int    `json:"expires_in"`
+	// 访问令牌
+	AccessToken string `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	// 刷新令牌
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	// 访问令牌过期时间（秒）
+	ExpiresIn int `json:"expires_in" example:"7200"`
 }
 
+// CaptchaResponse 验证码响应
 type CaptchaResponse struct {
-	CaptchaId  string `json:"captcha_id"`
-	CaptchaImg string `json:"captcha_img"`
+	// 验证码ID
+	CaptchaId string `json:"captcha_id" example:"captcha-123"`
+	// Base64编码的验证码图片
+	CaptchaImg string `json:"captcha_img" example:"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."`
+}
+
+// TokenResponse 令牌响应
+type TokenResponse struct {
+	// 访问令牌
+	AccessToken string `json:"access_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	// 刷新令牌
+	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+	// 访问令牌过期时间（秒）
+	ExpiresIn int `json:"expires_in" example:"7200"`
 }
 
 // hashPassword 密码加密

@@ -23,7 +23,291 @@ const docTemplate = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {},
+    "paths": {
+        "/auth/captcha": {
+            "get": {
+                "description": "生成图形验证码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "获取验证码",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.CaptchaResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "使用用户名和密码登录",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "用户登录",
+                "parameters": [
+                    {
+                        "description": "登录请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.LoginResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logout": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "注销用户登录状态",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "用户登出",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/refresh": {
+            "post": {
+                "description": "使用刷新令牌获取新的访问令牌",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "认证"
+                ],
+                "summary": "刷新令牌",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "刷新令牌",
+                        "name": "X-Refresh-Token",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/service.TokenResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "service.CaptchaResponse": {
+            "type": "object",
+            "properties": {
+                "captcha_id": {
+                    "description": "验证码ID",
+                    "type": "string",
+                    "example": "captcha-123"
+                },
+                "captcha_img": {
+                    "description": "Base64编码的验证码图片",
+                    "type": "string",
+                    "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+                }
+            }
+        },
+        "service.LoginRequest": {
+            "type": "object",
+            "required": [
+                "captcha_id",
+                "captcha_val",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "captcha_id": {
+                    "description": "验证码ID",
+                    "type": "string",
+                    "example": "captcha-123"
+                },
+                "captcha_val": {
+                    "description": "验证码值",
+                    "type": "string",
+                    "example": "1234"
+                },
+                "password": {
+                    "description": "密码",
+                    "type": "string",
+                    "example": "123456"
+                },
+                "username": {
+                    "description": "用户名",
+                    "type": "string",
+                    "example": "admin"
+                }
+            }
+        },
+        "service.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "description": "访问令牌",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "expires_in": {
+                    "description": "访问令牌过期时间（秒）",
+                    "type": "integer",
+                    "example": 7200
+                },
+                "refresh_token": {
+                    "description": "刷新令牌",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "service.TokenResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "description": "访问令牌",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "expires_in": {
+                    "description": "访问令牌过期时间（秒）",
+                    "type": "integer",
+                    "example": 7200
+                },
+                "refresh_token": {
+                    "description": "刷新令牌",
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "utils.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        }
+    },
     "securityDefinitions": {
         "Bearer": {
             "description": "Type \"Bearer\" followed by a space and JWT token.",
@@ -37,7 +321,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:8080",
+	Host:             "localhost:8081",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "灵剑服务器API",
