@@ -6,13 +6,35 @@ import (
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/iiwish/lingjian/api/v1"
+	_ "github.com/iiwish/lingjian/docs" // 导入swagger文档
 	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/queue"
 	"github.com/iiwish/lingjian/pkg/redis"
 	"github.com/spf13/viper"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title           灵剑服务器API
+// @version         1.0
+// @description     灵剑服务器API文档
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host      localhost:8081
+// @BasePath  /api/v1
+
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func init() {
 	// 加载配置文件
 	viper.SetConfigName("config")
@@ -51,6 +73,9 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
+	// Swagger文档路由
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	// API路由
 	api := r.Group("/api")
 	{
@@ -83,6 +108,8 @@ func main() {
 
 	// 启动服务器
 	port := viper.GetString("server.port")
+	log.Printf("Server is running on http://localhost:%s", port)
+	log.Printf("Swagger文档地址: http://localhost:%s/swagger/index.html", port)
 	if err := r.Run(fmt.Sprintf(":%s", port)); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

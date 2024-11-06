@@ -24,7 +24,14 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 	}
 }
 
-// GetCaptcha 获取验证码
+// @Summary      获取验证码
+// @Description  生成图形验证码
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.Response{data=service.CaptchaResponse}
+// @Failure      400  {object}  utils.Response
+// @Router       /auth/captcha [get]
 func GetCaptcha(c *gin.Context) {
 	resp, err := authService.GenerateCaptcha()
 	if err != nil {
@@ -35,7 +42,15 @@ func GetCaptcha(c *gin.Context) {
 	utils.Success(c, resp)
 }
 
-// Login 用户登录
+// @Summary      用户登录
+// @Description  使用用户名和密码登录
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Param        request body service.LoginRequest true "登录请求参数"
+// @Success      200  {object}  utils.Response{data=service.LoginResponse}
+// @Failure      400  {object}  utils.Response
+// @Router       /auth/login [post]
 func Login(c *gin.Context) {
 	var req service.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -52,7 +67,15 @@ func Login(c *gin.Context) {
 	utils.Success(c, resp)
 }
 
-// RefreshToken 刷新访问令牌
+// @Summary      刷新令牌
+// @Description  使用刷新令牌获取新的访问令牌
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Param        X-Refresh-Token header string true "刷新令牌"
+// @Success      200  {object}  utils.Response{data=service.TokenResponse}
+// @Failure      400  {object}  utils.Response
+// @Router       /auth/refresh [post]
 func RefreshToken(c *gin.Context) {
 	refreshToken := c.GetHeader("X-Refresh-Token")
 	if refreshToken == "" {
@@ -69,7 +92,16 @@ func RefreshToken(c *gin.Context) {
 	utils.Success(c, resp)
 }
 
-// Logout 用户登出
+// @Summary      用户登出
+// @Description  注销用户登录状态
+// @Tags         认证
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Success      200  {object}  utils.Response
+// @Failure      401  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Router       /auth/logout [post]
 func Logout(c *gin.Context) {
 	// 从JWT中获取用户ID
 	userId := c.GetUint("user_id")
