@@ -26,7 +26,7 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 
 // @Summary      获取验证码
 // @Description  生成图形验证码
-// @Tags         认证
+// @Tags         Auth
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  utils.Response{data=service.CaptchaResponse}
@@ -44,7 +44,7 @@ func GetCaptcha(c *gin.Context) {
 
 // @Summary      用户登录
 // @Description  使用用户名和密码登录
-// @Tags         认证
+// @Tags         Auth
 // @Accept       json
 // @Produce      json
 // @Param        request body service.LoginRequest true "登录请求参数"
@@ -69,7 +69,7 @@ func Login(c *gin.Context) {
 
 // @Summary      刷新令牌
 // @Description  使用刷新令牌获取新的访问令牌
-// @Tags         认证
+// @Tags         Auth
 // @Accept       json
 // @Produce      json
 // @Param        X-Refresh-Token header string true "刷新令牌"
@@ -94,7 +94,7 @@ func RefreshToken(c *gin.Context) {
 
 // @Summary      用户登出
 // @Description  注销用户登录状态
-// @Tags         认证
+// @Tags         Auth
 // @Accept       json
 // @Produce      json
 // @Security     Bearer

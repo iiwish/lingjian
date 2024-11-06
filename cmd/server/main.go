@@ -16,19 +16,14 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title           灵剑服务器API
+// @title           灵简服务端API
 // @version         1.0
-// @description     灵剑服务器API文档
-// @termsOfService  http://swagger.io/terms/
-
-// @contact.name   API Support
-// @contact.url    http://www.swagger.io/support
-// @contact.email  support@swagger.io
+// @description     灵简服务端API文档
 
 // @license.name  Apache 2.0
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host      localhost:8081
+// @host      localhost:8080
 // @BasePath  /api/v1
 
 // @securityDefinitions.apikey Bearer

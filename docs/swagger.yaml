@@ -73,18 +73,14 @@ definitions:
       message:
         type: string
     type: object
-host: localhost:8081
+host: localhost:8080
 info:
-  contact:
-    email: support@swagger.io
-    name: API Support
-    url: http://www.swagger.io/support
-  description: 灵剑服务器API文档
+  contact: {}
+  description: 灵简服务端API文档
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: http://swagger.io/terms/
-  title: 灵剑服务器API
+  title: 灵简服务端API
   version: "1.0"
 paths:
   /auth/captcha:
