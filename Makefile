@@ -103,6 +103,8 @@ init-db:
 	@mysql -h $(DB_HOST) -P $(DB_PORT) -u $(DB_USER) -p$(DB_PASS) $(DB_NAME) < internal/model/schema_application.sql
 	@mysql -h $(DB_HOST) -P $(DB_PORT) -u $(DB_USER) -p$(DB_PASS) $(DB_NAME) < internal/model/schema_config.sql
 	@mysql -h $(DB_HOST) -P $(DB_PORT) -u $(DB_USER) -p$(DB_PASS) $(DB_NAME) < internal/model/schema_task.sql
+	@echo "Initializing default data..."
+	@mysql -h $(DB_HOST) -P $(DB_PORT) -u $(DB_USER) -p$(DB_PASS) $(DB_NAME) < internal/model/init_default_data.sql
 
 # 生成API文档
 docs:
@@ -157,7 +159,7 @@ help:
 	@echo "  lint             - Run linter"
 	@echo "  run-server       - Build and run server"
 	@echo "  run-worker       - Build and run worker"
-	@echo "  init-db          - Initialize database"
+	@echo "  init-db          - Initialize database and create default admin account"
 	@echo "  init-test-db     - Initialize test database"
 	@echo "  docs             - Generate API documentation"
 	@echo "  deps             - Download and tidy dependencies"
