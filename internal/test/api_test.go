@@ -32,10 +32,16 @@ func TestAPIFlow(t *testing.T) {
 			"description": "这是一个测试应用",
 		}
 		w := helper.MakeRequest(t, "POST", "/api/v1/apps", appData)
+		// 添加错误响应日志
+		if w.Code != 200 {
+			t.Logf("创建应用失败，响应状态码: %d", w.Code)
+			t.Logf("响应内容: %s", w.Body.String())
+		}
 		resp := helper.AssertSuccess(t, w)
 		if data, ok := resp["data"].(map[string]interface{}); ok {
 			if id, ok := data["id"].(float64); ok {
 				appID = uint(id)
+				t.Logf("创建的应用ID: %d", appID)
 			}
 		}
 	})
@@ -48,6 +54,11 @@ func TestAPIFlow(t *testing.T) {
 			"app_code": "test_app",
 		}
 		w := helper.MakeRequest(t, "POST", "/api/v1/rbac/roles", roleData)
+		// 添加错误响应日志
+		if w.Code != 200 {
+			t.Logf("创建角色失败，响应状态码: %d", w.Code)
+			t.Logf("响应内容: %s", w.Body.String())
+		}
 		helper.AssertSuccess(t, w)
 	})
 
@@ -58,6 +69,11 @@ func TestAPIFlow(t *testing.T) {
 			"app_code":         "test_app",
 		}
 		w := helper.MakeRequest(t, "POST", "/api/v1/rbac/roles/app_admin/permissions", permData)
+		// 添加错误响应日志
+		if w.Code != 200 {
+			t.Logf("分配权限失败，响应状态码: %d", w.Code)
+			t.Logf("响应内容: %s", w.Body.String())
+		}
 		helper.AssertSuccess(t, w)
 	})
 
@@ -75,12 +91,22 @@ func TestAPIFlow(t *testing.T) {
 			"retry_times": 3,
 		}
 		w := helper.MakeRequest(t, "POST", "/api/v1/tasks/scheduled", taskData)
+		// 添加错误响应日志
+		if w.Code != 200 {
+			t.Logf("创建定时任务失败，响应状态码: %d", w.Code)
+			t.Logf("响应内容: %s", w.Body.String())
+		}
 		helper.AssertSuccess(t, w)
 	})
 
 	// 7. 测试获取应用列表
 	t.Run("获取应用列表", func(t *testing.T) {
 		w := helper.MakeRequest(t, "GET", "/api/v1/apps", nil)
+		// 添加错误响应日志
+		if w.Code != 200 {
+			t.Logf("获取应用列表失败，响应状态码: %d", w.Code)
+			t.Logf("响应内容: %s", w.Body.String())
+		}
 		resp := helper.AssertSuccess(t, w)
 
 		// 安全地获取data字段
@@ -89,21 +115,16 @@ func TestAPIFlow(t *testing.T) {
 			t.Fatal("响应中没有data字段")
 		}
 
-		// 安全地将data转换为[]interface{}
-		var appList []interface{}
-		switch v := data.(type) {
-		case []interface{}:
-			appList = v
-		case map[string]interface{}:
-			if items, ok := v["items"].([]interface{}); ok {
-				appList = items
-			} else if list, ok := v["list"].([]interface{}); ok {
-				appList = list
-			} else {
-				t.Fatal("data字段中没有找到items或list")
-			}
-		default:
-			t.Fatal("data字段格式不正确")
+		// 获取items字段
+		items, ok := data.(map[string]interface{})["items"]
+		if !ok {
+			t.Fatal("data字段中没有items字段")
+		}
+
+		// 将items转换为[]interface{}
+		appList, ok := items.([]interface{})
+		if !ok {
+			t.Fatal("items字段不是数组类型")
 		}
 
 		// 验证返回的应用列表中包含我们创建的应用

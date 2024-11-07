@@ -10,9 +10,20 @@ import (
 // AppService 应用服务
 type AppService struct{}
 
+// App 应用结构体
+type App struct {
+	ID          uint      `db:"id" json:"id"`
+	Name        string    `db:"name" json:"name"`
+	Code        string    `db:"code" json:"code"`
+	Description string    `db:"description" json:"description"`
+	Status      int       `db:"status" json:"status"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
+}
+
 // ListApps 获取所有应用列表
 func (s *AppService) ListApps() (map[string]interface{}, error) {
-	var apps []map[string]interface{}
+	var apps []App
 	query := `
 		SELECT * FROM apps 
 		WHERE status = 1

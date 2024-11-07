@@ -85,6 +85,7 @@ func cleanTestData() error {
 	for _, table := range tables {
 		_, err := model.DB.Exec("DELETE FROM " + table)
 		if err != nil {
+			log.Printf("Error cleaning table %s: %v", table, err)
 			return err
 		}
 	}
@@ -94,8 +95,11 @@ func cleanTestData() error {
 
 // initTestData 初始化测试数据
 func initTestData() error {
+	log.Println("开始初始化测试数据...")
+
 	// 先清理现有数据
 	if err := cleanTestData(); err != nil {
+		log.Printf("清理数据失败: %v", err)
 		return err
 	}
 
@@ -103,15 +107,18 @@ func initTestData() error {
 
 	// 创建测试用户（使用加密后的密码）
 	hashedPassword := hashPassword("admin123")
+	log.Printf("创建测试用户，密码哈希: %s", hashedPassword)
 	_, err := model.DB.Exec(`
 		INSERT INTO users (username, password, email, phone, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`, "admin", hashedPassword, "admin@test.com", "13800138000", 1, now, now)
 	if err != nil {
+		log.Printf("创建测试用户失败: %v", err)
 		return fmt.Errorf("failed to create test user: %v", err)
 	}
 
 	// 创建测试应用
+	log.Println("创建测试应用...")
 	_, err = model.DB.Exec(`
 		INSERT INTO apps (name, code, description, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?),
@@ -121,19 +128,23 @@ func initTestData() error {
 		"测试应用2", "test_app2", "用于测试的应用2", 1, now, now,
 	)
 	if err != nil {
+		log.Printf("创建测试应用失败: %v", err)
 		return fmt.Errorf("failed to create test apps: %v", err)
 	}
 
 	// 创建测试角色
+	log.Println("创建测试角色...")
 	_, err = model.DB.Exec(`
 		INSERT INTO roles (name, code, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?)
 	`, "管理员", "admin", 1, now, now)
 	if err != nil {
+		log.Printf("创建测试角色失败: %v", err)
 		return fmt.Errorf("failed to create test role: %v", err)
 	}
 
 	// 创建测试权限
+	log.Println("创建测试权限...")
 	_, err = model.DB.Exec(`
 		INSERT INTO permissions (name, code, type, path, method, status, created_at, updated_at)
 		VALUES 
@@ -150,10 +161,12 @@ func initTestData() error {
 		"创建任务", "create_task", "api", "/api/v1/tasks/scheduled", "POST", 1, now, now,
 	)
 	if err != nil {
+		log.Printf("创建测试权限失败: %v", err)
 		return fmt.Errorf("failed to create test permissions: %v", err)
 	}
 
 	// 分配角色给用户
+	log.Println("分配角色给用户...")
 	_, err = model.DB.Exec(`
 		INSERT INTO user_roles (user_id, role_id)
 		SELECT u.id, r.id
@@ -161,10 +174,12 @@ func initTestData() error {
 		WHERE u.username = 'admin' AND r.code = 'admin'
 	`)
 	if err != nil {
+		log.Printf("分配角色给用户失败: %v", err)
 		return fmt.Errorf("failed to assign role to user: %v", err)
 	}
 
 	// 分配权限给角色
+	log.Println("分配权限给角色...")
 	_, err = model.DB.Exec(`
 		INSERT INTO role_permissions (role_id, permission_id)
 		SELECT r.id, p.id
@@ -172,9 +187,11 @@ func initTestData() error {
 		WHERE r.code = 'admin'
 	`)
 	if err != nil {
+		log.Printf("分配权限给角色失败: %v", err)
 		return fmt.Errorf("failed to assign permissions to role: %v", err)
 	}
 
+	log.Println("测试数据初始化完成")
 	return nil
 }
 
@@ -189,7 +206,9 @@ type TestHelper struct {
 func NewTestHelper(t *testing.T) *TestHelper {
 	// 初始化测试数据
 	err := initTestData()
-	assert.NoError(t, err, "Failed to initialize test data")
+	if err != nil {
+		t.Fatalf("Failed to initialize test data: %v", err)
+	}
 
 	helper := &TestHelper{
 		Router: setupTestRouter(),

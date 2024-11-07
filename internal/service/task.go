@@ -43,14 +43,14 @@ type TaskService struct {
 func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, content map[string]interface{}, timeout, retryTimes int) error {
 	// 检查任务类型
 	if typ != TaskTypeSQL && typ != TaskTypeHTTP {
-		return errors.New("不支持的任务类型")
+		return fmt.Errorf("不支持的任务类型: %s", typ)
 	}
 
 	// 检查应用是否存在
 	var appCount int
 	err := model.DB.Get(&appCount, "SELECT COUNT(*) FROM apps WHERE id = ?", appID)
 	if err != nil {
-		return err
+		return fmt.Errorf("检查应用失败: %v", err)
 	}
 	if appCount == 0 {
 		return errors.New("应用不存在")
@@ -60,7 +60,7 @@ func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, co
 	var taskCount int
 	err = model.DB.Get(&taskCount, "SELECT COUNT(*) FROM scheduled_tasks WHERE app_id = ? AND name = ?", appID, name)
 	if err != nil {
-		return err
+		return fmt.Errorf("检查任务名称失败: %v", err)
 	}
 	if taskCount > 0 {
 		return errors.New("任务名称已存在")
@@ -68,13 +68,21 @@ func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, co
 
 	// 验证任务内容
 	if err := s.validateTaskContent(typ, content); err != nil {
-		return err
+		return fmt.Errorf("验证任务内容失败: %v", err)
 	}
 
 	// 序列化任务内容
 	contentJSON, err := json.Marshal(content)
 	if err != nil {
-		return err
+		return fmt.Errorf("序列化任务内容失败: %v", err)
+	}
+
+	// 设置默认值
+	if timeout <= 0 {
+		timeout = 60 // 默认60秒超时
+	}
+	if retryTimes < 0 {
+		retryTimes = 0
 	}
 
 	// 创建任务
@@ -84,7 +92,11 @@ func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, co
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, appID, name, typ, cron, string(contentJSON), timeout, retryTimes, TaskStatusEnabled, time.Now(), time.Now())
 
-	return err
+	if err != nil {
+		return fmt.Errorf("创建任务失败: %v", err)
+	}
+
+	return nil
 }
 
 // UpdateScheduledTask 更新定时任务
@@ -365,7 +377,7 @@ func (s *TaskService) validateTaskContent(typ string, content map[string]interfa
 
 // validateSQL SQL安全检查
 func (s *TaskService) validateSQL(sql string) error {
-	sql = strings.ToUpper(sql)
+	sqlUpper := strings.ToUpper(sql)
 
 	// 禁止危险操作
 	dangerousKeywords := []string{
@@ -373,8 +385,11 @@ func (s *TaskService) validateSQL(sql string) error {
 		"GRANT", "REVOKE", "RENAME",
 	}
 
+	// 检查每个关键字是否作为独立的单词出现
 	for _, keyword := range dangerousKeywords {
-		if strings.Contains(sql, keyword) {
+		// 在关键字前后添加空格，以确保匹配完整的单词
+		pattern := " " + keyword + " "
+		if strings.Contains(" "+sqlUpper+" ", pattern) {
 			return fmt.Errorf("SQL语句包含危险关键字: %s", keyword)
 		}
 	}
