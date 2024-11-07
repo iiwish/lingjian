@@ -613,7 +613,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.CreateDimensionRequest"
+                            "$ref": "#/definitions/config.CreateDimensionRequest"
                         }
                     }
                 ],
@@ -933,7 +933,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ConfigForm"
+                            "$ref": "#/definitions/config.CreateFormRequest"
                         }
                     }
                 ],
@@ -941,7 +941,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.ConfigForm"
+                            "$ref": "#/definitions/config.Response"
                         }
                     },
                     "400": {
@@ -1253,7 +1253,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ConfigMenu"
+                            "$ref": "#/definitions/config.CreateMenuRequest"
                         }
                     }
                 ],
@@ -1261,7 +1261,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.ConfigMenu"
+                            "$ref": "#/definitions/config.Response"
                         }
                     },
                     "400": {
@@ -1573,7 +1573,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.ConfigDataModel"
+                            "$ref": "#/definitions/config.CreateModelRequest"
                         }
                     }
                 ],
@@ -1581,7 +1581,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/model.ConfigDataModel"
+                            "$ref": "#/definitions/config.Response"
                         }
                     },
                     "400": {
@@ -1893,7 +1893,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/service.CreateTableRequest"
+                            "$ref": "#/definitions/config.CreateTableRequest"
                         }
                     }
                 ],
@@ -2688,6 +2688,204 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "config.CreateDimensionRequest": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "code",
+                "configuration",
+                "mysql_table_name",
+                "name",
+                "type"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "configuration": {
+                    "$ref": "#/definitions/model.DimensionConfig"
+                },
+                "mysql_table_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "config.CreateFormRequest": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "code",
+                "fields",
+                "layout",
+                "name",
+                "table_id",
+                "type"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.FormEvent"
+                    }
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.FormField"
+                    }
+                },
+                "layout": {
+                    "$ref": "#/definitions/model.FormLayout"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "rules": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.FormRule"
+                    }
+                },
+                "table_id": {
+                    "type": "integer"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "config.CreateMenuRequest": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "code",
+                "component",
+                "name",
+                "path"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "component": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "sort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "config.CreateModelRequest": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "code",
+                "fields",
+                "name",
+                "table_id"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "dimensions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModelDimension"
+                    }
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModelField"
+                    }
+                },
+                "metrics": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.ModelMetric"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "table_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "config.CreateTableRequest": {
+            "type": "object",
+            "required": [
+                "app_id",
+                "code",
+                "fields",
+                "mysql_table_name",
+                "name"
+            ],
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "code": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TableField"
+                    }
+                },
+                "indexes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.TableIndex"
+                    }
+                },
+                "mysql_table_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "config.Response": {
             "description": "通用HTTP响应结构",
             "type": "object",
@@ -3005,6 +3203,167 @@ const docTemplate = `{
                 }
             }
         },
+        "model.FormColumn": {
+            "type": "object",
+            "properties": {
+                "elements": {
+                    "description": "引用FormField的ID",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "span": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.FormEvent": {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "description": "sql, api等",
+                    "type": "string"
+                },
+                "content": {
+                    "description": "SQL语句或API地址",
+                    "type": "string"
+                },
+                "parameters": {
+                    "description": "参数配置",
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "type": {
+                    "description": "before_submit, after_submit等",
+                    "type": "string"
+                }
+            }
+        },
+        "model.FormField": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "properties": {
+                    "type": "object",
+                    "additionalProperties": {}
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "description": "text, input, select等",
+                    "type": "string"
+                }
+            }
+        },
+        "model.FormLayout": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.FormColumn"
+                    }
+                },
+                "type": {
+                    "description": "grid, flex等",
+                    "type": "string"
+                }
+            }
+        },
+        "model.FormRule": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "type": "string"
+                },
+                "max": {
+                    "description": "最大值/长度",
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "min": {
+                    "description": "最小值/长度",
+                    "type": "integer"
+                },
+                "pattern": {
+                    "description": "正则表达式",
+                    "type": "string"
+                },
+                "required": {
+                    "description": "是否必填",
+                    "type": "boolean"
+                },
+                "trigger": {
+                    "description": "blur, change等",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "required, email, mobile等",
+                    "type": "string"
+                }
+            }
+        },
+        "model.ModelDimension": {
+            "type": "object",
+            "properties": {
+                "dimension_id": {
+                    "type": "integer"
+                },
+                "display_field": {
+                    "type": "string"
+                },
+                "join_field": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ModelField": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "table_field": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.ModelMetric": {
+            "type": "object",
+            "properties": {
+                "display_name": {
+                    "type": "string"
+                },
+                "expression": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "description": "sum, avg, count, etc.",
+                    "type": "string"
+                }
+            }
+        },
         "model.TableField": {
             "type": "object",
             "properties": {
@@ -3068,76 +3427,6 @@ const docTemplate = `{
                     "description": "Base64编码的验证码图片",
                     "type": "string",
                     "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
-                }
-            }
-        },
-        "service.CreateDimensionRequest": {
-            "type": "object",
-            "required": [
-                "app_id",
-                "code",
-                "configuration",
-                "mysql_table_name",
-                "name",
-                "type"
-            ],
-            "properties": {
-                "app_id": {
-                    "type": "integer"
-                },
-                "code": {
-                    "type": "string"
-                },
-                "configuration": {
-                    "$ref": "#/definitions/model.DimensionConfig"
-                },
-                "mysql_table_name": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "service.CreateTableRequest": {
-            "type": "object",
-            "required": [
-                "app_id",
-                "code",
-                "fields",
-                "mysql_table_name",
-                "name"
-            ],
-            "properties": {
-                "app_id": {
-                    "type": "integer"
-                },
-                "code": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.TableField"
-                    }
-                },
-                "indexes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.TableIndex"
-                    }
-                },
-                "mysql_table_name": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         },

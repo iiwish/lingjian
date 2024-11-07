@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // @Summary      创建菜单配置
@@ -13,24 +14,25 @@ import (
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
-// @Param        request body model.ConfigMenu true "创建菜单配置请求参数"
-// @Success      201  {object}  model.ConfigMenu
+// @Param        request body config.CreateMenuRequest true "创建菜单配置请求参数"
+// @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/menus [post]
 func (api *ConfigAPI) CreateMenu(c *gin.Context) {
-	var menu model.ConfigMenu
-	if err := c.ShouldBindJSON(&menu); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req config.CreateMenuRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 
-	if err := api.configService.CreateMenu(&menu); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.CreateMenu(&req, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, menu)
+	c.JSON(http.StatusCreated, Response{})
 }
 
 // @Summary      更新菜单配置
@@ -47,19 +49,20 @@ func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	var menu model.ConfigMenu
 	if err := c.ShouldBindJSON(&menu); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 	menu.ID = uint(id)
 
-	if err := api.configService.UpdateMenu(&menu); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.UpdateMenu(&menu, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -79,13 +82,13 @@ func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 func (api *ConfigAPI) ListMenus(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid app_id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
 		return
 	}
 
 	menus, err := api.configService.ListMenus(uint(appID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -105,13 +108,13 @@ func (api *ConfigAPI) ListMenus(c *gin.Context) {
 func (api *ConfigAPI) GetMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	menu, err := api.configService.GetMenu(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -131,12 +134,12 @@ func (api *ConfigAPI) GetMenu(c *gin.Context) {
 func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	if err := api.configService.DeleteMenu(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -156,13 +159,13 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 func (api *ConfigAPI) GetMenuVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	versions, err := api.configService.GetMenuVersions(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -183,18 +186,19 @@ func (api *ConfigAPI) GetMenuVersions(c *gin.Context) {
 func (api *ConfigAPI) RollbackMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	version, err := strconv.Atoi(c.Query("version"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid version"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid version"})
 		return
 	}
 
-	if err := api.configService.RollbackMenu(uint(id), version); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.RollbackMenu(uint(id), version, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 

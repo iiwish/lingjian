@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // @Summary      创建表单配置
@@ -13,24 +14,25 @@ import (
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
-// @Param        request body model.ConfigForm true "创建表单配置请求参数"
-// @Success      201  {object}  model.ConfigForm
+// @Param        request body config.CreateFormRequest true "创建表单配置请求参数"
+// @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/forms [post]
 func (api *ConfigAPI) CreateForm(c *gin.Context) {
-	var form model.ConfigForm
-	if err := c.ShouldBindJSON(&form); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req config.CreateFormRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 
-	if err := api.configService.CreateForm(&form); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.CreateForm(&req, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, form)
+	c.JSON(http.StatusCreated, Response{})
 }
 
 // @Summary      更新表单配置
@@ -47,19 +49,20 @@ func (api *ConfigAPI) CreateForm(c *gin.Context) {
 func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	var form model.ConfigForm
 	if err := c.ShouldBindJSON(&form); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 	form.ID = uint(id)
 
-	if err := api.configService.UpdateForm(&form); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.UpdateForm(&form, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -79,13 +82,13 @@ func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 func (api *ConfigAPI) ListForms(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid app_id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
 		return
 	}
 
 	forms, err := api.configService.ListForms(uint(appID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -105,13 +108,13 @@ func (api *ConfigAPI) ListForms(c *gin.Context) {
 func (api *ConfigAPI) GetForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	form, err := api.configService.GetForm(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -131,12 +134,12 @@ func (api *ConfigAPI) GetForm(c *gin.Context) {
 func (api *ConfigAPI) DeleteForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	if err := api.configService.DeleteForm(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -156,13 +159,13 @@ func (api *ConfigAPI) DeleteForm(c *gin.Context) {
 func (api *ConfigAPI) GetFormVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	versions, err := api.configService.GetFormVersions(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -183,18 +186,19 @@ func (api *ConfigAPI) GetFormVersions(c *gin.Context) {
 func (api *ConfigAPI) RollbackForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	version, err := strconv.Atoi(c.Query("version"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid version"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid version"})
 		return
 	}
 
-	if err := api.configService.RollbackForm(uint(id), version); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.RollbackForm(uint(id), version, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 

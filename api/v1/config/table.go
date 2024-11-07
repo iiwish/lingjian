@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
-	"github.com/iiwish/lingjian/internal/service"
+	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // @Summary      创建数据表配置
@@ -14,26 +14,25 @@ import (
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
-// @Param        request body service.CreateTableRequest true "创建数据表配置请求参数"
+// @Param        request body config.CreateTableRequest true "创建数据表配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/tables [post]
 func (api *ConfigAPI) CreateTable(c *gin.Context) {
-	var req service.CreateTableRequest
+	var req config.CreateTableRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-
 	if err := api.configService.CreateTable(&req, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "数据表配置创建成功"})
+	c.JSON(http.StatusCreated, Response{})
 }
 
 // @Summary      更新数据表配置
@@ -50,19 +49,20 @@ func (api *ConfigAPI) CreateTable(c *gin.Context) {
 func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	var table model.ConfigTable
 	if err := c.ShouldBindJSON(&table); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 	table.ID = uint(id)
 
-	if err := api.configService.UpdateTable(&table); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.UpdateTable(&table, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -82,13 +82,13 @@ func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 func (api *ConfigAPI) ListTables(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid app_id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
 		return
 	}
 
 	tables, err := api.configService.ListTables(uint(appID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -108,13 +108,13 @@ func (api *ConfigAPI) ListTables(c *gin.Context) {
 func (api *ConfigAPI) GetTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	table, err := api.configService.GetTable(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -134,12 +134,12 @@ func (api *ConfigAPI) GetTable(c *gin.Context) {
 func (api *ConfigAPI) DeleteTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	if err := api.configService.DeleteTable(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -159,13 +159,13 @@ func (api *ConfigAPI) DeleteTable(c *gin.Context) {
 func (api *ConfigAPI) GetTableVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	versions, err := api.configService.GetTableVersions(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -186,18 +186,19 @@ func (api *ConfigAPI) GetTableVersions(c *gin.Context) {
 func (api *ConfigAPI) RollbackTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	version, err := strconv.Atoi(c.Query("version"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid version"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid version"})
 		return
 	}
 
-	if err := api.configService.RollbackTable(uint(id), version); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.RollbackTable(uint(id), version, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 

@@ -3,16 +3,16 @@ package config
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
-	"github.com/iiwish/lingjian/internal/service"
+	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // ConfigAPI 配置相关API处理器
 type ConfigAPI struct {
-	configService *service.ConfigService
+	configService *config.ConfigService
 }
 
 // NewConfigAPI 创建配置API处理器
-func NewConfigAPI(configService *service.ConfigService) *ConfigAPI {
+func NewConfigAPI(configService *config.ConfigService) *ConfigAPI {
 	return &ConfigAPI{
 		configService: configService,
 	}
@@ -26,7 +26,7 @@ type Response struct {
 
 // RegisterConfigRoutes 注册配置相关路由
 func RegisterConfigRoutes(router *gin.RouterGroup) {
-	configService := service.NewConfigService(model.DB)
+	configService := config.NewConfigService(model.DB)
 	configAPI := NewConfigAPI(configService)
 	configAPI.RegisterRoutes(router)
 }

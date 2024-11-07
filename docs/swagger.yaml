@@ -1,5 +1,143 @@
 basePath: /api/v1
 definitions:
+  config.CreateDimensionRequest:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      configuration:
+        $ref: '#/definitions/model.DimensionConfig'
+      mysql_table_name:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - app_id
+    - code
+    - configuration
+    - mysql_table_name
+    - name
+    - type
+    type: object
+  config.CreateFormRequest:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      events:
+        items:
+          $ref: '#/definitions/model.FormEvent'
+        type: array
+      fields:
+        items:
+          $ref: '#/definitions/model.FormField'
+        type: array
+      layout:
+        $ref: '#/definitions/model.FormLayout'
+      name:
+        type: string
+      rules:
+        items:
+          $ref: '#/definitions/model.FormRule'
+        type: array
+      table_id:
+        type: integer
+      type:
+        type: string
+    required:
+    - app_id
+    - code
+    - fields
+    - layout
+    - name
+    - table_id
+    - type
+    type: object
+  config.CreateMenuRequest:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      component:
+        type: string
+      icon:
+        type: string
+      name:
+        type: string
+      parent_id:
+        type: integer
+      path:
+        type: string
+      sort:
+        type: integer
+    required:
+    - app_id
+    - code
+    - component
+    - name
+    - path
+    type: object
+  config.CreateModelRequest:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      dimensions:
+        items:
+          $ref: '#/definitions/model.ModelDimension'
+        type: array
+      fields:
+        items:
+          $ref: '#/definitions/model.ModelField'
+        type: array
+      metrics:
+        items:
+          $ref: '#/definitions/model.ModelMetric'
+        type: array
+      name:
+        type: string
+      table_id:
+        type: integer
+    required:
+    - app_id
+    - code
+    - fields
+    - name
+    - table_id
+    type: object
+  config.CreateTableRequest:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      description:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/model.TableField'
+        type: array
+      indexes:
+        items:
+          $ref: '#/definitions/model.TableIndex'
+        type: array
+      mysql_table_name:
+        type: string
+      name:
+        type: string
+    required:
+    - app_id
+    - code
+    - fields
+    - mysql_table_name
+    - name
+    type: object
   config.Response:
     description: 通用HTTP响应结构
     properties:
@@ -223,6 +361,116 @@ definitions:
         description: 父节点ID字段
         type: string
     type: object
+  model.FormColumn:
+    properties:
+      elements:
+        description: 引用FormField的ID
+        items:
+          type: string
+        type: array
+      span:
+        type: integer
+    type: object
+  model.FormEvent:
+    properties:
+      action:
+        description: sql, api等
+        type: string
+      content:
+        description: SQL语句或API地址
+        type: string
+      parameters:
+        additionalProperties: {}
+        description: 参数配置
+        type: object
+      type:
+        description: before_submit, after_submit等
+        type: string
+    type: object
+  model.FormField:
+    properties:
+      field:
+        type: string
+      id:
+        type: string
+      label:
+        type: string
+      properties:
+        additionalProperties: {}
+        type: object
+      required:
+        type: boolean
+      type:
+        description: text, input, select等
+        type: string
+    type: object
+  model.FormLayout:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/model.FormColumn'
+        type: array
+      type:
+        description: grid, flex等
+        type: string
+    type: object
+  model.FormRule:
+    properties:
+      field:
+        type: string
+      max:
+        description: 最大值/长度
+        type: integer
+      message:
+        type: string
+      min:
+        description: 最小值/长度
+        type: integer
+      pattern:
+        description: 正则表达式
+        type: string
+      required:
+        description: 是否必填
+        type: boolean
+      trigger:
+        description: blur, change等
+        type: string
+      type:
+        description: required, email, mobile等
+        type: string
+    type: object
+  model.ModelDimension:
+    properties:
+      dimension_id:
+        type: integer
+      display_field:
+        type: string
+      join_field:
+        type: string
+    type: object
+  model.ModelField:
+    properties:
+      display_name:
+        type: string
+      name:
+        type: string
+      table_field:
+        type: string
+      type:
+        type: string
+    type: object
+  model.ModelMetric:
+    properties:
+      display_name:
+        type: string
+      expression:
+        type: string
+      name:
+        type: string
+      type:
+        description: sum, avg, count, etc.
+        type: string
+    type: object
   model.TableField:
     properties:
       comment:
@@ -267,55 +515,6 @@ definitions:
         description: Base64编码的验证码图片
         example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
         type: string
-    type: object
-  service.CreateDimensionRequest:
-    properties:
-      app_id:
-        type: integer
-      code:
-        type: string
-      configuration:
-        $ref: '#/definitions/model.DimensionConfig'
-      mysql_table_name:
-        type: string
-      name:
-        type: string
-      type:
-        type: string
-    required:
-    - app_id
-    - code
-    - configuration
-    - mysql_table_name
-    - name
-    - type
-    type: object
-  service.CreateTableRequest:
-    properties:
-      app_id:
-        type: integer
-      code:
-        type: string
-      description:
-        type: string
-      fields:
-        items:
-          $ref: '#/definitions/model.TableField'
-        type: array
-      indexes:
-        items:
-          $ref: '#/definitions/model.TableIndex'
-        type: array
-      mysql_table_name:
-        type: string
-      name:
-        type: string
-    required:
-    - app_id
-    - code
-    - fields
-    - mysql_table_name
-    - name
     type: object
   service.LoginRequest:
     properties:
@@ -903,7 +1102,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/service.CreateDimensionRequest'
+          $ref: '#/definitions/config.CreateDimensionRequest'
       produces:
       - application/json
       responses:
@@ -1115,14 +1314,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.ConfigForm'
+          $ref: '#/definitions/config.CreateFormRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.ConfigForm'
+            $ref: '#/definitions/config.Response'
         "400":
           description: Bad Request
           schema:
@@ -1327,14 +1526,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.ConfigMenu'
+          $ref: '#/definitions/config.CreateMenuRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.ConfigMenu'
+            $ref: '#/definitions/config.Response'
         "400":
           description: Bad Request
           schema:
@@ -1539,14 +1738,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/model.ConfigDataModel'
+          $ref: '#/definitions/config.CreateModelRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.ConfigDataModel'
+            $ref: '#/definitions/config.Response'
         "400":
           description: Bad Request
           schema:
@@ -1751,7 +1950,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/service.CreateTableRequest'
+          $ref: '#/definitions/config.CreateTableRequest'
       produces:
       - application/json
       responses:

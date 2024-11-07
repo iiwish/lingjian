@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // @Summary      创建数据模型配置
@@ -13,24 +14,25 @@ import (
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
-// @Param        request body model.ConfigDataModel true "创建数据模型配置请求参数"
-// @Success      201  {object}  model.ConfigDataModel
+// @Param        request body config.CreateModelRequest true "创建数据模型配置请求参数"
+// @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/models [post]
 func (api *ConfigAPI) CreateModel(c *gin.Context) {
-	var model model.ConfigDataModel
-	if err := c.ShouldBindJSON(&model); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var req config.CreateModelRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 
-	if err := api.configService.CreateModel(&model); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.CreateModel(&req, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, model)
+	c.JSON(http.StatusCreated, Response{})
 }
 
 // @Summary      更新数据模型配置
@@ -47,19 +49,20 @@ func (api *ConfigAPI) CreateModel(c *gin.Context) {
 func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	var dataModel model.ConfigDataModel
 	if err := c.ShouldBindJSON(&dataModel); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 	dataModel.ID = uint(id)
 
-	if err := api.configService.UpdateModel(&dataModel); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.UpdateModel(&dataModel, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -79,13 +82,13 @@ func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 func (api *ConfigAPI) ListModels(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid app_id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
 		return
 	}
 
 	models, err := api.configService.ListModels(uint(appID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -105,13 +108,13 @@ func (api *ConfigAPI) ListModels(c *gin.Context) {
 func (api *ConfigAPI) GetModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	dataModel, err := api.configService.GetModel(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -131,12 +134,12 @@ func (api *ConfigAPI) GetModel(c *gin.Context) {
 func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	if err := api.configService.DeleteModel(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -156,13 +159,13 @@ func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 func (api *ConfigAPI) GetModelVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	versions, err := api.configService.GetModelVersions(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -183,18 +186,19 @@ func (api *ConfigAPI) GetModelVersions(c *gin.Context) {
 func (api *ConfigAPI) RollbackModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	version, err := strconv.Atoi(c.Query("version"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid version"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid version"})
 		return
 	}
 
-	if err := api.configService.RollbackModel(uint(id), version); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.RollbackModel(uint(id), version, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 

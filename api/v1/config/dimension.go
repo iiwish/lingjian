@@ -6,7 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
-	"github.com/iiwish/lingjian/internal/service"
+	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // @Summary      创建维度配置
@@ -14,26 +14,25 @@ import (
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
-// @Param        request body service.CreateDimensionRequest true "创建维度配置请求参数"
+// @Param        request body config.CreateDimensionRequest true "创建维度配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions [post]
 func (api *ConfigAPI) CreateDimension(c *gin.Context) {
-	var req service.CreateDimensionRequest
+	var req config.CreateDimensionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-
 	if err := api.configService.CreateDimension(&req, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "维度配置创建成功"})
+	c.JSON(http.StatusCreated, Response{})
 }
 
 // @Summary      更新维度配置
@@ -50,19 +49,20 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	var dimension model.ConfigDimension
 	if err := c.ShouldBindJSON(&dimension); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 	dimension.ID = uint(id)
 
-	if err := api.configService.UpdateDimension(&dimension); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.UpdateDimension(&dimension, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -82,13 +82,13 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid app_id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
 		return
 	}
 
 	dimensions, err := api.configService.ListDimensions(uint(appID))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -108,13 +108,13 @@ func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 func (api *ConfigAPI) GetDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	dimension, err := api.configService.GetDimension(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -134,12 +134,12 @@ func (api *ConfigAPI) GetDimension(c *gin.Context) {
 func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	if err := api.configService.DeleteDimension(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -159,13 +159,13 @@ func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
 func (api *ConfigAPI) GetDimensionVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	versions, err := api.configService.GetDimensionVersions(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
@@ -186,18 +186,19 @@ func (api *ConfigAPI) GetDimensionVersions(c *gin.Context) {
 func (api *ConfigAPI) RollbackDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
 	version, err := strconv.Atoi(c.Query("version"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid version"})
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid version"})
 		return
 	}
 
-	if err := api.configService.RollbackDimension(uint(id), version); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.configService.RollbackDimension(uint(id), version, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
