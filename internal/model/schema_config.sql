@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS config_table (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
     UNIQUE KEY uk_app_table (app_id, table_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据表配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据表配置' COLLATE=utf8mb4_general_ci;
 
 -- 维度配置
 CREATE TABLE IF NOT EXISTS config_dimension (
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS config_dimension (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
     UNIQUE KEY uk_app_dimension (app_id, table_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='维度配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='维度配置' COLLATE=utf8mb4_general_ci;
 
 -- 数据模型配置
 CREATE TABLE IF NOT EXISTS config_model (
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS config_model (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
     UNIQUE KEY uk_app_model (app_id, model_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据模型配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据模型配置' COLLATE=utf8mb4_general_ci;
 
 -- 表单配置
 CREATE TABLE IF NOT EXISTS config_form (
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS config_form (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
     UNIQUE KEY uk_app_form (app_id, form_name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='表单配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='表单配置' COLLATE=utf8mb4_general_ci;
 
 -- 菜单配置
 CREATE TABLE IF NOT EXISTS config_menu (
@@ -74,4 +74,4 @@ CREATE TABLE IF NOT EXISTS config_menu (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at TIMESTAMP NULL,
     UNIQUE KEY uk_app_menu (app_id, node_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单配置';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单配置' COLLATE=utf8mb4_general_ci;
