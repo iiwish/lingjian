@@ -15,8 +15,9 @@ LDFLAGS := -s -w
 
 # 数据库配置
 DB_USER := root
-DB_PASS := root
+DB_PASS := MtNNJasQv5GptQz
 DB_NAME := lingjian
+DB_TEST_NAME := lingjian_test
 DB_HOST := localhost
 DB_PORT := 3306
 
@@ -43,7 +44,12 @@ clean:
 	@go clean -i ./...
 
 # 测试相关命令
-test: test-unit test-integration
+test: init-test-db test-unit test-integration
+
+# 初始化测试数据库
+init-test-db:
+	@echo "Initializing test database..."
+	@mysql -h $(DB_HOST) -P $(DB_PORT) -u $(DB_USER) -p$(DB_PASS) < internal/test/init_test_db.sql
 
 # 单元测试
 test-unit:
@@ -75,7 +81,7 @@ lint:
 		golangci-lint run ./...; \
 	else \
 		echo "golangci-lint is not installed. Installing..."; \
-		go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest; \
+		go install github.com/golangci/golangci/cmd/golangci-lint@latest; \
 		golangci-lint run ./...; \
 	fi
 
@@ -132,7 +138,7 @@ dev-server: docs
 		air -c .air.toml; \
 	else \
 		echo "air is not installed. Installing..."; \
-        GOBIN=$(shell go env GOPATH)/bin go install github.com/air-verse/air@latest; \
+		GOBIN=$(shell go env GOPATH)/bin go install github.com/air-verse/air@latest; \
 		export PATH=$(shell go env GOPATH)/bin:$$PATH; \
 		air -c .air.toml; \
 	fi
@@ -152,6 +158,7 @@ help:
 	@echo "  run-server       - Build and run server"
 	@echo "  run-worker       - Build and run worker"
 	@echo "  init-db          - Initialize database"
+	@echo "  init-test-db     - Initialize test database"
 	@echo "  docs             - Generate API documentation"
 	@echo "  deps             - Download and tidy dependencies"
 	@echo "  fmt              - Format code"

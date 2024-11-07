@@ -26,6 +26,7 @@ Thumbs.db
 
 # Config files
 config/config.yaml
+config/config.test.yaml
 
 # Log files
 *.log

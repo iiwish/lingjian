@@ -1,34 +1,11 @@
 package test
 
 import (
-	"bytes"
-	"encoding/json"
-	"net/http"
-	"net/http/httptest"
 	"testing"
-
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 )
 
-// setupTestRouter 设置测试路由
-func setupTestRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	r := gin.New()
-	r.Use(gin.Recovery())
-
-	// TODO: 注册测试路由
-	// v1.RegisterAuthRoutes(r.Group("/api/v1"))
-	// v1.RegisterRBACRoutes(r.Group("/api/v1"))
-	// v1.RegisterAppRoutes(r.Group("/api/v1"))
-
-	return r
-}
-
-// TestAPIFlow 测试完整的API流程
 func TestAPIFlow(t *testing.T) {
-	router := setupTestRouter()
-	var token string
+	helper := NewTestHelper(t)
 
 	// 1. 测试用户登录
 	t.Run("用户登录", func(t *testing.T) {
@@ -36,109 +13,96 @@ func TestAPIFlow(t *testing.T) {
 			"username": "admin",
 			"password": "admin123",
 		}
-		jsonData, err := json.Marshal(loginData)
-		assert.NoError(t, err)
-
-		req := httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewBuffer(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
-
-		var response map[string]interface{}
-		err = json.Unmarshal(w.Body.Bytes(), &response)
-		assert.NoError(t, err)
-		assert.Contains(t, response, "token")
-		token = response["token"].(string)
+		w := helper.MakeRequest(t, "POST", "/api/v1/auth/login", loginData)
+		resp := helper.AssertSuccess(t, w)
+		data := resp["data"].(map[string]interface{})
+		if token, ok := data["token"].(string); ok {
+			helper.Token = token
+		}
 	})
 
-	// 2. 测试创建应用
+	// 2. 测试刷新token
+	t.Run("刷新token", func(t *testing.T) {
+		w := helper.MakeRequest(t, "POST", "/api/v1/auth/refresh", nil)
+		resp := helper.AssertSuccess(t, w)
+		data := resp["data"].(map[string]interface{})
+		if token, ok := data["token"].(string); ok {
+			helper.Token = token
+		}
+	})
+
+	// 3. 测试创建应用
 	t.Run("创建应用", func(t *testing.T) {
 		appData := map[string]interface{}{
 			"name":        "测试应用",
 			"code":        "test_app",
 			"description": "这是一个测试应用",
 		}
-		jsonData, err := json.Marshal(appData)
-		assert.NoError(t, err)
-
-		req := httptest.NewRequest("POST", "/api/v1/apps", bytes.NewBuffer(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+token)
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
+		w := helper.MakeRequest(t, "POST", "/api/v1/apps", appData)
+		helper.AssertSuccess(t, w)
 	})
 
-	// 3. 测试创建角色
+	// 4. 测试创建角色
 	t.Run("创建角色", func(t *testing.T) {
 		roleData := map[string]interface{}{
-			"name": "应用管理员",
-			"code": "app_admin",
+			"name":     "应用管理员",
+			"code":     "app_admin",
+			"app_code": "test_app",
 		}
-		jsonData, err := json.Marshal(roleData)
-		assert.NoError(t, err)
-
-		req := httptest.NewRequest("POST", "/api/v1/roles", bytes.NewBuffer(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+token)
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
+		w := helper.MakeRequest(t, "POST", "/api/v1/roles", roleData)
+		helper.AssertSuccess(t, w)
 	})
 
-	// 4. 测试分配权限
+	// 5. 测试分配权限
 	t.Run("分配权限", func(t *testing.T) {
 		permData := map[string]interface{}{
-			"permission_ids": []int{1, 2, 3},
+			"permission_codes": []string{"view_users", "create_user"},
+			"app_code":         "test_app",
 		}
-		jsonData, err := json.Marshal(permData)
-		assert.NoError(t, err)
-
-		req := httptest.NewRequest("POST", "/api/v1/roles/1/permissions", bytes.NewBuffer(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+token)
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
+		w := helper.MakeRequest(t, "POST", "/api/v1/roles/app_admin/permissions", permData)
+		helper.AssertSuccess(t, w)
 	})
 
-	// 5. 测试创建定时任务
+	// 6. 测试创建定时任务
 	t.Run("创建定时任务", func(t *testing.T) {
 		taskData := map[string]interface{}{
 			"name":        "数据清理任务",
 			"cron":        "0 0 * * *",
 			"sql":         "DELETE FROM logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)",
 			"description": "每天零点清理7天前的日志",
+			"app_code":    "test_app",
+			"triggers": []map[string]interface{}{
+				{
+					"type": "before",
+					"sql":  "SET @start_time = NOW()",
+				},
+				{
+					"type": "after",
+					"sql":  "INSERT INTO task_logs (task_id, duration) VALUES (@task_id, TIMESTAMPDIFF(SECOND, @start_time, NOW()))",
+				},
+			},
 		}
-		jsonData, err := json.Marshal(taskData)
-		assert.NoError(t, err)
-
-		req := httptest.NewRequest("POST", "/api/v1/tasks", bytes.NewBuffer(jsonData))
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+token)
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
-
-		assert.Equal(t, http.StatusOK, w.Code)
+		w := helper.MakeRequest(t, "POST", "/api/v1/tasks", taskData)
+		helper.AssertSuccess(t, w)
 	})
 
-	// 6. 测试获取应用列表
+	// 7. 测试获取应用列表
 	t.Run("获取应用列表", func(t *testing.T) {
-		req := httptest.NewRequest("GET", "/api/v1/apps", nil)
-		req.Header.Set("Authorization", "Bearer "+token)
-		w := httptest.NewRecorder()
-		router.ServeHTTP(w, req)
+		w := helper.MakeRequest(t, "GET", "/api/v1/apps", nil)
+		resp := helper.AssertSuccess(t, w)
+		data := resp["data"].([]interface{})
 
-		assert.Equal(t, http.StatusOK, w.Code)
-
-		var response map[string]interface{}
-		err := json.Unmarshal(w.Body.Bytes(), &response)
-		assert.NoError(t, err)
-		assert.Contains(t, response, "data")
+		// 验证返回的应用列表中包含我们创建的应用
+		found := false
+		for _, app := range data {
+			appMap := app.(map[string]interface{})
+			if appMap["code"].(string) == "test_app" {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Error("未找到创建的测试应用")
+		}
 	})
 }
