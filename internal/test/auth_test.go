@@ -17,49 +17,82 @@ func TestUserLogin(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	router := setupTestRouter()
 
+	// 获取验证码
+	req := httptest.NewRequest("GET", "/api/v1/auth/captcha", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	var captchaResp map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &captchaResp)
+	assert.NoError(t, err)
+	data := captchaResp["data"].(map[string]interface{})
+	captchaId := data["captcha_id"].(string)
+
 	tests := []struct {
 		name       string
 		username   string
 		password   string
+		captchaId  string
+		captchaVal string
 		wantStatus int
 	}{
 		{
 			name:       "正常登录",
 			username:   "admin",
 			password:   "admin123",
+			captchaId:  captchaId,
+			captchaVal: "1234",
 			wantStatus: http.StatusOK,
 		},
 		{
 			name:       "用户名错误",
 			username:   "wronguser",
 			password:   "admin123",
-			wantStatus: http.StatusUnauthorized,
+			captchaId:  captchaId,
+			captchaVal: "1234",
+			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "密码错误",
 			username:   "admin",
 			password:   "wrongpass",
-			wantStatus: http.StatusUnauthorized,
+			captchaId:  captchaId,
+			captchaVal: "1234",
+			wantStatus: http.StatusBadRequest,
+		},
+		{
+			name:       "验证码错误",
+			username:   "admin",
+			password:   "admin123",
+			captchaId:  captchaId,
+			captchaVal: "wrong",
+			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "用户名为空",
 			username:   "",
 			password:   "admin123",
+			captchaId:  captchaId,
+			captchaVal: "1234",
 			wantStatus: http.StatusBadRequest,
 		},
 		{
 			name:       "密码为空",
 			username:   "admin",
 			password:   "",
+			captchaId:  captchaId,
+			captchaVal: "1234",
 			wantStatus: http.StatusBadRequest,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			loginData := map[string]string{
-				"username": tt.username,
-				"password": tt.password,
+			loginData := map[string]interface{}{
+				"username":    tt.username,
+				"password":    tt.password,
+				"captcha_id":  tt.captchaId,
+				"captcha_val": tt.captchaVal,
 			}
 			jsonData, err := json.Marshal(loginData)
 			assert.NoError(t, err)
@@ -75,8 +108,12 @@ func TestUserLogin(t *testing.T) {
 				var response map[string]interface{}
 				err = json.Unmarshal(w.Body.Bytes(), &response)
 				assert.NoError(t, err)
-				assert.Contains(t, response, "token")
-				assert.Contains(t, response, "refresh_token")
+				data := response["data"].(map[string]interface{})
+				assert.Contains(t, data, "access_token")
+				assert.Contains(t, data, "refresh_token")
+				assert.Contains(t, data, "expires_in")
+				assert.NotEmpty(t, data["access_token"])
+				assert.NotEmpty(t, data["refresh_token"])
 			}
 		})
 	}
@@ -87,22 +124,36 @@ func TestRefreshToken(t *testing.T) {
 	router := setupTestRouter()
 
 	// 先登录获取有效的refresh token
-	loginData := map[string]string{
-		"username": "admin",
-		"password": "admin123",
+	// 获取验证码
+	req := httptest.NewRequest("GET", "/api/v1/auth/captcha", nil)
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	var captchaResp map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &captchaResp)
+	assert.NoError(t, err)
+	data := captchaResp["data"].(map[string]interface{})
+	captchaId := data["captcha_id"].(string)
+
+	loginData := map[string]interface{}{
+		"username":    "admin",
+		"password":    "admin123",
+		"captcha_id":  captchaId,
+		"captcha_val": "1234",
 	}
 	jsonData, err := json.Marshal(loginData)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewBuffer(jsonData))
+	req = httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
+	w = httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
 	var loginResponse map[string]interface{}
 	err = json.Unmarshal(w.Body.Bytes(), &loginResponse)
 	assert.NoError(t, err)
-	validRefreshToken := loginResponse["refresh_token"].(string)
+	data = loginResponse["data"].(map[string]interface{})
+	validRefreshToken := data["refresh_token"].(string)
 
 	tests := []struct {
 		name         string
@@ -119,13 +170,13 @@ func TestRefreshToken(t *testing.T) {
 		{
 			name:         "无效的refresh token",
 			refreshToken: "invalid_refresh_token",
-			wantStatus:   http.StatusUnauthorized,
+			wantStatus:   http.StatusBadRequest,
 			wantNewToken: false,
 		},
 		{
 			name:         "refresh token为空",
 			refreshToken: "",
-			wantStatus:   http.StatusUnauthorized,
+			wantStatus:   http.StatusBadRequest,
 			wantNewToken: false,
 		},
 	}
@@ -134,7 +185,7 @@ func TestRefreshToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			req := httptest.NewRequest("POST", "/api/v1/auth/refresh", nil)
 			if tt.refreshToken != "" {
-				req.Header.Set("Authorization", "Bearer "+tt.refreshToken)
+				req.Header.Set("X-Refresh-Token", tt.refreshToken)
 			}
 			w := httptest.NewRecorder()
 			router.ServeHTTP(w, req)
@@ -145,7 +196,11 @@ func TestRefreshToken(t *testing.T) {
 				var response map[string]interface{}
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				assert.NoError(t, err)
-				assert.Contains(t, response, "token")
+				data := response["data"].(map[string]interface{})
+				assert.Contains(t, data, "access_token")
+				assert.Contains(t, data, "refresh_token")
+				assert.Contains(t, data, "expires_in")
+				assert.NotEmpty(t, data["access_token"])
 			}
 		})
 	}
@@ -190,7 +245,6 @@ func TestOAuth2Flow(t *testing.T) {
 		assert.Contains(t, location, "state=random_state")
 
 		// 从location中提取授权码
-		// 简单处理，实际可能需要更复杂的URL解析
 		authCode = location[strings.Index(location, "code=")+5 : strings.Index(location, "&state")]
 	})
 
@@ -218,14 +272,15 @@ func TestOAuth2Flow(t *testing.T) {
 		var response map[string]interface{}
 		err = json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response, "access_token")
-		assert.Contains(t, response, "refresh_token")
-		assert.Contains(t, response, "expires_in")
-		assert.Contains(t, response, "token_type")
-		assert.Equal(t, "Bearer", response["token_type"])
+		data := response["data"].(map[string]interface{})
+		assert.Contains(t, data, "access_token")
+		assert.Contains(t, data, "refresh_token")
+		assert.Contains(t, data, "expires_in")
+		assert.Contains(t, data, "token_type")
+		assert.Equal(t, "Bearer", data["token_type"])
 
-		accessToken = response["access_token"].(string)
-		refreshToken = response["refresh_token"].(string)
+		accessToken = data["access_token"].(string)
+		refreshToken = data["refresh_token"].(string)
 	})
 
 	// 4. 测试使用refresh token刷新token
@@ -249,11 +304,12 @@ func TestOAuth2Flow(t *testing.T) {
 		var response map[string]interface{}
 		err = json.Unmarshal(w.Body.Bytes(), &response)
 		assert.NoError(t, err)
-		assert.Contains(t, response, "access_token")
-		assert.Contains(t, response, "refresh_token")
-		assert.Contains(t, response, "expires_in")
-		assert.Contains(t, response, "token_type")
-		assert.Equal(t, "Bearer", response["token_type"])
+		data := response["data"].(map[string]interface{})
+		assert.Contains(t, data, "access_token")
+		assert.Contains(t, data, "refresh_token")
+		assert.Contains(t, data, "expires_in")
+		assert.Contains(t, data, "token_type")
+		assert.Equal(t, "Bearer", data["token_type"])
 	})
 
 	// 5. 测试使用access token访问受保护的资源

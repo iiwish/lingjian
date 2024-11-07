@@ -7,26 +7,17 @@ import (
 func TestAPIFlow(t *testing.T) {
 	helper := NewTestHelper(t)
 
-	// 1. 测试用户登录
-	t.Run("用户登录", func(t *testing.T) {
-		loginData := map[string]string{
-			"username": "admin",
-			"password": "admin123",
-		}
-		w := helper.MakeRequest(t, "POST", "/api/v1/auth/login", loginData)
-		resp := helper.AssertSuccess(t, w)
-		data := resp["data"].(map[string]interface{})
-		if token, ok := data["token"].(string); ok {
-			helper.Token = token
-		}
-	})
+	// 1. 测试用户登录 - 已经在NewTestHelper中完成
 
 	// 2. 测试刷新token
 	t.Run("刷新token", func(t *testing.T) {
-		w := helper.MakeRequest(t, "POST", "/api/v1/auth/refresh", nil)
+		headers := map[string]string{
+			"X-Refresh-Token": helper.RefreshToken,
+		}
+		w := helper.MakeRequest(t, "POST", "/api/v1/auth/refresh", nil, headers)
 		resp := helper.AssertSuccess(t, w)
 		data := resp["data"].(map[string]interface{})
-		if token, ok := data["token"].(string); ok {
+		if token, ok := data["access_token"].(string); ok {
 			helper.Token = token
 		}
 	})
@@ -49,7 +40,7 @@ func TestAPIFlow(t *testing.T) {
 			"code":     "app_admin",
 			"app_code": "test_app",
 		}
-		w := helper.MakeRequest(t, "POST", "/api/v1/roles", roleData)
+		w := helper.MakeRequest(t, "POST", "/api/v1/rbac/roles", roleData)
 		helper.AssertSuccess(t, w)
 	})
 
@@ -59,30 +50,24 @@ func TestAPIFlow(t *testing.T) {
 			"permission_codes": []string{"view_users", "create_user"},
 			"app_code":         "test_app",
 		}
-		w := helper.MakeRequest(t, "POST", "/api/v1/roles/app_admin/permissions", permData)
+		w := helper.MakeRequest(t, "POST", "/api/v1/rbac/roles/app_admin/permissions", permData)
 		helper.AssertSuccess(t, w)
 	})
 
 	// 6. 测试创建定时任务
 	t.Run("创建定时任务", func(t *testing.T) {
 		taskData := map[string]interface{}{
-			"name":        "数据清理任务",
-			"cron":        "0 0 * * *",
-			"sql":         "DELETE FROM logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)",
-			"description": "每天零点清理7天前的日志",
-			"app_code":    "test_app",
-			"triggers": []map[string]interface{}{
-				{
-					"type": "before",
-					"sql":  "SET @start_time = NOW()",
-				},
-				{
-					"type": "after",
-					"sql":  "INSERT INTO task_logs (task_id, duration) VALUES (@task_id, TIMESTAMPDIFF(SECOND, @start_time, NOW()))",
-				},
+			"app_id": 1, // 假设应用ID为1
+			"name":   "数据清理任务",
+			"type":   "sql",
+			"cron":   "0 0 * * *",
+			"content": map[string]interface{}{
+				"sql": "DELETE FROM logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)",
 			},
+			"timeout":     60,
+			"retry_times": 3,
 		}
-		w := helper.MakeRequest(t, "POST", "/api/v1/tasks", taskData)
+		w := helper.MakeRequest(t, "POST", "/api/v1/tasks/scheduled", taskData)
 		helper.AssertSuccess(t, w)
 	})
 

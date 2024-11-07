@@ -12,12 +12,12 @@ import (
 )
 
 type AuthService struct {
-	store *store.RedisStore
+	store store.Store
 }
 
-func NewAuthService() *AuthService {
+func NewAuthService(s store.Store) *AuthService {
 	return &AuthService{
-		store: store.NewRedisStore(),
+		store: s,
 	}
 }
 

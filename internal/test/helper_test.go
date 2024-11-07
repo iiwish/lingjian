@@ -2,6 +2,8 @@ package test
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -16,10 +18,11 @@ import (
 	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/queue"
-	"github.com/iiwish/lingjian/pkg/redis"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 )
+
+var mockStore *MockStore
 
 func init() {
 	// 设置测试模式
@@ -39,16 +42,24 @@ func init() {
 		log.Fatalf("Failed to initialize test database: %v", err)
 	}
 
-	// 初始化Redis连接
-	redis.InitRedis()
+	// 初始化Mock存储
+	mockStore = &MockStore{}
+
+	// 设置认证服务和中间件使用Mock存储
+	v1.InitAuthService(mockStore)
+	middleware.SetStore(mockStore)
 
 	// 初始化RabbitMQ连接
 	if err := queue.InitRabbitMQ(); err != nil {
 		log.Fatalf("Failed to initialize test RabbitMQ: %v", err)
 	}
+}
 
-	// 初始化认证服务
-	v1.InitAuthService()
+// hashPassword 密码加密
+func hashPassword(password string) string {
+	hash := sha256.New()
+	hash.Write([]byte(password))
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 // cleanTestData 清理测试数据
@@ -90,11 +101,12 @@ func initTestData() error {
 
 	now := time.Now()
 
-	// 创建测试用户
+	// 创建测试用户（使用加密后的密码）
+	hashedPassword := hashPassword("admin123")
 	_, err := model.DB.Exec(`
 		INSERT INTO users (username, password, email, phone, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
-	`, "admin", "admin123", "admin@test.com", "13800138000", 1, now, now)
+	`, "admin", hashedPassword, "admin@test.com", "13800138000", 1, now, now)
 	if err != nil {
 		return fmt.Errorf("failed to create test user: %v", err)
 	}
@@ -153,8 +165,9 @@ func initTestData() error {
 
 // TestHelper 测试辅助结构体
 type TestHelper struct {
-	Router *gin.Engine
-	Token  string
+	Router       *gin.Engine
+	Token        string
+	RefreshToken string
 }
 
 // NewTestHelper 创建测试辅助对象
@@ -211,16 +224,31 @@ func setupTestRouter() *gin.Engine {
 
 // login 登录并获取token
 func (h *TestHelper) login(t *testing.T) {
-	loginData := map[string]string{
-		"username": "admin",
-		"password": "admin123",
+	// 先获取验证码
+	req := httptest.NewRequest("GET", "/api/v1/auth/captcha", nil)
+	w := httptest.NewRecorder()
+	h.Router.ServeHTTP(w, req)
+
+	var captchaResp map[string]interface{}
+	err := json.Unmarshal(w.Body.Bytes(), &captchaResp)
+	assert.NoError(t, err, "Failed to parse captcha response")
+
+	data := captchaResp["data"].(map[string]interface{})
+	captchaId := data["captcha_id"].(string)
+
+	// 登录请求
+	loginData := map[string]interface{}{
+		"username":    "admin",
+		"password":    "admin123",
+		"captcha_id":  captchaId,
+		"captcha_val": "1234", // 在测试模式下，验证码固定为1234
 	}
 	jsonData, err := json.Marshal(loginData)
 	assert.NoError(t, err)
 
-	req := httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewBuffer(jsonData))
+	req = httptest.NewRequest("POST", "/api/v1/auth/login", bytes.NewBuffer(jsonData))
 	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
+	w = httptest.NewRecorder()
 	h.Router.ServeHTTP(w, req)
 
 	// 打印响应内容以便调试
@@ -234,19 +262,24 @@ func (h *TestHelper) login(t *testing.T) {
 	assert.NoError(t, err, "Failed to parse login response")
 
 	// 检查响应结构
-	data, ok := response["data"].(map[string]interface{})
-	assert.True(t, ok, "Response data is not a map")
-	assert.Contains(t, data, "token", "Response does not contain token")
+	data = response["data"].(map[string]interface{})
+	assert.Contains(t, data, "access_token", "Response does not contain access_token")
+	assert.Contains(t, data, "refresh_token", "Response does not contain refresh_token")
 
-	token, ok := data["token"].(string)
+	token, ok := data["access_token"].(string)
 	assert.True(t, ok, "Token is not a string")
 	assert.NotEmpty(t, token, "Token is empty")
 
+	refreshToken, ok := data["refresh_token"].(string)
+	assert.True(t, ok, "Refresh token is not a string")
+	assert.NotEmpty(t, refreshToken, "Refresh token is empty")
+
 	h.Token = token
+	h.RefreshToken = refreshToken
 }
 
 // MakeRequest 发送HTTP请求
-func (h *TestHelper) MakeRequest(t *testing.T, method, path string, body interface{}) *httptest.ResponseRecorder {
+func (h *TestHelper) MakeRequest(t *testing.T, method, path string, body interface{}, headers ...map[string]string) *httptest.ResponseRecorder {
 	var req *http.Request
 	if body != nil {
 		jsonData, err := json.Marshal(body)
@@ -257,8 +290,16 @@ func (h *TestHelper) MakeRequest(t *testing.T, method, path string, body interfa
 		req = httptest.NewRequest(method, path, nil)
 	}
 
+	// 设置默认的Authorization头
 	if h.Token != "" {
 		req.Header.Set("Authorization", "Bearer "+h.Token)
+	}
+
+	// 设置额外的头部
+	if len(headers) > 0 {
+		for key, value := range headers[0] {
+			req.Header.Set(key, value)
+		}
 	}
 
 	w := httptest.NewRecorder()

@@ -7,106 +7,171 @@ import (
 	"github.com/iiwish/lingjian/internal/model"
 )
 
+// RBACService RBAC服务
 type RBACService struct{}
 
 // CreateRole 创建角色
 func (s *RBACService) CreateRole(name, code string) error {
-	_, err := model.DB.Exec(`
+	// 检查角色代码是否已存在
+	var count int
+	err := model.DB.Get(&count, "SELECT COUNT(*) FROM roles WHERE code = ?", code)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return errors.New("角色代码已存在")
+	}
+
+	// 创建角色
+	_, err = model.DB.Exec(`
 		INSERT INTO roles (name, code, status, created_at, updated_at)
-		VALUES (?, ?, 1, ?, ?)
-	`, name, code, time.Now(), time.Now())
+		VALUES (?, ?, ?, ?, ?)
+	`, name, code, 1, time.Now(), time.Now())
+
 	return err
 }
 
 // CreatePermission 创建权限
 func (s *RBACService) CreatePermission(name, code, typ, path, method string) error {
-	_, err := model.DB.Exec(`
+	// 检查权限代码是否已存在
+	var count int
+	err := model.DB.Get(&count, "SELECT COUNT(*) FROM permissions WHERE code = ?", code)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		return errors.New("权限代码已存在")
+	}
+
+	// 创建权限
+	_, err = model.DB.Exec(`
 		INSERT INTO permissions (name, code, type, path, method, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, 1, ?, ?)
-	`, name, code, typ, path, method, time.Now(), time.Now())
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	`, name, code, typ, path, method, 1, time.Now(), time.Now())
+
 	return err
 }
 
 // AssignRoleToUser 为用户分配角色
 func (s *RBACService) AssignRoleToUser(userID, roleID uint) error {
-	// 检查用户是否存在
-	var userExists bool
-	err := model.DB.Get(&userExists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = ?)", userID)
+	// 检查用户和角色是否存在
+	var userCount, roleCount int
+	err := model.DB.Get(&userCount, "SELECT COUNT(*) FROM users WHERE id = ?", userID)
 	if err != nil {
 		return err
 	}
-	if !userExists {
+	if userCount == 0 {
 		return errors.New("用户不存在")
 	}
 
-	// 检查角色是否存在
-	var roleExists bool
-	err = model.DB.Get(&roleExists, "SELECT EXISTS(SELECT 1 FROM roles WHERE id = ?)", roleID)
+	err = model.DB.Get(&roleCount, "SELECT COUNT(*) FROM roles WHERE id = ?", roleID)
 	if err != nil {
 		return err
 	}
-	if !roleExists {
+	if roleCount == 0 {
 		return errors.New("角色不存在")
 	}
 
-	// 分配角色
+	// 分配角色给用户
 	_, err = model.DB.Exec(`
 		INSERT INTO user_roles (user_id, role_id)
 		VALUES (?, ?)
-		ON DUPLICATE KEY UPDATE role_id = role_id
-	`, userID, roleID)
+		ON DUPLICATE KEY UPDATE role_id = ?
+	`, userID, roleID, roleID)
+
 	return err
 }
 
-// AssignPermissionToRole 为角色分配权限
-func (s *RBACService) AssignPermissionToRole(roleID, permissionID uint) error {
-	// 检查角色是否存在
-	var roleExists bool
-	err := model.DB.Get(&roleExists, "SELECT EXISTS(SELECT 1 FROM roles WHERE id = ?)", roleID)
+// AssignPermissionsToRole 为角色分配权限
+func (s *RBACService) AssignPermissionsToRole(roleCode string, permissionCodes []string) error {
+	// 获取角色ID
+	var roleID uint
+	err := model.DB.Get(&roleID, "SELECT id FROM roles WHERE code = ?", roleCode)
 	if err != nil {
-		return err
-	}
-	if !roleExists {
 		return errors.New("角色不存在")
 	}
 
-	// 检查权限是否存在
-	var permExists bool
-	err = model.DB.Get(&permExists, "SELECT EXISTS(SELECT 1 FROM permissions WHERE id = ?)", permissionID)
+	// 获取权限IDs
+	query := "SELECT id FROM permissions WHERE code IN (?" + ",?"[len(permissionCodes)-1:] + ")"
+	rows, err := model.DB.Query(query, interfaceSlice(permissionCodes)...)
 	if err != nil {
 		return err
 	}
-	if !permExists {
-		return errors.New("权限不存在")
+	defer rows.Close()
+
+	var permissionIDs []uint
+	for rows.Next() {
+		var id uint
+		if err := rows.Scan(&id); err != nil {
+			return err
+		}
+		permissionIDs = append(permissionIDs, id)
 	}
 
-	// 分配权限
-	_, err = model.DB.Exec(`
-		INSERT INTO role_permissions (role_id, permission_id)
-		VALUES (?, ?)
-		ON DUPLICATE KEY UPDATE permission_id = permission_id
-	`, roleID, permissionID)
-	return err
+	if len(permissionIDs) != len(permissionCodes) {
+		return errors.New("部分权限代码不存在")
+	}
+
+	// 开始事务
+	tx, err := model.DB.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// 删除现有权限
+	_, err = tx.Exec("DELETE FROM role_permissions WHERE role_id = ?", roleID)
+	if err != nil {
+		return err
+	}
+
+	// 分配新权限
+	for _, permID := range permissionIDs {
+		_, err = tx.Exec(`
+			INSERT INTO role_permissions (role_id, permission_id)
+			VALUES (?, ?)
+		`, roleID, permID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
-// GetUserRoles 获取用户的所有角色
-func (s *RBACService) GetUserRoles(userID uint) ([]model.Role, error) {
-	var roles []model.Role
-	err := model.DB.Select(&roles, `
-		SELECT r.* FROM roles r
-		INNER JOIN user_roles ur ON r.id = ur.role_id
+// GetUserRoles 获取用户的角色列表
+func (s *RBACService) GetUserRoles(userID uint) ([]map[string]interface{}, error) {
+	var roles []map[string]interface{}
+	query := `
+		SELECT r.*
+		FROM roles r
+		JOIN user_roles ur ON r.id = ur.role_id
 		WHERE ur.user_id = ? AND r.status = 1
-	`, userID)
+		ORDER BY r.created_at DESC
+	`
+	err := model.DB.Select(&roles, query, userID)
 	return roles, err
 }
 
-// GetRolePermissions 获取角色的所有权限
-func (s *RBACService) GetRolePermissions(roleID uint) ([]model.Permission, error) {
-	var permissions []model.Permission
-	err := model.DB.Select(&permissions, `
-		SELECT p.* FROM permissions p
-		INNER JOIN role_permissions rp ON p.id = rp.permission_id
+// GetRolePermissions 获取角色的权限列表
+func (s *RBACService) GetRolePermissions(roleID uint) ([]map[string]interface{}, error) {
+	var permissions []map[string]interface{}
+	query := `
+		SELECT p.*
+		FROM permissions p
+		JOIN role_permissions rp ON p.id = rp.permission_id
 		WHERE rp.role_id = ? AND p.status = 1
-	`, roleID)
+		ORDER BY p.created_at DESC
+	`
+	err := model.DB.Select(&permissions, query, roleID)
 	return permissions, err
+}
+
+// interfaceSlice 将字符串切片转换为接口切片
+func interfaceSlice(strs []string) []interface{} {
+	interfaces := make([]interface{}, len(strs))
+	for i, s := range strs {
+		interfaces[i] = s
+	}
+	return interfaces
 }

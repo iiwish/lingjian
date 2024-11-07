@@ -13,6 +13,7 @@ import (
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/queue"
 	"github.com/iiwish/lingjian/pkg/redis"
+	"github.com/iiwish/lingjian/pkg/store"
 	"github.com/spf13/viper"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -56,7 +57,7 @@ func init() {
 	}
 
 	// 初始化认证服务
-	v1.InitAuthService()
+	v1.InitAuthService(store.NewRedisStore())
 }
 
 func main() {

@@ -8,11 +8,20 @@ import (
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
+var globalStore store.Store
+
+// SetStore 设置全局存储实例
+func SetStore(s store.Store) {
+	globalStore = s
+}
+
 // AuthMiddleware 认证中间件
 func AuthMiddleware() gin.HandlerFunc {
-	redisStore := store.NewRedisStore()
-
 	return func(c *gin.Context) {
+		if globalStore == nil {
+			globalStore = store.NewRedisStore()
+		}
+
 		auth := c.GetHeader("Authorization")
 		if auth == "" {
 			utils.Error(c, 401, "未授权")
@@ -29,8 +38,8 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		token := parts[1]
 
-		// 从Redis验证token
-		userId, err := redisStore.VerifyToken(token, "access")
+		// 从存储中验证token
+		userId, err := globalStore.VerifyToken(token, "access")
 		if err != nil {
 			utils.Error(c, 401, "无效的token")
 			c.Abort()

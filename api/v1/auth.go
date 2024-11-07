@@ -3,14 +3,15 @@ package v1
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/service"
+	"github.com/iiwish/lingjian/pkg/store"
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
 var authService *service.AuthService
 
 // InitAuthService 初始化认证服务
-func InitAuthService() {
-	authService = service.NewAuthService()
+func InitAuthService(s store.Store) {
+	authService = service.NewAuthService(s)
 }
 
 // RegisterAuthRoutes 注册认证相关路由
