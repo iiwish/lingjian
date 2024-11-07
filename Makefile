@@ -111,8 +111,8 @@ dev-server: swagger
 		air -c .air.toml; \
 	else \
 		echo "air is not installed. Installing..."; \
-		GO111MODULE=on go install github.com/air-verse/air@latest; \
-		$(HOME)/go/bin/air -c .air.toml; \
+		go install github.com/air-verse/air@latest; \
+		air -c .air.toml; \
 	fi
 
 # 帮助信息

@@ -32,7 +32,16 @@ type CreateAppRequest struct {
 	Description string `json:"description"`
 }
 
-// CreateApp 创建应用
+// @Summary      创建应用
+// @Description  创建新的应用
+// @Tags         Application
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateAppRequest true "创建应用请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps [post]
 func CreateApp(c *gin.Context) {
 	var req CreateAppRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -53,7 +62,18 @@ type AssignAppRequest struct {
 	IsDefault bool `json:"is_default"`
 }
 
-// AssignAppToUser 为用户分配应用
+// @Summary      为用户分配应用
+// @Description  将应用分配给指定用户
+// @Tags         Application
+// @Accept       json
+// @Produce      json
+// @Param        app_id  path     int  true  "应用ID"
+// @Param        user_id path     int  true  "用户ID"
+// @Param        request body     AssignAppRequest true "分配应用请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps/{app_id}/users/{user_id} [post]
 func AssignAppToUser(c *gin.Context) {
 	var req AssignAppRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -73,7 +93,15 @@ func AssignAppToUser(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// GetUserApps 获取用户的所有应用
+// @Summary      获取用户应用列表
+// @Description  获取指定用户的所有应用
+// @Tags         Application
+// @Accept       json
+// @Produce      json
+// @Param        user_id path     int  true  "用户ID"
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps/users/{user_id} [get]
 func GetUserApps(c *gin.Context) {
 	userID := utils.ParseUint(c.Param("user_id"))
 
@@ -87,7 +115,15 @@ func GetUserApps(c *gin.Context) {
 	utils.Success(c, apps)
 }
 
-// GetDefaultApp 获取用户的默认应用
+// @Summary      获取用户默认应用
+// @Description  获取指定用户的默认应用
+// @Tags         Application
+// @Accept       json
+// @Produce      json
+// @Param        user_id path     int  true  "用户ID"
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps/users/{user_id}/default [get]
 func GetDefaultApp(c *gin.Context) {
 	userID := utils.ParseUint(c.Param("user_id"))
 
@@ -108,7 +144,16 @@ type CreateTemplateRequest struct {
 	Price         float64 `json:"price"`
 }
 
-// CreateTemplate 创建应用模板
+// @Summary      创建应用模板
+// @Description  创建新的应用模板
+// @Tags         ApplicationTemplate
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateTemplateRequest true "创建模板请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps/templates [post]
 func CreateTemplate(c *gin.Context) {
 	var req CreateTemplateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -132,7 +177,14 @@ func CreateTemplate(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// ListTemplates 列出应用模板
+// @Summary      获取模板列表
+// @Description  获取所有已上架的应用模板
+// @Tags         ApplicationTemplate
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps/templates [get]
 func ListTemplates(c *gin.Context) {
 	appService := &service.AppService{}
 	templates, err := appService.ListAppTemplates(1) // 只列出已上架的模板
@@ -149,7 +201,17 @@ type CreateFromTemplateRequest struct {
 	Code string `json:"code" binding:"required"`
 }
 
-// CreateFromTemplate 从模板创建应用
+// @Summary      从模板创建应用
+// @Description  基于指定模板创建新应用
+// @Tags         ApplicationTemplate
+// @Accept       json
+// @Produce      json
+// @Param        template_id path     int  true  "模板ID"
+// @Param        request     body     CreateFromTemplateRequest true "创建应用请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps/templates/{template_id}/create [post]
 func CreateFromTemplate(c *gin.Context) {
 	var req CreateFromTemplateRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -169,7 +231,15 @@ func CreateFromTemplate(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// PublishTemplate 发布模板
+// @Summary      发布模板
+// @Description  将应用模板发布上架
+// @Tags         ApplicationTemplate
+// @Accept       json
+// @Produce      json
+// @Param        template_id path     int  true  "模板ID"
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps/templates/{template_id}/publish [post]
 func PublishTemplate(c *gin.Context) {
 	templateID := utils.ParseUint(c.Param("template_id"))
 

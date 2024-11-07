@@ -79,7 +79,16 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 	}
 }
 
-// CreateTable 创建数据表配置
+// @Summary      创建数据表配置
+// @Description  创建新的数据表配置
+// @Tags         ConfigTable
+// @Accept       json
+// @Produce      json
+// @Param        request body service.CreateTableRequest true "创建数据表配置请求参数"
+// @Success      201  {object}  gin.H
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/tables [post]
 func (api *ConfigAPI) CreateTable(c *gin.Context) {
 	var req service.CreateTableRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -98,7 +107,17 @@ func (api *ConfigAPI) CreateTable(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "数据表配置创建成功"})
 }
 
-// UpdateTable 更新数据表配置
+// @Summary      更新数据表配置
+// @Description  更新已存在的数据表配置
+// @Tags         ConfigTable
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        request body model.ConfigTable true "更新数据表配置请求参数"
+// @Success      200  {object}  model.ConfigTable
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/tables/{id} [put]
 func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -121,7 +140,16 @@ func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 	c.JSON(http.StatusOK, table)
 }
 
-// ListTables 获取数据表配置列表
+// @Summary      获取数据表配置列表
+// @Description  获取指定应用的所有数据表配置
+// @Tags         ConfigTable
+// @Accept       json
+// @Produce      json
+// @Param        app_id query int true "应用ID"
+// @Success      200  {array}   model.ConfigTable
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/tables [get]
 func (api *ConfigAPI) ListTables(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
@@ -138,7 +166,16 @@ func (api *ConfigAPI) ListTables(c *gin.Context) {
 	c.JSON(http.StatusOK, tables)
 }
 
-// GetTable 获取数据表配置详情
+// @Summary      获取数据表配置详情
+// @Description  获取指定数据表配置的详细信息
+// @Tags         ConfigTable
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {object}  model.ConfigTable
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/tables/{id} [get]
 func (api *ConfigAPI) GetTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -155,7 +192,16 @@ func (api *ConfigAPI) GetTable(c *gin.Context) {
 	c.JSON(http.StatusOK, table)
 }
 
-// DeleteTable 删除数据表配置
+// @Summary      删除数据表配置
+// @Description  删除指定的数据表配置
+// @Tags         ConfigTable
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      204  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/tables/{id} [delete]
 func (api *ConfigAPI) DeleteTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -171,7 +217,16 @@ func (api *ConfigAPI) DeleteTable(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// GetTableVersions 获取数据表配置版本历史
+// @Summary      获取数据表配置版本历史
+// @Description  获取指定数据表配置的版本历史记录
+// @Tags         ConfigTable
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {array}   model.ConfigTableVersion
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/tables/{id}/versions [get]
 func (api *ConfigAPI) GetTableVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -188,7 +243,17 @@ func (api *ConfigAPI) GetTableVersions(c *gin.Context) {
 	c.JSON(http.StatusOK, versions)
 }
 
-// RollbackTable 回滚数据表配置到指定版本
+// @Summary      回滚数据表配置
+// @Description  将数据表配置回滚到指定版本
+// @Tags         ConfigTable
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        version query int true "目标版本号"
+// @Success      200  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/tables/{id}/rollback [post]
 func (api *ConfigAPI) RollbackTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -210,7 +275,16 @@ func (api *ConfigAPI) RollbackTable(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// CreateDimension 创建维度配置
+// @Summary      创建维度配置
+// @Description  创建新的维度配置
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Param        request body service.CreateDimensionRequest true "创建维度配置请求参数"
+// @Success      201  {object}  gin.H
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/dimensions [post]
 func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 	var req service.CreateDimensionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -229,7 +303,17 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "维度配置创建成功"})
 }
 
-// UpdateDimension 更新维度配置
+// @Summary      更新维度配置
+// @Description  更新已存在的维度配置
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        request body model.ConfigDimension true "更新维度配置请求参数"
+// @Success      200  {object}  model.ConfigDimension
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/dimensions/{id} [put]
 func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -252,7 +336,16 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	c.JSON(http.StatusOK, dimension)
 }
 
-// ListDimensions 获取维度配置列表
+// @Summary      获取维度配置列表
+// @Description  获取指定应用的维度配置列表
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Param        app_id query int true "应用ID"
+// @Success      200  {array}   model.ConfigDimension
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/dimensions [get]
 func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
@@ -269,7 +362,16 @@ func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 	c.JSON(http.StatusOK, dimensions)
 }
 
-// GetDimension 获取维度配置详情
+// @Summary      获取维度配置详情
+// @Description  获取指定维度配置的详细信息
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {object}  model.ConfigDimension
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/dimensions/{id} [get]
 func (api *ConfigAPI) GetDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -286,7 +388,16 @@ func (api *ConfigAPI) GetDimension(c *gin.Context) {
 	c.JSON(http.StatusOK, dimension)
 }
 
-// DeleteDimension 删除维度配置
+// @Summary      删除维度配置
+// @Description  删除指定的维度配置
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      204  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/dimensions/{id} [delete]
 func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -302,7 +413,16 @@ func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// GetDimensionVersions 获取维度配置版本历史
+// @Summary      获取维度配置版本历史
+// @Description  获取指定维度配置的版本历史记录
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {array}   model.ConfigDimensionVersion
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/dimensions/{id}/versions [get]
 func (api *ConfigAPI) GetDimensionVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -319,7 +439,17 @@ func (api *ConfigAPI) GetDimensionVersions(c *gin.Context) {
 	c.JSON(http.StatusOK, versions)
 }
 
-// RollbackDimension 回滚维度配置到指定版本
+// @Summary      回滚维度配置
+// @Description  将维度配置回滚到指定版本
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        version query int true "目标版本号"
+// @Success      200  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/dimensions/{id}/rollback [post]
 func (api *ConfigAPI) RollbackDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -341,7 +471,16 @@ func (api *ConfigAPI) RollbackDimension(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// CreateModel 创建数据模型配置
+// @Summary      创建数据模型配置
+// @Description  创建新的数据模型配置
+// @Tags         ConfigModel
+// @Accept       json
+// @Produce      json
+// @Param        request body model.ConfigDataModel true "创建数据模型配置请求参数"
+// @Success      201  {object}  model.ConfigDataModel
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/models [post]
 func (api *ConfigAPI) CreateModel(c *gin.Context) {
 	var model model.ConfigDataModel
 	if err := c.ShouldBindJSON(&model); err != nil {
@@ -357,7 +496,17 @@ func (api *ConfigAPI) CreateModel(c *gin.Context) {
 	c.JSON(http.StatusCreated, model)
 }
 
-// UpdateModel 更新数据模型配置
+// @Summary      更新数据模型配置
+// @Description  更新已存在的数据模型配置
+// @Tags         ConfigModel
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        request body model.ConfigDataModel true "更新数据模型配置请求参数"
+// @Success      200  {object}  model.ConfigDataModel
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/models/{id} [put]
 func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -380,7 +529,16 @@ func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 	c.JSON(http.StatusOK, model)
 }
 
-// ListModels 获取数据模型配置列表
+// @Summary      获取数据模型配置列表
+// @Description  获取指定应用的数据模型配置列表
+// @Tags         ConfigModel
+// @Accept       json
+// @Produce      json
+// @Param        app_id query int true "应用ID"
+// @Success      200  {array}   model.ConfigDataModel
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/models [get]
 func (api *ConfigAPI) ListModels(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
@@ -397,7 +555,16 @@ func (api *ConfigAPI) ListModels(c *gin.Context) {
 	c.JSON(http.StatusOK, models)
 }
 
-// GetModel 获取数据模型配置详情
+// @Summary      获取数据模型配置详情
+// @Description  获取指定数据模型配置的详细信息
+// @Tags         ConfigModel
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {object}  model.ConfigDataModel
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/models/{id} [get]
 func (api *ConfigAPI) GetModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -414,7 +581,16 @@ func (api *ConfigAPI) GetModel(c *gin.Context) {
 	c.JSON(http.StatusOK, model)
 }
 
-// DeleteModel 删除数据模型配置
+// @Summary      删除数据模型配置
+// @Description  删除指定的数据模型配置
+// @Tags         ConfigModel
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      204  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/models/{id} [delete]
 func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -430,7 +606,16 @@ func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// GetModelVersions 获取数据模型配置版本历史
+// @Summary      获取数据模型配置版本历史
+// @Description  获取指定数据模型配置的版本历史记录
+// @Tags         ConfigModel
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {array}   model.ConfigDataModelVersion
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/models/{id}/versions [get]
 func (api *ConfigAPI) GetModelVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -447,7 +632,17 @@ func (api *ConfigAPI) GetModelVersions(c *gin.Context) {
 	c.JSON(http.StatusOK, versions)
 }
 
-// RollbackModel 回滚数据模型配置到指定版本
+// @Summary      回滚数据模型配置
+// @Description  将数据模型配置回滚到指定版本
+// @Tags         ConfigModel
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        version query int true "目标版本号"
+// @Success      200  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/models/{id}/rollback [post]
 func (api *ConfigAPI) RollbackModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -469,7 +664,16 @@ func (api *ConfigAPI) RollbackModel(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// CreateForm 创建表单配置
+// @Summary      创建表单配置
+// @Description  创建新的表单配置
+// @Tags         ConfigForm
+// @Accept       json
+// @Produce      json
+// @Param        request body model.ConfigForm true "创建表单配置请求参数"
+// @Success      201  {object}  model.ConfigForm
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/forms [post]
 func (api *ConfigAPI) CreateForm(c *gin.Context) {
 	var form model.ConfigForm
 	if err := c.ShouldBindJSON(&form); err != nil {
@@ -485,7 +689,17 @@ func (api *ConfigAPI) CreateForm(c *gin.Context) {
 	c.JSON(http.StatusCreated, form)
 }
 
-// UpdateForm 更新表单配置
+// @Summary      更新表单配置
+// @Description  更新已存在的表单配置
+// @Tags         ConfigForm
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        request body model.ConfigForm true "更新表单配置请求参数"
+// @Success      200  {object}  model.ConfigForm
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/forms/{id} [put]
 func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -508,7 +722,16 @@ func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 	c.JSON(http.StatusOK, form)
 }
 
-// ListForms 获取表单配置列表
+// @Summary      获取表单配置列表
+// @Description  获取指定应用的表单配置列表
+// @Tags         ConfigForm
+// @Accept       json
+// @Produce      json
+// @Param        app_id query int true "应用ID"
+// @Success      200  {array}   model.ConfigForm
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/forms [get]
 func (api *ConfigAPI) ListForms(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
@@ -525,7 +748,16 @@ func (api *ConfigAPI) ListForms(c *gin.Context) {
 	c.JSON(http.StatusOK, forms)
 }
 
-// GetForm 获取表单配置详情
+// @Summary      获取表单配置详情
+// @Description  获取指定表单配置的详细信息
+// @Tags         ConfigForm
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {object}  model.ConfigForm
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/forms/{id} [get]
 func (api *ConfigAPI) GetForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -542,7 +774,16 @@ func (api *ConfigAPI) GetForm(c *gin.Context) {
 	c.JSON(http.StatusOK, form)
 }
 
-// DeleteForm 删除表单配置
+// @Summary      删除表单配置
+// @Description  删除指定的表单配置
+// @Tags         ConfigForm
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      204  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/forms/{id} [delete]
 func (api *ConfigAPI) DeleteForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -558,7 +799,16 @@ func (api *ConfigAPI) DeleteForm(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// GetFormVersions 获取表单配置版本历史
+// @Summary      获取表单配置版本历史
+// @Description  获取指定表单配置的版本历史记录
+// @Tags         ConfigForm
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {array}   model.ConfigFormVersion
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/forms/{id}/versions [get]
 func (api *ConfigAPI) GetFormVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -575,7 +825,17 @@ func (api *ConfigAPI) GetFormVersions(c *gin.Context) {
 	c.JSON(http.StatusOK, versions)
 }
 
-// RollbackForm 回滚表单配置到指定版本
+// @Summary      回滚表单配置
+// @Description  将表单配置回滚到指定版本
+// @Tags         ConfigForm
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        version query int true "目标版本号"
+// @Success      200  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/forms/{id}/rollback [post]
 func (api *ConfigAPI) RollbackForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -597,7 +857,16 @@ func (api *ConfigAPI) RollbackForm(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
-// CreateMenu 创建菜单配置
+// @Summary      创建菜单配置
+// @Description  创建新的菜单配置
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        request body model.ConfigMenu true "创建菜单配置请求参数"
+// @Success      201  {object}  model.ConfigMenu
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/menus [post]
 func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 	var menu model.ConfigMenu
 	if err := c.ShouldBindJSON(&menu); err != nil {
@@ -613,7 +882,17 @@ func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 	c.JSON(http.StatusCreated, menu)
 }
 
-// UpdateMenu 更新菜单配置
+// @Summary      更新菜单配置
+// @Description  更新已存在的菜单配置
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        request body model.ConfigMenu true "更新菜单配置请求参数"
+// @Success      200  {object}  model.ConfigMenu
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/menus/{id} [put]
 func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -636,7 +915,16 @@ func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 	c.JSON(http.StatusOK, menu)
 }
 
-// ListMenus 获取菜单配置列表
+// @Summary      获取菜单配置列表
+// @Description  获取指定应用的菜单配置列表
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        app_id query int true "应用ID"
+// @Success      200  {array}   model.ConfigMenu
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/menus [get]
 func (api *ConfigAPI) ListMenus(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
 	if err != nil {
@@ -653,7 +941,16 @@ func (api *ConfigAPI) ListMenus(c *gin.Context) {
 	c.JSON(http.StatusOK, menus)
 }
 
-// GetMenu 获取菜单配置详情
+// @Summary      获取菜单配置详情
+// @Description  获取指定菜单配置的详细信息
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {object}  model.ConfigMenu
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/menus/{id} [get]
 func (api *ConfigAPI) GetMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -670,7 +967,16 @@ func (api *ConfigAPI) GetMenu(c *gin.Context) {
 	c.JSON(http.StatusOK, menu)
 }
 
-// DeleteMenu 删除菜单配置
+// @Summary      删除菜单配置
+// @Description  删除指定的菜单配置
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      204  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/menus/{id} [delete]
 func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -686,7 +992,16 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// GetMenuVersions 获取菜单配置版本历史
+// @Summary      获取菜单配置版本历史
+// @Description  获取指定菜单配置的版本历史记录
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Success      200  {array}   model.ConfigMenuVersion
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/menus/{id}/versions [get]
 func (api *ConfigAPI) GetMenuVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
@@ -703,7 +1018,17 @@ func (api *ConfigAPI) GetMenuVersions(c *gin.Context) {
 	c.JSON(http.StatusOK, versions)
 }
 
-// RollbackMenu 回滚菜单配置到指定版本
+// @Summary      回滚菜单配置
+// @Description  将菜单配置回滚到指定版本
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "配置ID"
+// @Param        version query int true "目标版本号"
+// @Success      200  {object}  nil
+// @Failure      400  {object}  gin.H
+// @Failure      500  {object}  gin.H
+// @Router       /config/menus/{id}/rollback [post]
 func (api *ConfigAPI) RollbackMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {

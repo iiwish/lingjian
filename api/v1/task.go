@@ -32,7 +32,16 @@ type CreateScheduledTaskRequest struct {
 	RetryTimes int            `json:"retry_times"`
 }
 
-// CreateScheduledTask 创建定时任务
+// @Summary      创建定时任务
+// @Description  创建新的定时任务
+// @Tags         Task
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateScheduledTaskRequest true "创建定时任务请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /tasks/scheduled [post]
 func CreateScheduledTask(c *gin.Context) {
 	var req CreateScheduledTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -65,7 +74,17 @@ type UpdateScheduledTaskRequest struct {
 	RetryTimes int            `json:"retry_times"`
 }
 
-// UpdateScheduledTask 更新定时任务
+// @Summary      更新定时任务
+// @Description  更新已存在的定时任务
+// @Tags         Task
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "任务ID"
+// @Param        request body UpdateScheduledTaskRequest true "更新定时任务请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /tasks/scheduled/{id} [put]
 func UpdateScheduledTask(c *gin.Context) {
 	var req UpdateScheduledTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -90,7 +109,16 @@ func UpdateScheduledTask(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// ToggleTaskStatus 切换任务状态
+// @Summary      切换任务状态
+// @Description  启用或禁用定时任务
+// @Tags         Task
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "任务ID"
+// @Param        status query int true "状态码"
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /tasks/scheduled/{id}/toggle [post]
 func ToggleTaskStatus(c *gin.Context) {
 	taskID := utils.ParseUint(c.Param("id"))
 	status := utils.ParseInt(c.Query("status"))
@@ -104,7 +132,17 @@ func ToggleTaskStatus(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// GetTaskLogs 获取任务执行日志
+// @Summary      获取任务日志
+// @Description  获取定时任务的执行日志
+// @Tags         Task
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "任务ID"
+// @Param        limit query int false "每页数量" default(10)
+// @Param        offset query int false "偏移量" default(0)
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /tasks/scheduled/{id}/logs [get]
 func GetTaskLogs(c *gin.Context) {
 	taskID := utils.ParseUint(c.Param("id"))
 	limit := utils.ParseInt(c.DefaultQuery("limit", "10"))
@@ -120,7 +158,15 @@ func GetTaskLogs(c *gin.Context) {
 	utils.Success(c, logs)
 }
 
-// ExecuteTask 手动执行任务
+// @Summary      执行任务
+// @Description  手动执行定时任务
+// @Tags         Task
+// @Accept       json
+// @Produce      json
+// @Param        id path int true "任务ID"
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /tasks/scheduled/{id}/execute [post]
 func ExecuteTask(c *gin.Context) {
 	taskID := utils.ParseUint(c.Param("id"))
 
@@ -142,7 +188,16 @@ type CreateElementTriggerRequest struct {
 	Content      map[string]any `json:"content" binding:"required"`
 }
 
-// CreateElementTrigger 创建元素触发器
+// @Summary      创建元素触发器
+// @Description  创建新的元素触发器
+// @Tags         Task
+// @Accept       json
+// @Produce      json
+// @Param        request body CreateElementTriggerRequest true "创建元素触发器请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /tasks/triggers [post]
 func CreateElementTrigger(c *gin.Context) {
 	var req CreateElementTriggerRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
