@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/http"
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/iiwish/lingjian/api/v1"
-	"github.com/iiwish/lingjian/api/v1/config" // 更新导入路径
-	_ "github.com/iiwish/lingjian/docs"        // 导入swagger文档
+	"github.com/iiwish/lingjian/api/v1/config"
+	_ "github.com/iiwish/lingjian/docs"
 	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/queue"
@@ -69,7 +70,13 @@ func main() {
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
 
-	// Swagger文档路由
+	// 静态文件服务
+	r.Static("/static", "./static")
+
+	// API文档路由
+	r.GET("/docs", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/static/redoc.html")
+	})
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API路由
@@ -94,7 +101,7 @@ func main() {
 					// 注册应用相关路由
 					v1.RegisterAppRoutes(rbacProtected)
 					// 注册配置相关路由
-					config.RegisterConfigRoutes(rbacProtected) // 使用新的config包
+					config.RegisterConfigRoutes(rbacProtected)
 					// 注册任务相关路由
 					v1.RegisterTaskRoutes(rbacProtected)
 				}
@@ -105,7 +112,7 @@ func main() {
 	// 启动服务器
 	port := viper.GetString("server.port")
 	log.Printf("Server is running on http://localhost:%s", port)
-	log.Printf("Swagger文档地址: http://localhost:%s/swagger/index.html", port)
+	log.Printf("API文档地址: http://localhost:%s/docs", port)
 	if err := r.Run(fmt.Sprintf(":%s", port)); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

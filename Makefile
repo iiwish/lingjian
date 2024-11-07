@@ -78,8 +78,8 @@ init-db:
 	@mysql -h $(DB_HOST) -P $(DB_PORT) -u $(DB_USER) -p$(DB_PASS) $(DB_NAME) < internal/model/schema_task.sql
 
 # 生成API文档
-swagger:
-	@echo "Generating Swagger documentation..."
+docs:
+	@echo "Generating API documentation..."
 	@if command -v swag >/dev/null; then \
 		swag init -g cmd/server/main.go; \
 	else \
@@ -87,7 +87,7 @@ swagger:
 		go install github.com/swaggo/swag/cmd/swag@latest; \
 		$(shell go env GOPATH)/bin/swag init -g cmd/server/main.go; \
 	fi
-	@echo "Swagger documentation generated. Visit http://localhost:8081/swagger/index.html when server is running."
+	@echo "API documentation generated. Visit http://localhost:8081/docs when server is running."
 
 # 依赖管理
 deps:
@@ -106,7 +106,7 @@ vet:
 	@go vet ./...
 
 # 开发模式运行（支持热重载）
-dev-server: swagger
+dev-server: docs
 	@if command -v air >/dev/null; then \
 		air -c .air.toml; \
 	else \
@@ -127,8 +127,8 @@ help:
 	@echo "  run-server   - Build and run server"
 	@echo "  run-worker   - Build and run worker"
 	@echo "  init-db      - Initialize database"
-	@echo "  swagger      - Generate Swagger documentation"
+	@echo "  docs         - Generate API documentation"
 	@echo "  deps         - Download and tidy dependencies"
 	@echo "  fmt          - Format code"
-	@echo "  vet          - Check code for common errors"
-	@echo "  dev-server   - Run server in development mode with hot reload (includes swagger generation)"
+	@echo "  vet         - Check code for common errors"
+	@echo "  dev-server   - Run server in development mode with hot reload (includes docs generation)"
