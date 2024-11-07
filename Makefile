@@ -42,10 +42,31 @@ clean:
 	@rm -rf $(BUILD_DIR)
 	@go clean -i ./...
 
-# 测试
-test:
-	@echo "Running tests..."
-	@go test -v ./...
+# 测试相关命令
+test: test-unit test-integration
+
+# 单元测试
+test-unit:
+	@echo "Running unit tests..."
+	@go test -v -short ./...
+
+# 集成测试
+test-integration:
+	@echo "Running integration tests..."
+	@go test -v -run Integration ./...
+
+# 测试覆盖率
+test-coverage:
+	@echo "Running tests with coverage..."
+	@mkdir -p $(BUILD_DIR)
+	@go test -v -coverprofile=$(BUILD_DIR)/coverage.out ./...
+	@go tool cover -html=$(BUILD_DIR)/coverage.out -o $(BUILD_DIR)/coverage.html
+	@echo "Coverage report generated at $(BUILD_DIR)/coverage.html"
+
+# 性能测试
+test-bench:
+	@echo "Running benchmark tests..."
+	@go test -v -bench=. -benchmem ./...
 
 # 代码检查
 lint:
@@ -119,16 +140,20 @@ dev-server: docs
 # 帮助信息
 help:
 	@echo "Make commands:"
-	@echo "  all          - Run lint, test, and build"
-	@echo "  build        - Build server and worker binaries"
-	@echo "  clean        - Remove build artifacts"
-	@echo "  test         - Run tests"
-	@echo "  lint         - Run linter"
-	@echo "  run-server   - Build and run server"
-	@echo "  run-worker   - Build and run worker"
-	@echo "  init-db      - Initialize database"
-	@echo "  docs         - Generate API documentation"
-	@echo "  deps         - Download and tidy dependencies"
-	@echo "  fmt          - Format code"
-	@echo "  vet         - Check code for common errors"
-	@echo "  dev-server   - Run server in development mode with hot reload (includes docs generation)"
+	@echo "  all              - Run lint, test, and build"
+	@echo "  build            - Build server and worker binaries"
+	@echo "  clean            - Remove build artifacts"
+	@echo "  test             - Run all tests"
+	@echo "  test-unit        - Run unit tests only"
+	@echo "  test-integration - Run integration tests only"
+	@echo "  test-coverage    - Run tests with coverage report"
+	@echo "  test-bench       - Run benchmark tests"
+	@echo "  lint             - Run linter"
+	@echo "  run-server       - Build and run server"
+	@echo "  run-worker       - Build and run worker"
+	@echo "  init-db          - Initialize database"
+	@echo "  docs             - Generate API documentation"
+	@echo "  deps             - Download and tidy dependencies"
+	@echo "  fmt              - Format code"
+	@echo "  vet              - Check code for common errors"
+	@echo "  dev-server       - Run server in development mode with hot reload"
