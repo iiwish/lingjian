@@ -6,7 +6,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	v1 "github.com/iiwish/lingjian/api/v1"
-	_ "github.com/iiwish/lingjian/docs" // 导入swagger文档
+	"github.com/iiwish/lingjian/api/v1/config" // 更新导入路径
+	_ "github.com/iiwish/lingjian/docs"        // 导入swagger文档
 	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/queue"
@@ -93,7 +94,7 @@ func main() {
 					// 注册应用相关路由
 					v1.RegisterAppRoutes(rbacProtected)
 					// 注册配置相关路由
-					v1.RegisterConfigRoutes(rbacProtected)
+					config.RegisterConfigRoutes(rbacProtected) // 使用新的config包
 					// 注册任务相关路由
 					v1.RegisterTaskRoutes(rbacProtected)
 				}
