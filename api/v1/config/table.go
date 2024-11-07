@@ -15,9 +15,9 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        request body service.CreateTableRequest true "创建数据表配置请求参数"
-// @Success      201  {object}  gin.H
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Success      201  {object}  Response
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/tables [post]
 func (api *ConfigAPI) CreateTable(c *gin.Context) {
 	var req service.CreateTableRequest
@@ -44,8 +44,8 @@ func (api *ConfigAPI) CreateTable(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigTable true "更新数据表配置请求参数"
 // @Success      200  {object}  model.ConfigTable
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/tables/{id} [put]
 func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -76,8 +76,8 @@ func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 // @Produce      json
 // @Param        app_id query int true "应用ID"
 // @Success      200  {array}   model.ConfigTable
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/tables [get]
 func (api *ConfigAPI) ListTables(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
@@ -102,8 +102,8 @@ func (api *ConfigAPI) ListTables(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigTable
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/tables/{id} [get]
 func (api *ConfigAPI) GetTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -128,8 +128,8 @@ func (api *ConfigAPI) GetTable(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/tables/{id} [delete]
 func (api *ConfigAPI) DeleteTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -152,9 +152,9 @@ func (api *ConfigAPI) DeleteTable(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "配置ID"
-// @Success      200  {array}   model.ConfigTableVersion
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Success      200  {array}   model.ConfigVersion
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/tables/{id}/versions [get]
 func (api *ConfigAPI) GetTableVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -180,8 +180,8 @@ func (api *ConfigAPI) GetTableVersions(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        version query int true "目标版本号"
 // @Success      200  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/tables/{id}/rollback [post]
 func (api *ConfigAPI) RollbackTable(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)

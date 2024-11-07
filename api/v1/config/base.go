@@ -18,6 +18,12 @@ func NewConfigAPI(configService *service.ConfigService) *ConfigAPI {
 	}
 }
 
+// Response 通用响应结构
+// @Description 通用HTTP响应结构
+type Response struct {
+	Error string `json:"error,omitempty"`
+}
+
 // RegisterConfigRoutes 注册配置相关路由
 func RegisterConfigRoutes(router *gin.RouterGroup) {
 	configService := service.NewConfigService(model.DB)

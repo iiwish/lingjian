@@ -15,8 +15,8 @@ import (
 // @Produce      json
 // @Param        request body model.ConfigForm true "创建表单配置请求参数"
 // @Success      201  {object}  model.ConfigForm
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/forms [post]
 func (api *ConfigAPI) CreateForm(c *gin.Context) {
 	var form model.ConfigForm
@@ -41,8 +41,8 @@ func (api *ConfigAPI) CreateForm(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigForm true "更新表单配置请求参数"
 // @Success      200  {object}  model.ConfigForm
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/forms/{id} [put]
 func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -73,8 +73,8 @@ func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 // @Produce      json
 // @Param        app_id query int true "应用ID"
 // @Success      200  {array}   model.ConfigForm
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/forms [get]
 func (api *ConfigAPI) ListForms(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
@@ -99,8 +99,8 @@ func (api *ConfigAPI) ListForms(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigForm
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/forms/{id} [get]
 func (api *ConfigAPI) GetForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -125,8 +125,8 @@ func (api *ConfigAPI) GetForm(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/forms/{id} [delete]
 func (api *ConfigAPI) DeleteForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -149,9 +149,9 @@ func (api *ConfigAPI) DeleteForm(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "配置ID"
-// @Success      200  {array}   model.ConfigFormVersion
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Success      200  {array}   model.ConfigVersion
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/forms/{id}/versions [get]
 func (api *ConfigAPI) GetFormVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -177,8 +177,8 @@ func (api *ConfigAPI) GetFormVersions(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        version query int true "目标版本号"
 // @Success      200  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/forms/{id}/rollback [post]
 func (api *ConfigAPI) RollbackForm(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)

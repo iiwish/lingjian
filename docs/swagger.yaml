@@ -1,5 +1,262 @@
 basePath: /api/v1
 definitions:
+  config.Response:
+    description: 通用HTTP响应结构
+    properties:
+      error:
+        type: string
+    type: object
+  model.ConfigDataModel:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      created_at:
+        type: string
+      dimensions:
+        description: JSON格式，存储维度配置
+        type: string
+      fields:
+        description: JSON格式，存储字段配置
+        type: string
+      id:
+        type: integer
+      metrics:
+        description: JSON格式，存储指标配置
+        type: string
+      name:
+        type: string
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      table_id:
+        description: 关联的数据表ID
+        type: integer
+      updated_at:
+        type: string
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  model.ConfigDimension:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      configuration:
+        description: JSON格式，存储维度配置
+        type: string
+      created_at:
+        type: string
+      id:
+        type: integer
+      mysql_table_name:
+        description: 对应的MySQL表名
+        type: string
+      name:
+        type: string
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      type:
+        description: time:时间维度 enum:枚举维度 range:范围维度
+        type: string
+      updated_at:
+        type: string
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  model.ConfigForm:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      created_at:
+        type: string
+      events:
+        description: JSON格式，存储事件配置
+        type: string
+      fields:
+        description: JSON格式，存储字段配置
+        type: string
+      id:
+        type: integer
+      layout:
+        description: JSON格式，存储表单布局
+        type: string
+      name:
+        type: string
+      rules:
+        description: JSON格式，存储验证规则
+        type: string
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      table_id:
+        description: 关联的数据表ID
+        type: integer
+      type:
+        description: create:新建表单 edit:编辑表单 view:查看表单
+        type: string
+      updated_at:
+        type: string
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  model.ConfigMenu:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      component:
+        description: 关联的前端组件
+        type: string
+      created_at:
+        type: string
+      icon:
+        description: 菜单图标
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      parent_id:
+        description: 父菜单ID，0表示顶级菜单
+        type: integer
+      path:
+        description: 菜单路径
+        type: string
+      sort:
+        description: 排序号
+        type: integer
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        type: string
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  model.ConfigTable:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      fields:
+        description: JSON格式，存储字段定义
+        type: string
+      id:
+        type: integer
+      indexes:
+        description: JSON格式，存储索引定义
+        type: string
+      mysql_table_name:
+        type: string
+      name:
+        type: string
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        type: string
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  model.ConfigVersion:
+    properties:
+      app_id:
+        type: integer
+      comment:
+        description: 版本说明
+        type: string
+      config_id:
+        description: 配置ID
+        type: integer
+      config_type:
+        description: table:数据表 dimension:维度 model:数据模型 form:表单 menu:菜单
+        type: string
+      content:
+        description: JSON格式，存储配置内容
+        type: string
+      created_at:
+        type: string
+      creator_id:
+        description: 创建人ID
+        type: integer
+      id:
+        type: integer
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  model.DimensionConfig:
+    properties:
+      code_field:
+        description: 编码字段
+        type: string
+      level_field:
+        description: 层级字段
+        type: string
+      name_field:
+        description: 名称字段
+        type: string
+      node_id_field:
+        description: 节点ID字段
+        type: string
+      order_field:
+        description: 排序字段
+        type: string
+      parent_id_field:
+        description: 父节点ID字段
+        type: string
+    type: object
+  model.TableField:
+    properties:
+      comment:
+        type: string
+      default: {}
+      is_auto_inc:
+        type: boolean
+      is_primary:
+        type: boolean
+      is_unique:
+        type: boolean
+      length:
+        type: integer
+      name:
+        type: string
+      nullable:
+        type: boolean
+      type:
+        type: string
+      unique_group:
+        type: string
+    type: object
+  model.TableIndex:
+    properties:
+      columns:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      type:
+        description: NORMAL, UNIQUE, FULLTEXT
+        type: string
+    type: object
   service.CaptchaResponse:
     properties:
       captcha_id:
@@ -10,6 +267,55 @@ definitions:
         description: Base64编码的验证码图片
         example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
         type: string
+    type: object
+  service.CreateDimensionRequest:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      configuration:
+        $ref: '#/definitions/model.DimensionConfig'
+      mysql_table_name:
+        type: string
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - app_id
+    - code
+    - configuration
+    - mysql_table_name
+    - name
+    - type
+    type: object
+  service.CreateTableRequest:
+    properties:
+      app_id:
+        type: integer
+      code:
+        type: string
+      description:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/model.TableField'
+        type: array
+      indexes:
+        items:
+          $ref: '#/definitions/model.TableIndex'
+        type: array
+      mysql_table_name:
+        type: string
+      name:
+        type: string
+    required:
+    - app_id
+    - code
+    - fields
+    - mysql_table_name
+    - name
     type: object
   service.LoginRequest:
     properties:
@@ -73,6 +379,141 @@ definitions:
       message:
         type: string
     type: object
+  v1.AssignAppRequest:
+    properties:
+      is_default:
+        type: boolean
+    type: object
+  v1.CreateAppRequest:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  v1.CreateElementTriggerRequest:
+    properties:
+      app_id:
+        type: integer
+      content:
+        additionalProperties: {}
+        type: object
+      element_id:
+        type: integer
+      element_type:
+        type: string
+      trigger_point:
+        type: string
+      type:
+        type: string
+    required:
+    - app_id
+    - content
+    - element_id
+    - element_type
+    - trigger_point
+    - type
+    type: object
+  v1.CreateFromTemplateRequest:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  v1.CreatePermissionRequest:
+    properties:
+      code:
+        type: string
+      method:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      type:
+        type: string
+    required:
+    - code
+    - method
+    - name
+    - path
+    - type
+    type: object
+  v1.CreateRoleRequest:
+    properties:
+      code:
+        type: string
+      name:
+        type: string
+    required:
+    - code
+    - name
+    type: object
+  v1.CreateScheduledTaskRequest:
+    properties:
+      app_id:
+        type: integer
+      content:
+        additionalProperties: {}
+        type: object
+      cron:
+        type: string
+      name:
+        type: string
+      retry_times:
+        type: integer
+      timeout:
+        type: integer
+      type:
+        type: string
+    required:
+    - app_id
+    - content
+    - cron
+    - name
+    - type
+    type: object
+  v1.CreateTemplateRequest:
+    properties:
+      configuration:
+        type: string
+      description:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+    required:
+    - configuration
+    - name
+    type: object
+  v1.UpdateScheduledTaskRequest:
+    properties:
+      content:
+        additionalProperties: {}
+        type: object
+      cron:
+        type: string
+      name:
+        type: string
+      retry_times:
+        type: integer
+      timeout:
+        type: integer
+    required:
+    - content
+    - cron
+    - name
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -83,6 +524,234 @@ info:
   title: 灵简服务端API
   version: "1.0"
 paths:
+  /apps:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的应用
+      parameters:
+      - description: 创建应用请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 创建应用
+      tags:
+      - Application
+  /apps/{app_id}/users/{user_id}:
+    post:
+      consumes:
+      - application/json
+      description: 将应用分配给指定用户
+      parameters:
+      - description: 应用ID
+        in: path
+        name: app_id
+        required: true
+        type: integer
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: 分配应用请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.AssignAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 为用户分配应用
+      tags:
+      - Application
+  /apps/templates:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有已上架的应用模板
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取模板列表
+      tags:
+      - ApplicationTemplate
+    post:
+      consumes:
+      - application/json
+      description: 创建新的应用模板
+      parameters:
+      - description: 创建模板请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 创建应用模板
+      tags:
+      - ApplicationTemplate
+  /apps/templates/{template_id}/create:
+    post:
+      consumes:
+      - application/json
+      description: 基于指定模板创建新应用
+      parameters:
+      - description: 模板ID
+        in: path
+        name: template_id
+        required: true
+        type: integer
+      - description: 创建应用请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateFromTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 从模板创建应用
+      tags:
+      - ApplicationTemplate
+  /apps/templates/{template_id}/publish:
+    post:
+      consumes:
+      - application/json
+      description: 将应用模板发布上架
+      parameters:
+      - description: 模板ID
+        in: path
+        name: template_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 发布模板
+      tags:
+      - ApplicationTemplate
+  /apps/users/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的所有应用
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取用户应用列表
+      tags:
+      - Application
+  /apps/users/{user_id}/default:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的默认应用
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取用户默认应用
+      tags:
+      - Application
   /auth/captcha:
     get:
       consumes:
@@ -106,7 +775,7 @@ paths:
             $ref: '#/definitions/utils.Response'
       summary: 获取验证码
       tags:
-      - 认证
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -137,7 +806,7 @@ paths:
             $ref: '#/definitions/utils.Response'
       summary: 用户登录
       tags:
-      - 认证
+      - Auth
   /auth/logout:
     post:
       consumes:
@@ -162,7 +831,7 @@ paths:
       - Bearer: []
       summary: 用户登出
       tags:
-      - 认证
+      - Auth
   /auth/refresh:
     post:
       consumes:
@@ -192,7 +861,1422 @@ paths:
             $ref: '#/definitions/utils.Response'
       summary: 刷新令牌
       tags:
-      - 认证
+      - Auth
+  /config/dimensions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的维度配置列表
+      parameters:
+      - description: 应用ID
+        in: query
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigDimension'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取维度配置列表
+      tags:
+      - ConfigDimension
+    post:
+      consumes:
+      - application/json
+      description: 创建新的维度配置
+      parameters:
+      - description: 创建维度配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateDimensionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 创建维度配置
+      tags:
+      - ConfigDimension
+  /config/dimensions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的维度配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 删除维度配置
+      tags:
+      - ConfigDimension
+    get:
+      consumes:
+      - application/json
+      description: 获取指定维度配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigDimension'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取维度配置详情
+      tags:
+      - ConfigDimension
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的维度配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新维度配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigDimension'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigDimension'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 更新维度配置
+      tags:
+      - ConfigDimension
+  /config/dimensions/{id}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: 将维度配置回滚到指定版本
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标版本号
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 回滚维度配置
+      tags:
+      - ConfigDimension
+  /config/dimensions/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定维度配置的版本历史记录
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigVersion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取维度配置版本历史
+      tags:
+      - ConfigDimension
+  /config/forms:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的表单配置列表
+      parameters:
+      - description: 应用ID
+        in: query
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigForm'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取表单配置列表
+      tags:
+      - ConfigForm
+    post:
+      consumes:
+      - application/json
+      description: 创建新的表单配置
+      parameters:
+      - description: 创建表单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigForm'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.ConfigForm'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 创建表单配置
+      tags:
+      - ConfigForm
+  /config/forms/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的表单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 删除表单配置
+      tags:
+      - ConfigForm
+    get:
+      consumes:
+      - application/json
+      description: 获取指定表单配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigForm'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取表单配置详情
+      tags:
+      - ConfigForm
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的表单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新表单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigForm'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 更新表单配置
+      tags:
+      - ConfigForm
+  /config/forms/{id}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: 将表单配置回滚到指定版本
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标版本号
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 回滚表单配置
+      tags:
+      - ConfigForm
+  /config/forms/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定表单配置的版本历史记录
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigVersion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取表单配置版本历史
+      tags:
+      - ConfigForm
+  /config/menus:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的菜单配置列表
+      parameters:
+      - description: 应用ID
+        in: query
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigMenu'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取菜单配置列表
+      tags:
+      - ConfigMenu
+    post:
+      consumes:
+      - application/json
+      description: 创建新的菜单配置
+      parameters:
+      - description: 创建菜单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigMenu'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.ConfigMenu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 创建菜单配置
+      tags:
+      - ConfigMenu
+  /config/menus/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的菜单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 删除菜单配置
+      tags:
+      - ConfigMenu
+    get:
+      consumes:
+      - application/json
+      description: 获取指定菜单配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigMenu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取菜单配置详情
+      tags:
+      - ConfigMenu
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的菜单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新菜单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigMenu'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigMenu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 更新菜单配置
+      tags:
+      - ConfigMenu
+  /config/menus/{id}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: 将菜单配置回滚到指定版本
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标版本号
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 回滚菜单配置
+      tags:
+      - ConfigMenu
+  /config/menus/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定菜单配置的版本历史记录
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigVersion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取菜单配置版本历史
+      tags:
+      - ConfigMenu
+  /config/models:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的数据模型配置列表
+      parameters:
+      - description: 应用ID
+        in: query
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigDataModel'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取数据模型配置列表
+      tags:
+      - ConfigModel
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据模型配置
+      parameters:
+      - description: 创建数据模型配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigDataModel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.ConfigDataModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 创建数据模型配置
+      tags:
+      - ConfigModel
+  /config/models/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的数据模型配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 删除数据模型配置
+      tags:
+      - ConfigModel
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据模型配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigDataModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取数据模型配置详情
+      tags:
+      - ConfigModel
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的数据模型配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新数据模型配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigDataModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigDataModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 更新数据模型配置
+      tags:
+      - ConfigModel
+  /config/models/{id}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: 将数据模型配置回滚到指定版本
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标版本号
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 回滚数据模型配置
+      tags:
+      - ConfigModel
+  /config/models/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据模型配置的版本历史记录
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigVersion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取数据模型配置版本历史
+      tags:
+      - ConfigModel
+  /config/tables:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的所有数据表配置
+      parameters:
+      - description: 应用ID
+        in: query
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigTable'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取数据表配置列表
+      tags:
+      - ConfigTable
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据表配置
+      parameters:
+      - description: 创建数据表配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/service.CreateTableRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 创建数据表配置
+      tags:
+      - ConfigTable
+  /config/tables/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的数据表配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 删除数据表配置
+      tags:
+      - ConfigTable
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据表配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigTable'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取数据表配置详情
+      tags:
+      - ConfigTable
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的数据表配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新数据表配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.ConfigTable'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.ConfigTable'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 更新数据表配置
+      tags:
+      - ConfigTable
+  /config/tables/{id}/rollback:
+    post:
+      consumes:
+      - application/json
+      description: 将数据表配置回滚到指定版本
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 目标版本号
+        in: query
+        name: version
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 回滚数据表配置
+      tags:
+      - ConfigTable
+  /config/tables/{id}/versions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据表配置的版本历史记录
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.ConfigVersion'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/config.Response'
+      summary: 获取数据表配置版本历史
+      tags:
+      - ConfigTable
+  /rbac/permissions:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的权限
+      parameters:
+      - description: 创建权限请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreatePermissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 创建权限
+      tags:
+      - RBAC
+  /rbac/roles:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的角色
+      parameters:
+      - description: 创建角色请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateRoleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 创建角色
+      tags:
+      - RBAC
+  /rbac/roles/{role_id}/permissions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定角色的所有权限
+      parameters:
+      - description: 角色ID
+        in: path
+        name: role_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取角色权限
+      tags:
+      - RBAC
+  /rbac/roles/{role_id}/permissions/{permission_id}:
+    post:
+      consumes:
+      - application/json
+      description: 为指定角色分配权限
+      parameters:
+      - description: 角色ID
+        in: path
+        name: role_id
+        required: true
+        type: integer
+      - description: 权限ID
+        in: path
+        name: permission_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 为角色分配权限
+      tags:
+      - RBAC
+  /rbac/users/{user_id}/roles:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的所有角色
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取用户角色
+      tags:
+      - RBAC
+  /rbac/users/{user_id}/roles/{role_id}:
+    post:
+      consumes:
+      - application/json
+      description: 将指定角色分配给用户
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: 角色ID
+        in: path
+        name: role_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 为用户分配角色
+      tags:
+      - RBAC
+  /tasks/scheduled:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的定时任务
+      parameters:
+      - description: 创建定时任务请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateScheduledTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 创建定时任务
+      tags:
+      - Task
+  /tasks/scheduled/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的定时任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新定时任务请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateScheduledTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 更新定时任务
+      tags:
+      - Task
+  /tasks/scheduled/{id}/execute:
+    post:
+      consumes:
+      - application/json
+      description: 手动执行定时任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 执行任务
+      tags:
+      - Task
+  /tasks/scheduled/{id}/logs:
+    get:
+      consumes:
+      - application/json
+      description: 获取定时任务的执行日志
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: 偏移量
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 获取任务日志
+      tags:
+      - Task
+  /tasks/scheduled/{id}/toggle:
+    post:
+      consumes:
+      - application/json
+      description: 启用或禁用定时任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 状态码
+        in: query
+        name: status
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 切换任务状态
+      tags:
+      - Task
+  /tasks/triggers:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的元素触发器
+      parameters:
+      - description: 创建元素触发器请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateElementTriggerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: 创建元素触发器
+      tags:
+      - Task
 securityDefinitions:
   Bearer:
     description: Type "Bearer" followed by a space and JWT token.

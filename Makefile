@@ -111,7 +111,8 @@ dev-server: swagger
 		air -c .air.toml; \
 	else \
 		echo "air is not installed. Installing..."; \
-		go install github.com/air-verse/air@latest; \
+        GOBIN=$(shell go env GOPATH)/bin go install github.com/air-verse/air@latest; \
+		export PATH=$(shell go env GOPATH)/bin:$$PATH; \
 		air -c .air.toml; \
 	fi
 

@@ -15,8 +15,8 @@ import (
 // @Produce      json
 // @Param        request body model.ConfigDataModel true "创建数据模型配置请求参数"
 // @Success      201  {object}  model.ConfigDataModel
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/models [post]
 func (api *ConfigAPI) CreateModel(c *gin.Context) {
 	var model model.ConfigDataModel
@@ -41,8 +41,8 @@ func (api *ConfigAPI) CreateModel(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigDataModel true "更新数据模型配置请求参数"
 // @Success      200  {object}  model.ConfigDataModel
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/models/{id} [put]
 func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -73,8 +73,8 @@ func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 // @Produce      json
 // @Param        app_id query int true "应用ID"
 // @Success      200  {array}   model.ConfigDataModel
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/models [get]
 func (api *ConfigAPI) ListModels(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
@@ -99,8 +99,8 @@ func (api *ConfigAPI) ListModels(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigDataModel
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/models/{id} [get]
 func (api *ConfigAPI) GetModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -125,8 +125,8 @@ func (api *ConfigAPI) GetModel(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/models/{id} [delete]
 func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -149,9 +149,9 @@ func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "配置ID"
-// @Success      200  {array}   model.ConfigDataModelVersion
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Success      200  {array}   model.ConfigVersion
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/models/{id}/versions [get]
 func (api *ConfigAPI) GetModelVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -177,8 +177,8 @@ func (api *ConfigAPI) GetModelVersions(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        version query int true "目标版本号"
 // @Success      200  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/models/{id}/rollback [post]
 func (api *ConfigAPI) RollbackModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)

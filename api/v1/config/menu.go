@@ -15,8 +15,8 @@ import (
 // @Produce      json
 // @Param        request body model.ConfigMenu true "创建菜单配置请求参数"
 // @Success      201  {object}  model.ConfigMenu
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/menus [post]
 func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 	var menu model.ConfigMenu
@@ -41,8 +41,8 @@ func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigMenu true "更新菜单配置请求参数"
 // @Success      200  {object}  model.ConfigMenu
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/menus/{id} [put]
 func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -73,8 +73,8 @@ func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 // @Produce      json
 // @Param        app_id query int true "应用ID"
 // @Success      200  {array}   model.ConfigMenu
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/menus [get]
 func (api *ConfigAPI) ListMenus(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
@@ -99,8 +99,8 @@ func (api *ConfigAPI) ListMenus(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigMenu
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/menus/{id} [get]
 func (api *ConfigAPI) GetMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -125,8 +125,8 @@ func (api *ConfigAPI) GetMenu(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/menus/{id} [delete]
 func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -149,9 +149,9 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "配置ID"
-// @Success      200  {array}   model.ConfigMenuVersion
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Success      200  {array}   model.ConfigVersion
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/menus/{id}/versions [get]
 func (api *ConfigAPI) GetMenuVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -177,8 +177,8 @@ func (api *ConfigAPI) GetMenuVersions(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        version query int true "目标版本号"
 // @Success      200  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/menus/{id}/rollback [post]
 func (api *ConfigAPI) RollbackMenu(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)

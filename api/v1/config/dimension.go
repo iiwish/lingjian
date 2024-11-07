@@ -15,9 +15,9 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        request body service.CreateDimensionRequest true "创建维度配置请求参数"
-// @Success      201  {object}  gin.H
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Success      201  {object}  Response
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/dimensions [post]
 func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 	var req service.CreateDimensionRequest
@@ -44,8 +44,8 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigDimension true "更新维度配置请求参数"
 // @Success      200  {object}  model.ConfigDimension
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/dimensions/{id} [put]
 func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -76,8 +76,8 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 // @Produce      json
 // @Param        app_id query int true "应用ID"
 // @Success      200  {array}   model.ConfigDimension
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/dimensions [get]
 func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
@@ -102,8 +102,8 @@ func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigDimension
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/dimensions/{id} [get]
 func (api *ConfigAPI) GetDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -128,8 +128,8 @@ func (api *ConfigAPI) GetDimension(c *gin.Context) {
 // @Produce      json
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/dimensions/{id} [delete]
 func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -152,9 +152,9 @@ func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "配置ID"
-// @Success      200  {array}   model.ConfigDimensionVersion
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Success      200  {array}   model.ConfigVersion
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/dimensions/{id}/versions [get]
 func (api *ConfigAPI) GetDimensionVersions(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
@@ -180,8 +180,8 @@ func (api *ConfigAPI) GetDimensionVersions(c *gin.Context) {
 // @Param        id path int true "配置ID"
 // @Param        version query int true "目标版本号"
 // @Success      200  {object}  nil
-// @Failure      400  {object}  gin.H
-// @Failure      500  {object}  gin.H
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
 // @Router       /config/dimensions/{id}/rollback [post]
 func (api *ConfigAPI) RollbackDimension(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
