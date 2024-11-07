@@ -2,7 +2,16 @@ package model
 
 import "time"
 
-// ScheduledTask 定时任务表
+// TaskMessage 任务消息结构
+type TaskMessage struct {
+	TaskID    uint      `json:"task_id"`
+	Type      string    `json:"type"`
+	Content   string    `json:"content"`
+	Timeout   int       `json:"timeout"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+// ScheduledTask 定时任务表结构
 type ScheduledTask struct {
 	ID         uint      `db:"id" json:"id"`
 	AppID      uint      `db:"app_id" json:"app_id"`

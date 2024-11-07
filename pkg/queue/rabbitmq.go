@@ -1,21 +1,30 @@
 package queue
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
+	"sync"
 
 	"github.com/spf13/viper"
 	"github.com/streadway/amqp"
 )
 
 var (
-	connection *amqp.Connection
-	channel    *amqp.Channel
+	conn    *amqp.Connection
+	channel *amqp.Channel
+	mu      sync.Mutex
 )
 
 // InitRabbitMQ 初始化RabbitMQ连接
 func InitRabbitMQ() error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if conn != nil {
+		return nil
+	}
+
+	// 从配置中获取RabbitMQ连接信息
+
 	url := fmt.Sprintf("amqp://%s:%s@%s:%s/%s",
 		viper.GetString("rabbitmq.username"),
 		viper.GetString("rabbitmq.password"),
@@ -25,24 +34,24 @@ func InitRabbitMQ() error {
 	)
 
 	var err error
-	connection, err = amqp.Dial(url)
+	conn, err = amqp.Dial(url)
 	if err != nil {
 		return fmt.Errorf("failed to connect to RabbitMQ: %v", err)
 	}
 
-	channel, err = connection.Channel()
+	channel, err = conn.Channel()
 	if err != nil {
 		return fmt.Errorf("failed to open channel: %v", err)
 	}
 
 	// 声明任务队列
 	_, err = channel.QueueDeclare(
-		"scheduled_tasks", // 队列名称
-		true,              // 持久化
-		false,             // 自动删除
-		false,             // 排他性
-		false,             // 不等待
-		nil,               // 额外参数
+		"task_queue", // 队列名称
+		true,         // 持久化
+		false,        // 自动删除
+		false,        // 独占
+		false,        // 不等待
+		nil,          // 参数
 	)
 	if err != nil {
 		return fmt.Errorf("failed to declare queue: %v", err)
@@ -51,65 +60,91 @@ func InitRabbitMQ() error {
 	return nil
 }
 
-// CloseRabbitMQ 关闭RabbitMQ连接
-func CloseRabbitMQ() {
-	if channel != nil {
-		channel.Close()
-	}
-	if connection != nil {
-		connection.Close()
-	}
-}
+// PublishMessage 发布消息到队列
+func PublishMessage(queueName string, body []byte) error {
+	mu.Lock()
+	defer mu.Unlock()
 
-// PublishTask 发布任务到队列
-func PublishTask(task interface{}) error {
-	body, err := json.Marshal(task)
-	if err != nil {
-		return err
+	if channel == nil {
+		return fmt.Errorf("RabbitMQ channel not initialized")
 	}
 
-	return channel.Publish(
-		"",                // 交换机
-		"scheduled_tasks", // 队列名称
-		false,             // 强制
-		false,             // 立即
+	err := channel.Publish(
+		"",        // 交换机
+		queueName, // 路由键
+		false,     // 强制
+		false,     // 立即
 		amqp.Publishing{
-			ContentType: "application/json",
-			Body:        body,
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "application/json",
+			Body:         body,
 		},
 	)
-}
 
-// ConsumeTask 消费任务队列
-func ConsumeTask(handler func([]byte) error) error {
-	msgs, err := channel.Consume(
-		"scheduled_tasks", // 队列名称
-		"",                // 消费者
-		false,             // 自动确认
-		false,             // 排他性
-		false,             // 不等待
-		false,             // 不阻塞
-		nil,               // 额外参数
-	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to publish message: %v", err)
 	}
 
-	forever := make(chan bool)
+	return nil
+}
 
-	go func() {
-		for d := range msgs {
-			if err := handler(d.Body); err != nil {
-				log.Printf("Error processing task: %v", err)
-				d.Nack(false, true) // 消息重新入队
-			} else {
-				d.Ack(false) // 确认消息
-			}
+// ConsumeMessages 消费队列消息
+func ConsumeMessages(queueName string) (<-chan amqp.Delivery, error) {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if channel == nil {
+		return nil, fmt.Errorf("RabbitMQ channel not initialized")
+	}
+
+	// 设置QoS
+	err := channel.Qos(
+		1,     // 预取计数
+		0,     // 预取大小
+		false, // 全局
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to set QoS: %v", err)
+	}
+
+	msgs, err := channel.Consume(
+		queueName, // 队列
+		"",        // 消费者
+		false,     // 自动确认
+		false,     // 独占
+		false,     // 不等待
+		false,     // 参数
+		nil,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to register a consumer: %v", err)
+	}
+
+	return msgs, nil
+}
+
+// CloseConnection 关闭RabbitMQ连接
+func CloseConnection() error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	var err error
+
+	if channel != nil {
+		err = channel.Close()
+		if err != nil {
+			return fmt.Errorf("failed to close channel: %v", err)
 		}
-	}()
+		channel = nil
+	}
 
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
+	if conn != nil {
+		err = conn.Close()
+		if err != nil {
+			return fmt.Errorf("failed to close connection: %v", err)
+		}
+		conn = nil
+	}
 
 	return nil
 }
