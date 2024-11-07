@@ -10,25 +10,63 @@ import (
 // AppService 应用服务
 type AppService struct{}
 
+// ListApps 获取所有应用列表
+func (s *AppService) ListApps() (map[string]interface{}, error) {
+	var apps []map[string]interface{}
+	query := `
+		SELECT * FROM apps 
+		WHERE status = 1
+		ORDER BY created_at DESC
+	`
+	err := model.DB.Select(&apps, query)
+	if err != nil {
+		return nil, err
+	}
+
+	// 返回带有items字段的响应
+	return map[string]interface{}{
+		"items": apps,
+		"total": len(apps),
+	}, nil
+}
+
 // CreateApp 创建应用
-func (s *AppService) CreateApp(name, code, description string) error {
+func (s *AppService) CreateApp(name, code, description string) (map[string]interface{}, error) {
 	// 检查应用代码是否已存在
 	var count int
 	err := model.DB.Get(&count, "SELECT COUNT(*) FROM apps WHERE code = ?", code)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if count > 0 {
-		return errors.New("应用代码已存在")
+		return nil, errors.New("应用代码已存在")
 	}
 
-	// 创建应用
-	_, err = model.DB.Exec(`
+	now := time.Now()
+	result, err := model.DB.Exec(`
 		INSERT INTO apps (name, code, description, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?)
-	`, name, code, description, 1, time.Now(), time.Now())
+	`, name, code, description, 1, now, now)
+	if err != nil {
+		return nil, err
+	}
 
-	return err
+	// 获取新创建的应用ID
+	id, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	// 返回新创建的应用信息
+	return map[string]interface{}{
+		"id":          uint(id),
+		"name":        name,
+		"code":        code,
+		"description": description,
+		"status":      1,
+		"created_at":  now,
+		"updated_at":  now,
+	}, nil
 }
 
 // AssignAppToUser 为用户分配应用
@@ -139,20 +177,13 @@ func (s *AppService) CreateAppFromTemplate(templateID, userID uint, name, code s
 	}
 
 	// 创建应用
-	err = s.CreateApp(name, code, "从模板创建")
-	if err != nil {
-		return err
-	}
-
-	// 获取新创建的应用ID
-	var appID uint
-	err = model.DB.Get(&appID, "SELECT id FROM apps WHERE code = ?", code)
+	appInfo, err := s.CreateApp(name, code, "从模板创建")
 	if err != nil {
 		return err
 	}
 
 	// 分配应用给用户
-	err = s.AssignAppToUser(userID, appID, false)
+	err = s.AssignAppToUser(userID, appInfo["id"].(uint), false)
 	if err != nil {
 		return err
 	}

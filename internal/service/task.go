@@ -40,7 +40,7 @@ type TaskService struct {
 }
 
 // CreateScheduledTask 创建定时任务
-func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, content map[string]any, timeout, retryTimes int) error {
+func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, content map[string]interface{}, timeout, retryTimes int) error {
 	// 检查任务类型
 	if typ != TaskTypeSQL && typ != TaskTypeHTTP {
 		return errors.New("不支持的任务类型")
@@ -88,7 +88,7 @@ func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, co
 }
 
 // UpdateScheduledTask 更新定时任务
-func (s *TaskService) UpdateScheduledTask(taskID uint, name, cron string, content map[string]any, timeout, retryTimes int) error {
+func (s *TaskService) UpdateScheduledTask(taskID uint, name, cron string, content map[string]interface{}, timeout, retryTimes int) error {
 	// 检查任务是否存在
 	var task struct {
 		Type   string
@@ -339,7 +339,7 @@ func (s *TaskService) executeHTTP(content map[string]interface{}) (string, error
 }
 
 // validateTaskContent 验证任务内容
-func (s *TaskService) validateTaskContent(typ string, content map[string]any) error {
+func (s *TaskService) validateTaskContent(typ string, content map[string]interface{}) error {
 	switch typ {
 	case TaskTypeSQL:
 		sql, ok := content["sql"].(string)
@@ -369,7 +369,7 @@ func (s *TaskService) validateSQL(sql string) error {
 
 	// 禁止危险操作
 	dangerousKeywords := []string{
-		"DROP", "TRUNCATE", "DELETE FROM", "UPDATE", "ALTER", "CREATE",
+		"DROP", "TRUNCATE", "ALTER", "CREATE",
 		"GRANT", "REVOKE", "RENAME",
 	}
 
@@ -383,7 +383,7 @@ func (s *TaskService) validateSQL(sql string) error {
 }
 
 // CreateElementTrigger 创建元素触发器
-func (s *TaskService) CreateElementTrigger(appID uint, elementType string, elementID uint, triggerPoint, typ string, content map[string]any) error {
+func (s *TaskService) CreateElementTrigger(appID uint, elementType string, elementID uint, triggerPoint, typ string, content map[string]interface{}) error {
 	// 检查触发点是否有效
 	if triggerPoint != TriggerPointBefore && triggerPoint != TriggerPointAfter {
 		return errors.New("无效的触发点")

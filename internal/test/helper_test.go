@@ -114,10 +114,14 @@ func initTestData() error {
 	// 创建测试应用
 	_, err = model.DB.Exec(`
 		INSERT INTO apps (name, code, description, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, "测试应用", "test_app", "用于测试的应用", 1, now, now)
+		VALUES (?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?)
+	`,
+		"测试应用1", "test_app1", "用于测试的应用1", 1, now, now,
+		"测试应用2", "test_app2", "用于测试的应用2", 1, now, now,
+	)
 	if err != nil {
-		return fmt.Errorf("failed to create test app: %v", err)
+		return fmt.Errorf("failed to create test apps: %v", err)
 	}
 
 	// 创建测试角色
@@ -132,10 +136,21 @@ func initTestData() error {
 	// 创建测试权限
 	_, err = model.DB.Exec(`
 		INSERT INTO permissions (name, code, type, path, method, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, "测试权限", "test_permission", "api", "/api/v1/test", "GET", 1, now, now)
+		VALUES 
+		(?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?)
+	`,
+		"查看应用", "view_apps", "api", "/api/v1/apps", "GET", 1, now, now,
+		"创建应用", "create_app", "api", "/api/v1/apps", "POST", 1, now, now,
+		"创建角色", "create_role", "api", "/api/v1/rbac/roles", "POST", 1, now, now,
+		"分配权限", "assign_permission", "api", "/api/v1/rbac/roles/*/permissions", "POST", 1, now, now,
+		"创建任务", "create_task", "api", "/api/v1/tasks/scheduled", "POST", 1, now, now,
+	)
 	if err != nil {
-		return fmt.Errorf("failed to create test permission: %v", err)
+		return fmt.Errorf("failed to create test permissions: %v", err)
 	}
 
 	// 分配角色给用户
@@ -154,10 +169,10 @@ func initTestData() error {
 		INSERT INTO role_permissions (role_id, permission_id)
 		SELECT r.id, p.id
 		FROM roles r, permissions p
-		WHERE r.code = 'admin' AND p.code = 'test_permission'
+		WHERE r.code = 'admin'
 	`)
 	if err != nil {
-		return fmt.Errorf("failed to assign permission to role: %v", err)
+		return fmt.Errorf("failed to assign permissions to role: %v", err)
 	}
 
 	return nil

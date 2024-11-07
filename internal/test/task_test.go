@@ -2,6 +2,7 @@ package test
 
 import (
 	"net/http"
+	"strconv"
 	"testing"
 	"time"
 
@@ -64,20 +65,20 @@ func TestTaskFlow(t *testing.T) {
 			"timeout":     45,
 			"retry_times": 5,
 		}
-		w := helper.MakeRequest(t, "PUT", "/api/v1/tasks/"+string(taskID), updateData)
+		w := helper.MakeRequest(t, "PUT", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10), updateData)
 		helper.AssertSuccess(t, w)
 	})
 
 	// 4. 测试执行任务
 	t.Run("执行任务", func(t *testing.T) {
-		w := helper.MakeRequest(t, "POST", "/api/v1/tasks/"+string(taskID)+"/execute", nil)
+		w := helper.MakeRequest(t, "POST", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10)+"/execute", nil)
 		helper.AssertSuccess(t, w)
 
 		// 等待任务执行完成
 		time.Sleep(time.Second * 2)
 
 		// 检查任务日志
-		w = helper.MakeRequest(t, "GET", "/api/v1/tasks/"+string(taskID)+"/logs", nil)
+		w = helper.MakeRequest(t, "GET", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10)+"/logs", nil)
 		resp := helper.AssertSuccess(t, w)
 		logs := resp["data"].([]interface{})
 		assert.NotEmpty(t, logs)
@@ -85,11 +86,11 @@ func TestTaskFlow(t *testing.T) {
 
 	// 5. 测试禁用任务
 	t.Run("禁用任务", func(t *testing.T) {
-		w := helper.MakeRequest(t, "PUT", "/api/v1/tasks/"+string(taskID)+"/status", map[string]int{"status": 0})
+		w := helper.MakeRequest(t, "PUT", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10)+"/status", map[string]int{"status": 0})
 		helper.AssertSuccess(t, w)
 
 		// 尝试执行已禁用的任务
-		w = helper.MakeRequest(t, "POST", "/api/v1/tasks/"+string(taskID)+"/execute", nil)
+		w = helper.MakeRequest(t, "POST", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10)+"/execute", nil)
 		helper.AssertError(t, w, http.StatusBadRequest)
 	})
 
@@ -154,13 +155,13 @@ func TestTaskFlow(t *testing.T) {
 	// 8. 测试并发控制
 	t.Run("测试并发控制", func(t *testing.T) {
 		// 启用任务
-		w := helper.MakeRequest(t, "PUT", "/api/v1/tasks/"+string(taskID)+"/status", map[string]int{"status": 1})
+		w := helper.MakeRequest(t, "PUT", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10)+"/status", map[string]int{"status": 1})
 		helper.AssertSuccess(t, w)
 
 		// 并发执行同一个任务
 		done := make(chan bool)
 		go func() {
-			w := helper.MakeRequest(t, "POST", "/api/v1/tasks/"+string(taskID)+"/execute", nil)
+			w := helper.MakeRequest(t, "POST", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10)+"/execute", nil)
 			if w.Code == http.StatusOK {
 				done <- true
 			} else {
@@ -169,7 +170,7 @@ func TestTaskFlow(t *testing.T) {
 		}()
 
 		// 第二个请求应该失败
-		w = helper.MakeRequest(t, "POST", "/api/v1/tasks/"+string(taskID)+"/execute", nil)
+		w = helper.MakeRequest(t, "POST", "/api/v1/tasks/"+strconv.FormatUint(uint64(taskID), 10)+"/execute", nil)
 		helper.AssertError(t, w, http.StatusBadRequest)
 
 		// 等待第一个请求完成

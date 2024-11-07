@@ -24,7 +24,22 @@ func Success(c *gin.Context, data interface{}) {
 
 // Error 错误响应
 func Error(c *gin.Context, code int, message string) {
-	c.JSON(http.StatusOK, Response{
+	// 根据业务错误码设置对应的HTTP状态码
+	var httpStatus int
+	switch code {
+	case 400:
+		httpStatus = http.StatusBadRequest
+	case 401:
+		httpStatus = http.StatusUnauthorized
+	case 403:
+		httpStatus = http.StatusForbidden
+	case 404:
+		httpStatus = http.StatusNotFound
+	default:
+		httpStatus = http.StatusInternalServerError
+	}
+
+	c.JSON(httpStatus, Response{
 		Code:    code,
 		Message: message,
 		Data:    nil,

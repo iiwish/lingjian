@@ -10,6 +10,7 @@ import (
 func RegisterAppRoutes(r *gin.RouterGroup) {
 	app := r.Group("/apps")
 	{
+		app.GET("", ListApps) // 获取应用列表
 		app.POST("", CreateApp)
 		app.POST("/:app_id/users/:user_id", AssignAppToUser)
 		app.GET("/users/:user_id", GetUserApps)
@@ -24,6 +25,25 @@ func RegisterAppRoutes(r *gin.RouterGroup) {
 			template.POST("/:template_id/create", CreateFromTemplate)
 		}
 	}
+}
+
+// @Summary      获取应用列表
+// @Description  获取所有应用列表
+// @Tags         Application
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /apps [get]
+func ListApps(c *gin.Context) {
+	appService := &service.AppService{}
+	result, err := appService.ListApps()
+	if err != nil {
+		utils.Error(c, 500, err.Error())
+		return
+	}
+
+	utils.Success(c, result)
 }
 
 type CreateAppRequest struct {
@@ -50,12 +70,13 @@ func CreateApp(c *gin.Context) {
 	}
 
 	appService := &service.AppService{}
-	if err := appService.CreateApp(req.Name, req.Code, req.Description); err != nil {
+	result, err := appService.CreateApp(req.Name, req.Code, req.Description)
+	if err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
 
-	utils.Success(c, nil)
+	utils.Success(c, result)
 }
 
 type AssignAppRequest struct {

@@ -23,13 +23,13 @@ func RegisterTaskRoutes(r *gin.RouterGroup) {
 }
 
 type CreateScheduledTaskRequest struct {
-	AppID      uint           `json:"app_id" binding:"required"`
-	Name       string         `json:"name" binding:"required"`
-	Type       string         `json:"type" binding:"required"`
-	Cron       string         `json:"cron" binding:"required"`
-	Content    map[string]any `json:"content" binding:"required"`
-	Timeout    int            `json:"timeout"`
-	RetryTimes int            `json:"retry_times"`
+	AppID      uint                   `json:"app_id" binding:"required"`
+	Name       string                 `json:"name" binding:"required"`
+	Type       string                 `json:"type" binding:"required"`
+	Cron       string                 `json:"cron" binding:"required"`
+	Content    map[string]interface{} `json:"content" binding:"required"`
+	Timeout    int                    `json:"timeout"`
+	RetryTimes int                    `json:"retry_times"`
 }
 
 // @Summary      创建定时任务
@@ -67,11 +67,11 @@ func CreateScheduledTask(c *gin.Context) {
 }
 
 type UpdateScheduledTaskRequest struct {
-	Name       string         `json:"name" binding:"required"`
-	Cron       string         `json:"cron" binding:"required"`
-	Content    map[string]any `json:"content" binding:"required"`
-	Timeout    int            `json:"timeout"`
-	RetryTimes int            `json:"retry_times"`
+	Name       string                 `json:"name" binding:"required"`
+	Cron       string                 `json:"cron" binding:"required"`
+	Content    map[string]interface{} `json:"content" binding:"required"`
+	Timeout    int                    `json:"timeout"`
+	RetryTimes int                    `json:"retry_times"`
 }
 
 // @Summary      更新定时任务
@@ -180,12 +180,12 @@ func ExecuteTask(c *gin.Context) {
 }
 
 type CreateElementTriggerRequest struct {
-	AppID        uint           `json:"app_id" binding:"required"`
-	ElementType  string         `json:"element_type" binding:"required"`
-	ElementID    uint           `json:"element_id" binding:"required"`
-	TriggerPoint string         `json:"trigger_point" binding:"required"`
-	Type         string         `json:"type" binding:"required"`
-	Content      map[string]any `json:"content" binding:"required"`
+	AppID        uint                   `json:"app_id" binding:"required"`
+	ElementType  string                 `json:"element_type" binding:"required"`
+	ElementID    uint                   `json:"element_id" binding:"required"`
+	TriggerPoint string                 `json:"trigger_point" binding:"required"`
+	Type         string                 `json:"type" binding:"required"`
+	Content      map[string]interface{} `json:"content" binding:"required"`
 }
 
 // @Summary      创建元素触发器

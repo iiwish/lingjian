@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
@@ -84,6 +85,10 @@ func (s *RBACService) AssignRoleToUser(userID, roleID uint) error {
 
 // AssignPermissionsToRole 为角色分配权限
 func (s *RBACService) AssignPermissionsToRole(roleCode string, permissionCodes []string) error {
+	if len(permissionCodes) == 0 {
+		return errors.New("权限代码列表不能为空")
+	}
+
 	// 获取角色ID
 	var roleID uint
 	err := model.DB.Get(&roleID, "SELECT id FROM roles WHERE code = ?", roleCode)
@@ -91,9 +96,18 @@ func (s *RBACService) AssignPermissionsToRole(roleCode string, permissionCodes [
 		return errors.New("角色不存在")
 	}
 
+	// 构建IN查询的占位符
+	placeholders := strings.Repeat("?,", len(permissionCodes))
+	placeholders = placeholders[:len(placeholders)-1] // 移除最后一个逗号
+
 	// 获取权限IDs
-	query := "SELECT id FROM permissions WHERE code IN (?" + ",?"[len(permissionCodes)-1:] + ")"
-	rows, err := model.DB.Query(query, interfaceSlice(permissionCodes)...)
+	query := "SELECT id FROM permissions WHERE code IN (" + placeholders + ")"
+	args := make([]interface{}, len(permissionCodes))
+	for i, code := range permissionCodes {
+		args[i] = code
+	}
+
+	rows, err := model.DB.Query(query, args...)
 	if err != nil {
 		return err
 	}
@@ -165,13 +179,4 @@ func (s *RBACService) GetRolePermissions(roleID uint) ([]map[string]interface{},
 	`
 	err := model.DB.Select(&permissions, query, roleID)
 	return permissions, err
-}
-
-// interfaceSlice 将字符串切片转换为接口切片
-func interfaceSlice(strs []string) []interface{} {
-	interfaces := make([]interface{}, len(strs))
-	for i, s := range strs {
-		interfaces[i] = s
-	}
-	return interfaces
 }
