@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/store"
@@ -13,6 +14,38 @@ import (
 
 type AuthService struct {
 	store store.Store
+}
+
+// AuthorizeRequest OAuth2授权请求参数
+type AuthorizeRequest struct {
+	// 客户端ID
+	ClientID string `json:"client_id" binding:"required"`
+	// 重定向URI
+	RedirectURI string `json:"redirect_uri" binding:"required"`
+	// 响应类型
+	ResponseType string `json:"response_type" binding:"required"`
+	// 权限范围
+	Scope string `json:"scope" binding:"required"`
+	// 状态
+	State string `json:"state"`
+	// 是否同意授权
+	Approved bool `json:"approved"`
+}
+
+// TokenRequest OAuth2令牌请求参数
+type TokenRequest struct {
+	// 授权类型
+	GrantType string `json:"grant_type" binding:"required"`
+	// 客户端ID
+	ClientID string `json:"client_id" binding:"required"`
+	// 客户端密钥
+	ClientSecret string `json:"client_secret" binding:"required"`
+	// 授权码
+	Code string `json:"code"`
+	// 重定向URI
+	RedirectURI string `json:"redirect_uri"`
+	// 刷新令牌
+	RefreshToken string `json:"refresh_token"`
 }
 
 func NewAuthService(s store.Store) *AuthService {
@@ -59,6 +92,8 @@ type TokenResponse struct {
 	RefreshToken string `json:"refresh_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
 	// 访问令牌过期时间（秒）
 	ExpiresIn int `json:"expires_in" example:"7200"`
+	// 令牌类型
+	TokenType string `json:"token_type" example:"Bearer"`
 }
 
 // hashPassword 密码加密
@@ -173,4 +208,122 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 // Logout 用户登出
 func (s *AuthService) Logout(userId uint) error {
 	return s.store.RemoveUserTokens(userId)
+}
+
+// HandleAuthorize 处理OAuth2授权请求
+func (s *AuthService) HandleAuthorize(req *AuthorizeRequest) (string, error) {
+	// 验证客户端
+	if err := s.validateClient(req.ClientID, req.RedirectURI); err != nil {
+		return "", err
+	}
+
+	// 如果用户拒绝授权
+	if !req.Approved {
+		return fmt.Sprintf("%s?error=access_denied&state=%s",
+			req.RedirectURI, req.State), nil
+	}
+
+	// 生成授权码
+	code := utils.GenerateRandomString(32)
+
+	// 存储授权码（10分钟有效期）
+	if err := s.store.StoreAuthCode(code, req.ClientID, req.Scope, 600); err != nil {
+		return "", errors.New("存储授权码失败")
+	}
+
+	// 构建重定向URL
+	redirectURL := fmt.Sprintf("%s?code=%s&state=%s",
+		req.RedirectURI, code, req.State)
+
+	return redirectURL, nil
+}
+
+// HandleToken 处理OAuth2令牌请求
+func (s *AuthService) HandleToken(req *TokenRequest) (*TokenResponse, error) {
+	// 验证客户端
+	if err := s.validateClientCredentials(req.ClientID, req.ClientSecret); err != nil {
+		return nil, err
+	}
+
+	switch req.GrantType {
+	case "authorization_code":
+		return s.handleAuthorizationCode(req)
+	case "refresh_token":
+		return s.handleRefreshTokenGrant(req)
+	default:
+		return nil, errors.New("不支持的授权类型")
+	}
+}
+
+// validateClient 验证客户端
+func (s *AuthService) validateClient(clientID, redirectURI string) error {
+	// TODO: 从数据库验证客户端信息
+	if clientID != "test_client" || redirectURI != "http://localhost:3000/callback" {
+		return errors.New("无效的客户端")
+	}
+	return nil
+}
+
+// validateClientCredentials 验证客户端凭证
+func (s *AuthService) validateClientCredentials(clientID, clientSecret string) error {
+	// TODO: 从数据库验证客户端凭证
+	if clientID != "test_client" || clientSecret != "test_secret" {
+		return errors.New("无效的客户端凭证")
+	}
+	return nil
+}
+
+// handleAuthorizationCode 处理授权码方式
+func (s *AuthService) handleAuthorizationCode(req *TokenRequest) (*TokenResponse, error) {
+	// 验证授权码
+	clientID, scope, err := s.store.GetAuthCode(req.Code)
+	if err != nil {
+		return nil, errors.New("无效的授权码")
+	}
+	if clientID != req.ClientID {
+		return nil, errors.New("授权码不匹配")
+	}
+
+	// 生成访问令牌和刷新令牌
+	accessToken := utils.GenerateRandomString(32)
+	refreshToken := utils.GenerateRandomString(32)
+
+	// 存储令牌
+	if err := s.store.StoreOAuthToken(accessToken, refreshToken, clientID, scope); err != nil {
+		return nil, errors.New("存储令牌失败")
+	}
+
+	return &TokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:    7200,
+		TokenType:    "Bearer",
+	}, nil
+}
+
+// handleRefreshTokenGrant 处理刷新令牌方式
+func (s *AuthService) handleRefreshTokenGrant(req *TokenRequest) (*TokenResponse, error) {
+	// 验证刷新令牌
+	clientID, _, err := s.store.GetRefreshToken(req.RefreshToken)
+	if err != nil {
+		return nil, errors.New("无效的刷新令牌")
+	}
+	if clientID != req.ClientID {
+		return nil, errors.New("刷新令牌不匹配")
+	}
+
+	// 生成新的访问令牌
+	newAccessToken := utils.GenerateRandomString(32)
+
+	// 存储新的访问令牌
+	if err := s.store.UpdateOAuthAccessToken(req.RefreshToken, newAccessToken); err != nil {
+		return nil, errors.New("更新访问令牌失败")
+	}
+
+	return &TokenResponse{
+		AccessToken:  newAccessToken,
+		RefreshToken: req.RefreshToken,
+		ExpiresIn:    7200,
+		TokenType:    "Bearer",
+	}, nil
 }

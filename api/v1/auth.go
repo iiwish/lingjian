@@ -22,6 +22,14 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 		auth.POST("/login", Login)
 		auth.POST("/refresh", RefreshToken)
 		auth.POST("/logout", Logout)
+
+		// OAuth2.0相关路由
+		oauth := auth.Group("/oauth")
+		{
+			oauth.GET("/authorize", AuthorizeHandler)
+			oauth.POST("/authorize", ConfirmAuthorize)
+			oauth.POST("/token", TokenHandler)
+		}
 	}
 }
 
@@ -117,4 +125,108 @@ func Logout(c *gin.Context) {
 	}
 
 	utils.Success(c, gin.H{"message": "登出成功"})
+}
+
+// @Summary      OAuth2授权页面
+// @Description  获取OAuth2授权页面
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      html
+// @Param        client_id     query    string  true  "客户端ID"
+// @Param        redirect_uri  query    string  true  "重定向URI"
+// @Param        response_type query    string  true  "响应类型(code)"
+// @Param        scope         query    string  true  "权限范围"
+// @Param        state         query    string  false "状态"
+// @Success      200  {string} string "授权页面HTML"
+// @Failure      400  {object} utils.Response
+// @Router       /auth/oauth/authorize [get]
+func AuthorizeHandler(c *gin.Context) {
+	clientID := c.Query("client_id")
+	redirectURI := c.Query("redirect_uri")
+	responseType := c.Query("response_type")
+	scope := c.Query("scope")
+	state := c.Query("state")
+
+	// 验证参数
+	if clientID == "" || redirectURI == "" || responseType != "code" {
+		utils.Error(c, 400, "无效的请求参数")
+		return
+	}
+
+	// 渲染授权页面
+	html := `
+		<html>
+			<head>
+				<title>授权页面</title>
+			</head>
+			<body>
+				<h2>授权请求</h2>
+				<p>应用 ` + clientID + ` 请求访问您的以下权限：</p>
+				<p>权限范围：` + scope + `</p>
+				<form method="post" action="/api/v1/auth/oauth/authorize">
+					<input type="hidden" name="client_id" value="` + clientID + `">
+					<input type="hidden" name="redirect_uri" value="` + redirectURI + `">
+					<input type="hidden" name="response_type" value="` + responseType + `">
+					<input type="hidden" name="scope" value="` + scope + `">
+					<input type="hidden" name="state" value="` + state + `">
+					<button type="submit" name="approved" value="true">同意授权</button>
+					<button type="submit" name="approved" value="false">拒绝授权</button>
+				</form>
+			</body>
+		</html>
+	`
+	c.Header("Content-Type", "text/html")
+	c.String(200, html)
+}
+
+// @Summary      确认OAuth2授权
+// @Description  处理用户的授权确认
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @Param        request body service.AuthorizeRequest true "授权请求参数"
+// @Success      302  {string} string "重定向到客户端"
+// @Failure      400  {object} utils.Response
+// @Router       /auth/oauth/authorize [post]
+func ConfirmAuthorize(c *gin.Context) {
+	var req service.AuthorizeRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, 400, "无效的请求参数")
+		return
+	}
+
+	// 处理授权
+	redirectURL, err := authService.HandleAuthorize(&req)
+	if err != nil {
+		utils.Error(c, 400, err.Error())
+		return
+	}
+
+	// 重定向到客户端
+	c.Redirect(302, redirectURL)
+}
+
+// @Summary      OAuth2令牌
+// @Description  获取访问令牌
+// @Tags         OAuth2
+// @Accept       json
+// @Produce      json
+// @Param        request body service.TokenRequest true "令牌请求参数"
+// @Success      200  {object} utils.Response{data=service.TokenResponse}
+// @Failure      400  {object} utils.Response
+// @Router       /auth/oauth/token [post]
+func TokenHandler(c *gin.Context) {
+	var req service.TokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, 400, "无效的请求参数")
+		return
+	}
+
+	resp, err := authService.HandleToken(&req)
+	if err != nil {
+		utils.Error(c, 400, err.Error())
+		return
+	}
+
+	utils.Success(c, resp)
 }

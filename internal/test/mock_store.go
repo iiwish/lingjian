@@ -42,3 +42,37 @@ func (s *MockStore) VerifyToken(token, tokenType string) (uint, error) {
 func (s *MockStore) RemoveUserTokens(userId uint) error {
 	return nil
 }
+
+// StoreAuthCode 存储授权码
+func (s *MockStore) StoreAuthCode(code, clientID, scope string, expiry int) error {
+	return nil
+}
+
+// GetAuthCode 获取授权码信息
+func (s *MockStore) GetAuthCode(code string) (clientID string, scope string, err error) {
+	if code == "invalid_code" {
+		return "", "", fmt.Errorf("invalid code")
+	}
+	return "test_client", "read", nil
+}
+
+// StoreOAuthToken 存储OAuth令牌
+func (s *MockStore) StoreOAuthToken(accessToken, refreshToken, clientID, scope string) error {
+	return nil
+}
+
+// GetRefreshToken 获取刷新令牌信息
+func (s *MockStore) GetRefreshToken(refreshToken string) (clientID string, scope string, err error) {
+	if refreshToken == "invalid_refresh_token" {
+		return "", "", fmt.Errorf("invalid refresh token")
+	}
+	return "test_client", "read", nil
+}
+
+// UpdateOAuthAccessToken 更新访问令牌
+func (s *MockStore) UpdateOAuthAccessToken(refreshToken, newAccessToken string) error {
+	if refreshToken == "invalid_refresh_token" {
+		return fmt.Errorf("invalid refresh token")
+	}
+	return nil
+}

@@ -38,7 +38,16 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		token := parts[1]
 
-		// 从存储中验证token
+		// 尝试作为OAuth2 token验证
+		if clientID, _, err := globalStore.GetRefreshToken(token); err == nil {
+			// 这是一个有效的OAuth2 token
+			c.Set("client_id", clientID)
+			c.Set("is_oauth", true)
+			c.Next()
+			return
+		}
+
+		// 作为JWT token验证
 		userId, err := globalStore.VerifyToken(token, "access")
 		if err != nil {
 			utils.Error(c, 401, "无效的token")

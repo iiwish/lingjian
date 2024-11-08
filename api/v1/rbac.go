@@ -2,26 +2,24 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/internal/service"
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
 // RegisterRBACRoutes 注册RBAC相关路由
 func RegisterRBACRoutes(r *gin.RouterGroup) {
-	rbac := r.Group("/rbac")
-	{
-		rbac.POST("/roles", CreateRole)
-		rbac.POST("/permissions", CreatePermission)
-		rbac.POST("/users/:user_id/roles/:role_id", AssignRoleToUser)
-		rbac.POST("/roles/:role_code/permissions", AssignPermissionsToRole)
-		rbac.GET("/users/:user_id/roles", GetUserRoles)
-		rbac.GET("/roles/:role_id/permissions", GetRolePermissions)
-	}
-}
+	// 角色相关路由
+	r.POST("/roles", CreateRole)
+	r.GET("/roles/:role_code/permissions", GetRolePermissions)
+	r.POST("/roles/:role_code/permissions", AssignPermissionsToRole)
 
-type CreateRoleRequest struct {
-	Name string `json:"name" binding:"required"`
-	Code string `json:"code" binding:"required"`
+	// 权限相关路由
+	r.POST("/permissions", CreatePermission)
+
+	// 用户角色相关路由
+	r.POST("/users/:user_id/roles/:role_id", AssignRoleToUser)
+	r.GET("/users/:user_id/roles", GetUserRoles)
 }
 
 // @Summary      创建角色
@@ -29,20 +27,20 @@ type CreateRoleRequest struct {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
-// @Param        request body CreateRoleRequest true "创建角色请求参数"
+// @Param        request body model.CreateRoleRequest true "创建角色请求参数"
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /rbac/roles [post]
+// @Router       /roles [post]
 func CreateRole(c *gin.Context) {
-	var req CreateRoleRequest
+	var req model.CreateRoleRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
 	}
 
 	rbacService := &service.RBACService{}
-	if err := rbacService.CreateRole(req.Name, req.Code); err != nil {
+	if err := rbacService.CreateRole(&req); err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
@@ -50,33 +48,25 @@ func CreateRole(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-type CreatePermissionRequest struct {
-	Name   string `json:"name" binding:"required"`
-	Code   string `json:"code" binding:"required"`
-	Type   string `json:"type" binding:"required"`
-	Path   string `json:"path" binding:"required"`
-	Method string `json:"method" binding:"required"`
-}
-
 // @Summary      创建权限
 // @Description  创建新的权限
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
-// @Param        request body CreatePermissionRequest true "创建权限请求参数"
+// @Param        request body model.CreatePermissionRequest true "创建权限请求参数"
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /rbac/permissions [post]
+// @Router       /permissions [post]
 func CreatePermission(c *gin.Context) {
-	var req CreatePermissionRequest
+	var req model.CreatePermissionRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
 	}
 
 	rbacService := &service.RBACService{}
-	if err := rbacService.CreatePermission(req.Name, req.Code, req.Type, req.Path, req.Method); err != nil {
+	if err := rbacService.CreatePermission(&req); err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
@@ -93,7 +83,7 @@ func CreatePermission(c *gin.Context) {
 // @Param        role_id path int true "角色ID"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /rbac/users/{user_id}/roles/{role_id} [post]
+// @Router       /users/{user_id}/roles/{role_id} [post]
 func AssignRoleToUser(c *gin.Context) {
 	userID := utils.ParseUint(c.Param("user_id"))
 	roleID := utils.ParseUint(c.Param("role_id"))
@@ -107,23 +97,19 @@ func AssignRoleToUser(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-type AssignPermissionsRequest struct {
-	PermissionCodes []string `json:"permission_codes" binding:"required"`
-}
-
 // @Summary      为角色分配权限
 // @Description  为指定角色分配权限
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
 // @Param        role_code path string true "角色代码"
-// @Param        request body AssignPermissionsRequest true "分配权限请求参数"
+// @Param        request body model.AssignPermissionsRequest true "分配权限请求参数"
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /rbac/roles/{role_code}/permissions [post]
+// @Router       /roles/{role_code}/permissions [post]
 func AssignPermissionsToRole(c *gin.Context) {
-	var req AssignPermissionsRequest
+	var req model.AssignPermissionsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
@@ -136,7 +122,7 @@ func AssignPermissionsToRole(c *gin.Context) {
 	}
 
 	rbacService := &service.RBACService{}
-	if err := rbacService.AssignPermissionsToRole(roleCode, req.PermissionCodes); err != nil {
+	if err := rbacService.AssignPermissionsToRole(roleCode, req.AppCode, req.PermissionCodes); err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
@@ -152,7 +138,7 @@ func AssignPermissionsToRole(c *gin.Context) {
 // @Param        user_id path int true "用户ID"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /rbac/users/{user_id}/roles [get]
+// @Router       /users/{user_id}/roles [get]
 func GetUserRoles(c *gin.Context) {
 	userID := utils.ParseUint(c.Param("user_id"))
 
@@ -171,15 +157,22 @@ func GetUserRoles(c *gin.Context) {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
-// @Param        role_id path int true "角色ID"
+// @Param        role_code path string true "角色代码"
+// @Param        app_code query string true "应用代码"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /rbac/roles/{role_id}/permissions [get]
+// @Router       /roles/{role_code}/permissions [get]
 func GetRolePermissions(c *gin.Context) {
-	roleID := utils.ParseUint(c.Param("role_id"))
+	roleCode := c.Param("role_code")
+	appCode := c.Query("app_code")
+
+	if roleCode == "" || appCode == "" {
+		utils.Error(c, 400, "角色代码和应用代码不能为空")
+		return
+	}
 
 	rbacService := &service.RBACService{}
-	permissions, err := rbacService.GetRolePermissions(roleID)
+	permissions, err := rbacService.GetRolePermissions(roleCode, appCode)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
 		return

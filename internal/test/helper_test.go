@@ -236,6 +236,9 @@ func setupTestRouter() *gin.Engine {
 			authorized := v1Group.Group("/")
 			authorized.Use(middleware.AuthMiddleware())
 			{
+				// 注册用户相关路由
+				v1.RegisterUserRoutes(authorized)
+
 				// 需要RBAC权限控制的路由
 				rbacProtected := authorized.Group("/")
 				rbacProtected.Use(middleware.RBACMiddleware())

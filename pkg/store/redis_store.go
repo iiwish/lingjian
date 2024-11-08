@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -21,6 +22,13 @@ var (
 	userTokensKeyPrefix   = "user:tokens:"
 	accessTokenTTL        = 2 * time.Hour
 	refreshTokenTTL       = 7 * 24 * time.Hour
+
+	// OAuth2相关
+	authCodeKeyPrefix    = "oauth:code:"
+	oauthTokenKeyPrefix  = "oauth:token:"
+	authCodeTTL          = 10 * time.Minute
+	oauthAccessTokenTTL  = 2 * time.Hour
+	oauthRefreshTokenTTL = 24 * time.Hour
 
 	// 全局单例
 	globalStore *RedisStore
@@ -142,4 +150,153 @@ func (s *RedisStore) RemoveUserTokens(userId uint) error {
 
 	// 删除用户的token记录
 	return redis.Del(ctx, userKey)
+}
+
+// StoreAuthCode 存储授权码
+func (s *RedisStore) StoreAuthCode(code, clientID, scope string, expiry int) error {
+	ctx := context.Background()
+	key := fmt.Sprintf("%s%s", authCodeKeyPrefix, code)
+
+	data := map[string]string{
+		"client_id": clientID,
+		"scope":     scope,
+	}
+
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	return redis.Set(ctx, key, string(jsonData), expiry)
+}
+
+// GetAuthCode 获取授权码信息
+func (s *RedisStore) GetAuthCode(code string) (clientID string, scope string, err error) {
+	ctx := context.Background()
+	key := fmt.Sprintf("%s%s", authCodeKeyPrefix, code)
+
+	jsonData, err := redis.Get(ctx, key)
+	if err != nil {
+		return "", "", fmt.Errorf("授权码不存在或已过期")
+	}
+
+	// 使用后立即删除授权码（一次性使用）
+	redis.Del(ctx, key)
+
+	var data map[string]string
+	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
+		return "", "", err
+	}
+
+	return data["client_id"], data["scope"], nil
+}
+
+// StoreOAuthToken 存储OAuth令牌
+func (s *RedisStore) StoreOAuthToken(accessToken, refreshToken, clientID, scope string) error {
+	ctx := context.Background()
+
+	// 存储访问令牌信息
+	accessKey := fmt.Sprintf("%s%s", oauthTokenKeyPrefix, accessToken)
+	accessData := map[string]string{
+		"client_id":     clientID,
+		"scope":         scope,
+		"type":          "access",
+		"refresh_token": refreshToken,
+	}
+	accessJsonData, err := json.Marshal(accessData)
+	if err != nil {
+		return err
+	}
+
+	// 存储刷新令牌信息
+	refreshKey := fmt.Sprintf("%s%s", oauthTokenKeyPrefix, refreshToken)
+	refreshData := map[string]string{
+		"client_id":    clientID,
+		"scope":        scope,
+		"type":         "refresh",
+		"access_token": accessToken,
+	}
+	refreshJsonData, err := json.Marshal(refreshData)
+	if err != nil {
+		return err
+	}
+
+	// 使用pipeline存储两个令牌
+	if err := redis.Set(ctx, accessKey, string(accessJsonData), int(oauthAccessTokenTTL.Seconds())); err != nil {
+		return err
+	}
+	return redis.Set(ctx, refreshKey, string(refreshJsonData), int(oauthRefreshTokenTTL.Seconds()))
+}
+
+// GetRefreshToken 获取刷新令牌信息
+func (s *RedisStore) GetRefreshToken(refreshToken string) (clientID string, scope string, err error) {
+	ctx := context.Background()
+	key := fmt.Sprintf("%s%s", oauthTokenKeyPrefix, refreshToken)
+
+	jsonData, err := redis.Get(ctx, key)
+	if err != nil {
+		return "", "", fmt.Errorf("刷新令牌不存在或已过期")
+	}
+
+	var data map[string]string
+	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
+		return "", "", err
+	}
+
+	if data["type"] != "refresh" {
+		return "", "", fmt.Errorf("无效的刷新令牌")
+	}
+
+	return data["client_id"], data["scope"], nil
+}
+
+// UpdateOAuthAccessToken 更新访问令牌
+func (s *RedisStore) UpdateOAuthAccessToken(refreshToken, newAccessToken string) error {
+	ctx := context.Background()
+	refreshKey := fmt.Sprintf("%s%s", oauthTokenKeyPrefix, refreshToken)
+
+	// 获取刷新令牌信息
+	jsonData, err := redis.Get(ctx, refreshKey)
+	if err != nil {
+		return fmt.Errorf("刷新令牌不存在或已过期")
+	}
+
+	var data map[string]string
+	if err := json.Unmarshal([]byte(jsonData), &data); err != nil {
+		return err
+	}
+
+	// 删除旧的访问令牌
+	if oldAccessToken := data["access_token"]; oldAccessToken != "" {
+		oldKey := fmt.Sprintf("%s%s", oauthTokenKeyPrefix, oldAccessToken)
+		redis.Del(ctx, oldKey)
+	}
+
+	// 创建新的访问令牌
+	newAccessKey := fmt.Sprintf("%s%s", oauthTokenKeyPrefix, newAccessToken)
+	accessData := map[string]string{
+		"client_id":     data["client_id"],
+		"scope":         data["scope"],
+		"type":          "access",
+		"refresh_token": refreshToken,
+	}
+	accessJsonData, err := json.Marshal(accessData)
+	if err != nil {
+		return err
+	}
+
+	// 更新刷新令牌中的访问令牌信息
+	data["access_token"] = newAccessToken
+	refreshJsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	// 存储新的访问令牌
+	if err := redis.Set(ctx, newAccessKey, string(accessJsonData), int(oauthAccessTokenTTL.Seconds())); err != nil {
+		return err
+	}
+
+	// 更新刷新令牌信息
+	return redis.Set(ctx, refreshKey, string(refreshJsonData), int(oauthRefreshTokenTTL.Seconds()))
 }
