@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"log"
 	"path"
 	"strings"
 
@@ -41,7 +42,9 @@ func pathMatch(permPath, reqPath string) bool {
 func RBACMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 检查用户是否已认证
-		if _, exists := c.Get("user_id"); !exists {
+		userId, exists := c.Get("user_id")
+		if !exists {
+			log.Printf("RBAC: 用户未认证")
 			utils.Error(c, 401, "未授权")
 			c.Abort()
 			return
@@ -54,10 +57,13 @@ func RBACMiddleware() gin.HandlerFunc {
 		// 获取用户当前角色
 		roleCode, exists := c.Get("role_code")
 		if !exists {
+			log.Printf("RBAC: 用户 %v 未指定角色", userId)
 			utils.Error(c, 401, "未指定角色")
 			c.Abort()
 			return
 		}
+
+		log.Printf("RBAC: 用户 %v 使用角色 %v 访问 %s %s", userId, roleCode, method, reqPath)
 
 		// 查询角色ID
 		var roleID uint
@@ -65,6 +71,7 @@ func RBACMiddleware() gin.HandlerFunc {
 			SELECT id FROM roles WHERE code = ?
 		`, roleCode)
 		if err != nil {
+			log.Printf("RBAC: 查询角色失败 - %v", err)
 			utils.Error(c, 500, "服务器错误")
 			c.Abort()
 			return
@@ -85,6 +92,7 @@ func RBACMiddleware() gin.HandlerFunc {
 
 		err = model.DB.Select(&permissions, query, roleID, method)
 		if err != nil {
+			log.Printf("RBAC: 查询权限失败 - %v", err)
 			utils.Error(c, 500, "服务器错误")
 			c.Abort()
 			return
@@ -100,11 +108,13 @@ func RBACMiddleware() gin.HandlerFunc {
 		}
 
 		if !hasPermission {
+			log.Printf("RBAC: 用户 %v 使用角色 %v 访问 %s %s 被拒绝", userId, roleCode, method, reqPath)
 			utils.Error(c, 403, "没有访问权限")
 			c.Abort()
 			return
 		}
 
+		log.Printf("RBAC: 用户 %v 使用角色 %v 访问 %s %s 通过", userId, roleCode, method, reqPath)
 		c.Next()
 	}
 }

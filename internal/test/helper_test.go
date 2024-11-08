@@ -137,7 +137,7 @@ func initTestData() error {
 	_, err = model.DB.Exec(`
 		INSERT INTO roles (name, code, app_code, description, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
-	`, "管理员", "admin", "test_app1", "系统管理员", 1, now, now)
+	`, "管理员", "app_admin", "test_app1", "系统管理员", 1, now, now)
 	if err != nil {
 		log.Printf("创建测试角色失败: %v", err)
 		return fmt.Errorf("failed to create test role: %v", err)
@@ -171,7 +171,7 @@ func initTestData() error {
 		INSERT INTO user_roles (user_id, role_id)
 		SELECT u.id, r.id
 		FROM users u, roles r
-		WHERE u.username = 'admin' AND r.code = 'admin'
+		WHERE u.username = 'admin' AND r.code = 'app_admin'
 	`)
 	if err != nil {
 		log.Printf("分配角色给用户失败: %v", err)
@@ -185,7 +185,7 @@ func initTestData() error {
 		SELECT r.id, p.id
 		FROM roles r
 		CROSS JOIN permissions p
-		WHERE r.code = 'admin' AND r.app_code = p.app_code
+		WHERE r.code = 'app_admin' AND r.app_code = p.app_code
 	`)
 	if err != nil {
 		log.Printf("分配权限给角色失败: %v", err)
@@ -230,18 +230,24 @@ func setupTestRouter() *gin.Engine {
 		// v1版本API
 		v1Group := api.Group("/v1")
 		{
-			// 注册认证相关路由
-			v1.RegisterAuthRoutes(v1Group)
+			// 注册认证相关路由（不需要认证）
+			auth := v1Group.Group("/auth")
+			{
+				auth.GET("/captcha", v1.GetCaptcha)
+				auth.POST("/login", v1.Login)
+				auth.POST("/refresh", v1.RefreshToken)
+			}
 
 			// 需要认证的路由
 			authorized := v1Group.Group("/")
 			authorized.Use(middleware.AuthMiddleware())
 			{
-				// 注册用户相关路由
-				v1.RegisterUserRoutes(authorized)
-
-				// 注册切换角色路由（在RBAC中间件之前）
-				authorized.POST("/auth/switch-role", v1.SwitchRole)
+				// 认证相关路由（需要认证但不需要角色）
+				auth := authorized.Group("/auth")
+				{
+					auth.POST("/logout", v1.Logout)
+					auth.POST("/switch-role", v1.SwitchRole)
+				}
 
 				// 需要RBAC权限控制的路由
 				rbacProtected := authorized.Group("/")
@@ -324,7 +330,7 @@ func (h *TestHelper) login(t *testing.T) {
 
 	// 设置默认角色
 	switchRoleData := map[string]interface{}{
-		"role_code": "admin",
+		"role_code": "app_admin",
 	}
 	jsonData, err = json.Marshal(switchRoleData)
 	assert.NoError(t, err)
@@ -337,10 +343,22 @@ func (h *TestHelper) login(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code, "Switch role request failed")
 
-	response = h.ParseResponse(t, w)
-	data = response["data"].(map[string]interface{})
-	h.Token = data["access_token"].(string)
-	h.RefreshToken = data["refresh_token"].(string)
+	// 解析响应
+	err = json.Unmarshal(w.Body.Bytes(), &response)
+	assert.NoError(t, err, "Failed to parse switch role response")
+
+	// 检查响应结构
+	if response["code"].(float64) == 200 {
+		data = response["data"].(map[string]interface{})
+		if data != nil {
+			// 更新token为带有角色信息的新token
+			h.Token = data["access_token"].(string)
+			h.RefreshToken = data["refresh_token"].(string)
+			t.Logf("New Access Token after role switch: %s", h.Token)
+		}
+	} else {
+		t.Logf("Switch role failed with response: %s", w.Body.String())
+	}
 }
 
 // MakeRequest 发送HTTP请求

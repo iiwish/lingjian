@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/store"
@@ -177,7 +178,13 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 
 // RefreshToken 刷新访问令牌
 func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) {
-	// 验证刷新令牌
+	// 验证刷新令牌并获取claims
+	claims, err := utils.ParseToken(refreshToken, utils.RefreshToken)
+	if err != nil {
+		return nil, errors.New("无效的刷新令牌")
+	}
+
+	// 验证令牌是否在存储中
 	userId, err := s.store.VerifyToken(refreshToken, "refresh")
 	if err != nil {
 		return nil, errors.New("无效的刷新令牌")
@@ -193,8 +200,15 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 		return nil, errors.New("用户已被禁用")
 	}
 
+	// 生成包含角色信息的新令牌
+	tokenClaims := map[string]interface{}{
+		"user_id":   userId,
+		"username":  user.Username,
+		"role_code": claims.RoleCode,
+	}
+
 	// 生成新的访问令牌
-	newAccessToken, err := utils.GenerateToken(user.ID, user.Username, utils.AccessToken)
+	newAccessToken, err := utils.GenerateTokenWithClaims(tokenClaims, utils.AccessToken)
 	if err != nil {
 		return nil, err
 	}
@@ -226,6 +240,7 @@ func (s *AuthService) SwitchRole(userId uint, req *SwitchRoleRequest) (*LoginRes
 		WHERE ur.user_id = ? AND r.code = ? AND r.status = 1
 	`, userId, req.RoleCode)
 	if err != nil {
+		log.Printf("查询用户角色失败: %v", err)
 		return nil, errors.New("服务器错误")
 	}
 	if count == 0 {
@@ -236,6 +251,7 @@ func (s *AuthService) SwitchRole(userId uint, req *SwitchRoleRequest) (*LoginRes
 	var user model.User
 	err = model.DB.Get(&user, "SELECT * FROM users WHERE id = ?", userId)
 	if err != nil {
+		log.Printf("查询用户信息失败: %v", err)
 		return nil, errors.New("用户不存在")
 	}
 
@@ -245,23 +261,38 @@ func (s *AuthService) SwitchRole(userId uint, req *SwitchRoleRequest) (*LoginRes
 		"username":  user.Username,
 		"role_code": req.RoleCode,
 	}
+
+	// 生成新的访问令牌
 	accessToken, err := utils.GenerateTokenWithClaims(claims, utils.AccessToken)
 	if err != nil {
+		log.Printf("生成访问令牌失败: %v", err)
 		return nil, err
 	}
 
+	// 生成新的刷新令牌
 	refreshToken, err := utils.GenerateTokenWithClaims(claims, utils.RefreshToken)
 	if err != nil {
+		log.Printf("生成刷新令牌失败: %v", err)
+		return nil, err
+	}
+
+	// 先移除旧的令牌
+	if err := s.store.RemoveUserTokens(userId); err != nil {
+		log.Printf("移除旧令牌失败: %v", err)
 		return nil, err
 	}
 
 	// 存储新令牌
 	if err := s.store.StoreAccessToken(user.ID, accessToken); err != nil {
+		log.Printf("存储访问令牌失败: %v", err)
 		return nil, err
 	}
 	if err := s.store.StoreRefreshToken(user.ID, refreshToken); err != nil {
+		log.Printf("存储刷新令牌失败: %v", err)
 		return nil, err
 	}
+
+	log.Printf("切换角色成功 - UserID: %d, RoleCode: %s", userId, req.RoleCode)
 
 	return &LoginResponse{
 		AccessToken:  accessToken,
