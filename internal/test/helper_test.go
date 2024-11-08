@@ -135,9 +135,9 @@ func initTestData() error {
 	// 创建测试角色
 	log.Println("创建测试角色...")
 	_, err = model.DB.Exec(`
-		INSERT INTO roles (name, code, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-	`, "管理员", "admin", 1, now, now)
+		INSERT INTO roles (name, code, app_code, description, status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?)
+	`, "管理员", "admin", "test_app1", "系统管理员", 1, now, now)
 	if err != nil {
 		log.Printf("创建测试角色失败: %v", err)
 		return fmt.Errorf("failed to create test role: %v", err)
@@ -146,19 +146,19 @@ func initTestData() error {
 	// 创建测试权限
 	log.Println("创建测试权限...")
 	_, err = model.DB.Exec(`
-		INSERT INTO permissions (name, code, type, path, method, status, created_at, updated_at)
+		INSERT INTO permissions (name, code, app_code, type, path, method, description, status, created_at, updated_at)
 		VALUES 
-		(?, ?, ?, ?, ?, ?, ?, ?),
-		(?, ?, ?, ?, ?, ?, ?, ?),
-		(?, ?, ?, ?, ?, ?, ?, ?),
-		(?, ?, ?, ?, ?, ?, ?, ?),
-		(?, ?, ?, ?, ?, ?, ?, ?)
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
-		"查看应用", "view_apps", "api", "/api/v1/apps", "GET", 1, now, now,
-		"创建应用", "create_app", "api", "/api/v1/apps", "POST", 1, now, now,
-		"创建角色", "create_role", "api", "/api/v1/rbac/roles", "POST", 1, now, now,
-		"分配权限", "assign_permission", "api", "/api/v1/rbac/roles/*/permissions", "POST", 1, now, now,
-		"创建任务", "create_task", "api", "/api/v1/tasks/scheduled", "POST", 1, now, now,
+		"查看应用", "view_apps", "test_app1", "api", "/api/v1/apps", "GET", "查看应用列表", 1, now, now,
+		"创建应用", "create_app", "test_app1", "api", "/api/v1/apps", "POST", "创建新应用", 1, now, now,
+		"创建角色", "create_role", "test_app1", "api", "/api/v1/roles", "POST", "创建新角色", 1, now, now,
+		"分配权限", "assign_permission", "test_app1", "api", "/api/v1/roles/*/permissions", "POST", "为角色分配权限", 1, now, now,
+		"创建任务", "create_task", "test_app1", "api", "/api/v1/tasks/scheduled", "POST", "创建定时任务", 1, now, now,
 	)
 	if err != nil {
 		log.Printf("创建测试权限失败: %v", err)
@@ -183,8 +183,9 @@ func initTestData() error {
 	_, err = model.DB.Exec(`
 		INSERT INTO role_permissions (role_id, permission_id)
 		SELECT r.id, p.id
-		FROM roles r, permissions p
-		WHERE r.code = 'admin'
+		FROM roles r
+		CROSS JOIN permissions p
+		WHERE r.code = 'admin' AND r.app_code = p.app_code
 	`)
 	if err != nil {
 		log.Printf("分配权限给角色失败: %v", err)
@@ -313,6 +314,10 @@ func (h *TestHelper) login(t *testing.T) {
 
 	h.Token = token
 	h.RefreshToken = refreshToken
+
+	// 打印token信息以便调试
+	t.Logf("Access Token: %s", token)
+	t.Logf("Refresh Token: %s", refreshToken)
 }
 
 // MakeRequest 发送HTTP请求
@@ -330,6 +335,8 @@ func (h *TestHelper) MakeRequest(t *testing.T, method, path string, body interfa
 	// 设置默认的Authorization头
 	if h.Token != "" {
 		req.Header.Set("Authorization", "Bearer "+h.Token)
+		// 打印请求头以便调试
+		t.Logf("Request Authorization Header: %s", req.Header.Get("Authorization"))
 	}
 
 	// 设置额外的头部
@@ -341,6 +348,12 @@ func (h *TestHelper) MakeRequest(t *testing.T, method, path string, body interfa
 
 	w := httptest.NewRecorder()
 	h.Router.ServeHTTP(w, req)
+
+	// 打印请求和响应信息以便调试
+	t.Logf("Request: %s %s", method, path)
+	t.Logf("Response Status: %d", w.Code)
+	t.Logf("Response Body: %s", w.Body.String())
+
 	return w
 }
 

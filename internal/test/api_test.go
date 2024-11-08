@@ -53,7 +53,7 @@ func TestAPIFlow(t *testing.T) {
 			"code":     "app_admin",
 			"app_code": "test_app",
 		}
-		w := helper.MakeRequest(t, "POST", "/api/v1/rbac/roles", roleData)
+		w := helper.MakeRequest(t, "POST", "/api/v1/roles", roleData)
 		// 添加错误响应日志
 		if w.Code != 200 {
 			t.Logf("创建角色失败，响应状态码: %d", w.Code)
@@ -68,7 +68,7 @@ func TestAPIFlow(t *testing.T) {
 			"permission_codes": []string{"view_apps", "create_app", "create_role", "assign_permission", "create_task"},
 			"app_code":         "test_app",
 		}
-		w := helper.MakeRequest(t, "POST", "/api/v1/rbac/roles/app_admin/permissions", permData)
+		w := helper.MakeRequest(t, "POST", "/api/v1/roles/app_admin/permissions", permData)
 		// 添加错误响应日志
 		if w.Code != 200 {
 			t.Logf("分配权限失败，响应状态码: %d", w.Code)
