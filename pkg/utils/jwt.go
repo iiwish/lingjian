@@ -21,6 +21,7 @@ type CustomClaims struct {
 	UserID    uint      `json:"user_id"`
 	Username  string    `json:"username"`
 	TokenType TokenType `json:"token_type"`
+	RoleCode  string    `json:"role_code,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -49,6 +50,40 @@ func GenerateToken(userID uint, username string, tokenType TokenType) (string, e
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(secret))
+}
+
+// GenerateTokenWithClaims 生成带自定义claims的JWT token
+func GenerateTokenWithClaims(claims map[string]interface{}, tokenType TokenType) (string, error) {
+	var secret string
+	var expire time.Duration
+
+	if tokenType == AccessToken {
+		secret = viper.GetString("jwt.access_secret")
+		expire = time.Duration(viper.GetInt("jwt.access_expire")) * time.Second
+	} else {
+		secret = viper.GetString("jwt.refresh_secret")
+		expire = time.Duration(viper.GetInt("jwt.refresh_expire")) * time.Second
+	}
+
+	// 创建自定义claims
+	customClaims := CustomClaims{
+		UserID:    claims["user_id"].(uint),
+		Username:  claims["username"].(string),
+		TokenType: tokenType,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expire)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	// 添加角色代码（如果存在）
+	if roleCode, ok := claims["role_code"].(string); ok {
+		customClaims.RoleCode = roleCode
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, customClaims)
 	return token.SignedString([]byte(secret))
 }
 

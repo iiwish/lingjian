@@ -1,6 +1,10 @@
 package test
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/iiwish/lingjian/pkg/utils"
+)
 
 // MockStore 用于测试的存储实现
 type MockStore struct{}
@@ -32,10 +36,24 @@ func (s *MockStore) StoreRefreshToken(userId uint, token string) error {
 
 // VerifyToken 验证令牌
 func (s *MockStore) VerifyToken(token, tokenType string) (uint, error) {
-	if token == "invalid_refresh_token" {
+	if token == "invalid_token" {
 		return 0, fmt.Errorf("invalid token")
 	}
-	return 1, nil // 在测试中总是返回用户ID 1
+
+	// 解析token获取用户ID
+	var claims *utils.CustomClaims
+	var err error
+
+	if tokenType == "access" {
+		claims, err = utils.ParseToken(token, utils.AccessToken)
+	} else {
+		claims, err = utils.ParseToken(token, utils.RefreshToken)
+	}
+
+	if err != nil {
+		return 0, err
+	}
+	return claims.UserID, nil
 }
 
 // RemoveUserTokens 移除用户的所有令牌

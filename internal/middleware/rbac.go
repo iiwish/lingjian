@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"path"
 	"strings"
 
@@ -41,8 +40,8 @@ func pathMatch(permPath, reqPath string) bool {
 // RBACMiddleware RBAC权限控制中间件
 func RBACMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		if !exists {
+		// 检查用户是否已认证
+		if _, exists := c.Get("user_id"); !exists {
 			utils.Error(c, 401, "未授权")
 			c.Abort()
 			return
@@ -52,53 +51,39 @@ func RBACMiddleware() gin.HandlerFunc {
 		reqPath := c.Request.URL.Path
 		method := c.Request.Method
 
-		// 在测试环境中，admin用户拥有所有权限
-		if gin.Mode() == gin.TestMode && userID.(uint) == 1 {
-			c.Next()
+		// 获取用户当前角色
+		roleCode, exists := c.Get("role_code")
+		if !exists {
+			utils.Error(c, 401, "未指定角色")
+			c.Abort()
 			return
 		}
 
-		// 查询用户的角色
-		var roleIDs []uint
-		err := model.DB.Select(&roleIDs, `
-			SELECT role_id FROM user_roles WHERE user_id = ?
-		`, userID)
+		// 查询角色ID
+		var roleID uint
+		err := model.DB.Get(&roleID, `
+			SELECT id FROM roles WHERE code = ?
+		`, roleCode)
 		if err != nil {
 			utils.Error(c, 500, "服务器错误")
 			c.Abort()
 			return
 		}
 
-		// 如果用户没有任何角色
-		if len(roleIDs) == 0 {
-			utils.Error(c, 403, "没有访问权限")
-			c.Abort()
-			return
-		}
-
-		// 构建角色ID的占位符
-		placeholders := make([]string, len(roleIDs))
-		args := make([]interface{}, len(roleIDs)+1) // +1 for method
-		for i := range roleIDs {
-			placeholders[i] = "?"
-			args[i] = roleIDs[i]
-		}
-		args[len(roleIDs)] = method
-
 		// 查询角色的所有权限
 		var permissions []struct {
 			Path   string
 			Method string
 		}
-		query := fmt.Sprintf(`
+		query := `
 			SELECT DISTINCT p.path, p.method FROM permissions p
 			INNER JOIN role_permissions rp ON p.id = rp.permission_id
-			WHERE rp.role_id IN (%s)
+			WHERE rp.role_id = ?
 			AND p.method = ?
 			AND p.status = 1
-		`, strings.Join(placeholders, ","))
+		`
 
-		err = model.DB.Select(&permissions, query, args...)
+		err = model.DB.Select(&permissions, query, roleID, method)
 		if err != nil {
 			utils.Error(c, 500, "服务器错误")
 			c.Abort()

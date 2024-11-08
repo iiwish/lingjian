@@ -109,9 +109,9 @@ func initTestData() error {
 	hashedPassword := hashPassword("admin123")
 	log.Printf("创建测试用户，密码哈希: %s", hashedPassword)
 	_, err := model.DB.Exec(`
-		INSERT INTO users (username, password, email, phone, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?)
-	`, "admin", hashedPassword, "admin@test.com", "13800138000", 1, now, now)
+		INSERT INTO users (id, username, password, email, phone, status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+	`, 1, "admin", hashedPassword, "admin@test.com", "13800138000", 1, now, now)
 	if err != nil {
 		log.Printf("创建测试用户失败: %v", err)
 		return fmt.Errorf("failed to create test user: %v", err)
@@ -240,6 +240,9 @@ func setupTestRouter() *gin.Engine {
 				// 注册用户相关路由
 				v1.RegisterUserRoutes(authorized)
 
+				// 注册切换角色路由（在RBAC中间件之前）
+				authorized.POST("/auth/switch-role", v1.SwitchRole)
+
 				// 需要RBAC权限控制的路由
 				rbacProtected := authorized.Group("/")
 				rbacProtected.Use(middleware.RBACMiddleware())
@@ -318,6 +321,26 @@ func (h *TestHelper) login(t *testing.T) {
 	// 打印token信息以便调试
 	t.Logf("Access Token: %s", token)
 	t.Logf("Refresh Token: %s", refreshToken)
+
+	// 设置默认角色
+	switchRoleData := map[string]interface{}{
+		"role_code": "admin",
+	}
+	jsonData, err = json.Marshal(switchRoleData)
+	assert.NoError(t, err)
+
+	req = httptest.NewRequest("POST", "/api/v1/auth/switch-role", bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+	w = httptest.NewRecorder()
+	h.Router.ServeHTTP(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code, "Switch role request failed")
+
+	response = h.ParseResponse(t, w)
+	data = response["data"].(map[string]interface{})
+	h.Token = data["access_token"].(string)
+	h.RefreshToken = data["refresh_token"].(string)
 }
 
 // MakeRequest 发送HTTP请求

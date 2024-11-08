@@ -19,7 +19,9 @@ func SetStore(s store.Store) {
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if globalStore == nil {
-			globalStore = store.NewRedisStore()
+			utils.Error(c, 500, "存储实例未初始化")
+			c.Abort()
+			return
 		}
 
 		auth := c.GetHeader("Authorization")

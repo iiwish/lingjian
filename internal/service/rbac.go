@@ -185,9 +185,24 @@ func (s *RBACService) GetUserRoles(userID uint) ([]map[string]interface{}, error
 	return roles, err
 }
 
+// Permission 权限信息
+type Permission struct {
+	ID          uint      `db:"id" json:"id"`
+	Name        string    `db:"name" json:"name"`
+	Code        string    `db:"code" json:"code"`
+	AppCode     string    `db:"app_code" json:"app_code"`
+	Type        string    `db:"type" json:"type"`
+	Path        string    `db:"path" json:"path"`
+	Method      string    `db:"method" json:"method"`
+	Description string    `db:"description" json:"description"`
+	Status      int       `db:"status" json:"status"`
+	CreatedAt   time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
+}
+
 // GetRolePermissions 获取角色的权限列表
-func (s *RBACService) GetRolePermissions(roleCode, appCode string) ([]map[string]interface{}, error) {
-	var permissions []map[string]interface{}
+func (s *RBACService) GetRolePermissions(roleCode, appCode string) ([]Permission, error) {
+	var permissions []Permission
 	query := `
 		SELECT p.*
 		FROM permissions p

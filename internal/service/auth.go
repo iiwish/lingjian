@@ -48,6 +48,12 @@ type TokenRequest struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+// SwitchRoleRequest 切换角色请求参数
+type SwitchRoleRequest struct {
+	// 角色代码
+	RoleCode string `json:"role_code" binding:"required"`
+}
+
 func NewAuthService(s store.Store) *AuthService {
 	return &AuthService{
 		store: s,
@@ -208,6 +214,60 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 // Logout 用户登出
 func (s *AuthService) Logout(userId uint) error {
 	return s.store.RemoveUserTokens(userId)
+}
+
+// SwitchRole 切换用户角色
+func (s *AuthService) SwitchRole(userId uint, req *SwitchRoleRequest) (*LoginResponse, error) {
+	// 检查用户是否有该角色
+	var count int
+	err := model.DB.Get(&count, `
+		SELECT COUNT(*) FROM user_roles ur
+		INNER JOIN roles r ON ur.role_id = r.id
+		WHERE ur.user_id = ? AND r.code = ? AND r.status = 1
+	`, userId, req.RoleCode)
+	if err != nil {
+		return nil, errors.New("服务器错误")
+	}
+	if count == 0 {
+		return nil, errors.New("无效的角色")
+	}
+
+	// 获取用户信息
+	var user model.User
+	err = model.DB.Get(&user, "SELECT * FROM users WHERE id = ?", userId)
+	if err != nil {
+		return nil, errors.New("用户不存在")
+	}
+
+	// 生成包含角色信息的新令牌
+	claims := map[string]interface{}{
+		"user_id":   userId,
+		"username":  user.Username,
+		"role_code": req.RoleCode,
+	}
+	accessToken, err := utils.GenerateTokenWithClaims(claims, utils.AccessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	refreshToken, err := utils.GenerateTokenWithClaims(claims, utils.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// 存储新令牌
+	if err := s.store.StoreAccessToken(user.ID, accessToken); err != nil {
+		return nil, err
+	}
+	if err := s.store.StoreRefreshToken(user.ID, refreshToken); err != nil {
+		return nil, err
+	}
+
+	return &LoginResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresIn:    7200, // 2小时
+	}, nil
 }
 
 // HandleAuthorize 处理OAuth2授权请求

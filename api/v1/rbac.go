@@ -178,5 +178,8 @@ func GetRolePermissions(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, permissions)
+	utils.Success(c, gin.H{
+		"items": permissions,
+		"total": len(permissions),
+	})
 }
