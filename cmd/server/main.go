@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	v1 "github.com/iiwish/lingjian/api/v1"
 	"github.com/iiwish/lingjian/api/v1/config"
+	_ "github.com/iiwish/lingjian/docs"
 	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/queue"
