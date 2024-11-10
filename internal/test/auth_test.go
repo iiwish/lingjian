@@ -39,7 +39,7 @@ func TestUserLogin(t *testing.T) {
 		{
 			name:       "正常登录",
 			username:   "admin",
-			password:   "admin123",
+			password:   "admin1324",
 			captchaId:  captchaId,
 			captchaVal: "1234",
 			wantStatus: http.StatusOK,
@@ -137,7 +137,7 @@ func TestRefreshToken(t *testing.T) {
 
 	loginData := map[string]interface{}{
 		"username":    "admin",
-		"password":    "admin123",
+		"password":    "admin1324",
 		"captcha_id":  captchaId,
 		"captcha_val": "1234",
 	}

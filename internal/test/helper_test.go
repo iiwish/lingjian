@@ -106,7 +106,7 @@ func initTestData() error {
 	now := time.Now()
 
 	// 创建测试用户（使用加密后的密码）
-	hashedPassword := hashPassword("admin123")
+	hashedPassword := hashPassword("admin1324")
 	log.Printf("创建测试用户，密码哈希: %s", hashedPassword)
 	_, err := model.DB.Exec(`
 		INSERT INTO sys_users (id, username, password, email, phone, status, created_at, updated_at)
