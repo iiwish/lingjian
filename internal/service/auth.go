@@ -134,10 +134,13 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 	if !s.store.Verify(req.CaptchaId, req.CaptchaVal, true) {
 		return nil, errors.New("验证码错误")
 	}
+	// 打印请求参数
+	log.Printf("LoginRequest: %+v", req)
 
 	var user model.User
 	err := model.DB.Get(&user, "SELECT * FROM sys_users WHERE username = ?", req.Username)
 	if err != nil {
+		log.Printf("查询用户失败: %v", err)
 		return nil, errors.New("用户不存在")
 	}
 
