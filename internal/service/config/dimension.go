@@ -29,7 +29,7 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 
 	// 插入维度配置
 	result, err := tx.NamedExec(`
-		INSERT INTO config_dimensions (
+		INSERT INTO sys_config_dimensions (
 			app_id, name, code, type, mysql_table_name,
 			configuration, status, version, created_at, updated_at
 		) VALUES (
@@ -38,7 +38,7 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 		)
 	`, dimension)
 	if err != nil {
-		return fmt.Errorf("insert config_dimensions failed: %v", err)
+		return fmt.Errorf("insert sys_config_dimensions failed: %v", err)
 	}
 
 	// 获取插入的ID
@@ -58,7 +58,7 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -67,7 +67,7 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -89,7 +89,7 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 
 	// 获取当前版本
 	var currentVersion int
-	err = tx.Get(&currentVersion, "SELECT version FROM config_dimensions WHERE id = ?", dimension.ID)
+	err = tx.Get(&currentVersion, "SELECT version FROM sys_config_dimensions WHERE id = ?", dimension.ID)
 	if err != nil {
 		return fmt.Errorf("get current version failed: %v", err)
 	}
@@ -99,19 +99,19 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 
 	// 更新维度配置
 	_, err = tx.NamedExec(`
-		UPDATE config_dimensions SET 
-			name = :name,
-			code = :code,
-			type = :type,
-			mysql_table_name = :mysql_table_name,
-			configuration = :configuration,
-			status = :status,
-			version = :version,
-			updated_at = NOW()
-		WHERE id = :id
-	`, dimension)
+			UPDATE sys_config_dimensions SET 
+				name = :name,
+				code = :code,
+				type = :type,
+				mysql_table_name = :mysql_table_name,
+				configuration = :configuration,
+				status = :status,
+				version = :version,
+				updated_at = NOW()
+			WHERE id = :id
+		`, dimension)
 	if err != nil {
-		return fmt.Errorf("update config_dimensions failed: %v", err)
+		return fmt.Errorf("update sys_config_dimensions failed: %v", err)
 	}
 
 	// 创建新的版本记录
@@ -125,7 +125,7 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -134,7 +134,7 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -148,7 +148,7 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 // GetDimension 获取维度配置
 func (s *DimensionService) GetDimension(id uint) (*model.ConfigDimension, error) {
 	var dimension model.ConfigDimension
-	err := s.db.Get(&dimension, "SELECT * FROM config_dimensions WHERE id = ?", id)
+	err := s.db.Get(&dimension, "SELECT * FROM sys_config_dimensions WHERE id = ?", id)
 	if err != nil {
 		return nil, fmt.Errorf("get dimension failed: %v", err)
 	}
@@ -165,7 +165,7 @@ func (s *DimensionService) DeleteDimension(id uint) error {
 	defer tx.Rollback()
 
 	// 软删除维度配置（将状态设置为0）
-	_, err = tx.Exec("UPDATE config_dimensions SET status = 0, updated_at = NOW() WHERE id = ?", id)
+	_, err = tx.Exec("UPDATE sys_config_dimensions SET status = 0, updated_at = NOW() WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("delete dimension failed: %v", err)
 	}
@@ -181,7 +181,7 @@ func (s *DimensionService) DeleteDimension(id uint) error {
 // ListDimensions 获取维度配置列表
 func (s *DimensionService) ListDimensions(appID uint) ([]model.ConfigDimension, error) {
 	var dimensions []model.ConfigDimension
-	err := s.db.Select(&dimensions, "SELECT * FROM config_dimensions WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
+	err := s.db.Select(&dimensions, "SELECT * FROM sys_config_dimensions WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
 	if err != nil {
 		return nil, fmt.Errorf("list dimensions failed: %v", err)
 	}
@@ -192,7 +192,7 @@ func (s *DimensionService) ListDimensions(appID uint) ([]model.ConfigDimension, 
 func (s *DimensionService) GetDimensionVersions(id uint) ([]model.ConfigVersion, error) {
 	var versions []model.ConfigVersion
 	err := s.db.Select(&versions, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'dimension' AND config_id = ? 
 		ORDER BY version DESC
 	`, id)
@@ -214,7 +214,7 @@ func (s *DimensionService) RollbackDimension(id uint, version int, updaterID uin
 	// 获取指定版本的配置内容
 	var targetVersion model.ConfigVersion
 	err = tx.Get(&targetVersion, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'dimension' AND config_id = ? AND version = ?
 	`, id, version)
 	if err != nil {
@@ -223,7 +223,7 @@ func (s *DimensionService) RollbackDimension(id uint, version int, updaterID uin
 
 	// 获取当前维度配置
 	var dimension model.ConfigDimension
-	err = tx.Get(&dimension, "SELECT * FROM config_dimensions WHERE id = ?", id)
+	err = tx.Get(&dimension, "SELECT * FROM sys_config_dimensions WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("get current dimension failed: %v", err)
 	}
@@ -240,7 +240,7 @@ func (s *DimensionService) RollbackDimension(id uint, version int, updaterID uin
 
 	// 更新维度配置
 	_, err = tx.NamedExec(`
-		UPDATE config_dimensions SET 
+		UPDATE sys_config_dimensions SET 
 			configuration = :configuration,
 			version = :version,
 			updated_at = NOW()
@@ -262,7 +262,7 @@ func (s *DimensionService) RollbackDimension(id uint, version int, updaterID uin
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, comment, creator_id, created_at
 		) VALUES (
@@ -271,7 +271,7 @@ func (s *DimensionService) RollbackDimension(id uint, version int, updaterID uin
 		)
 	`, newVersion)
 	if err != nil {
-		return fmt.Errorf("insert version failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务

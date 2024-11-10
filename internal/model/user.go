@@ -14,6 +14,10 @@ type User struct {
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
+func (User) TableName() string {
+	return "sys_users"
+}
+
 // Role 角色表
 type Role struct {
 	ID        uint      `db:"id" json:"id"`
@@ -22,6 +26,10 @@ type Role struct {
 	Status    int       `db:"status" json:"status"` // 0:禁用 1:启用
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (Role) TableName() string {
+	return "sys_roles"
 }
 
 // Permission 权限表
@@ -37,6 +45,10 @@ type Permission struct {
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
+func (Permission) TableName() string {
+	return "sys_permissions"
+}
+
 // UserRole 用户角色关联表
 type UserRole struct {
 	ID     uint `db:"id" json:"id"`
@@ -44,9 +56,17 @@ type UserRole struct {
 	RoleID uint `db:"role_id" json:"role_id"`
 }
 
+func (UserRole) TableName() string {
+	return "sys_user_roles"
+}
+
 // RolePermission 角色权限关联表
 type RolePermission struct {
 	ID           uint `db:"id" json:"id"`
 	RoleID       uint `db:"role_id" json:"role_id"`
 	PermissionID uint `db:"permission_id" json:"permission_id"`
+}
+
+func (RolePermission) TableName() string {
+	return "sys_role_permissions"
 }

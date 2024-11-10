@@ -65,21 +65,21 @@ func hashPassword(password string) string {
 // cleanTestData 清理测试数据
 func cleanTestData() error {
 	tables := []string{
-		"role_permissions",
-		"user_roles",
-		"user_apps",
-		"element_triggers",
-		"task_logs",
-		"scheduled_tasks",
-		"config_menu",
-		"config_form",
-		"config_model",
-		"config_dimension",
-		"config_table",
-		"permissions",
-		"roles",
-		"apps",
-		"users",
+		"sys_role_permissions",
+		"sys_user_roles",
+		"sys_user_apps",
+		"sys_element_triggers",
+		"sys_task_logs",
+		"sys_scheduled_tasks",
+		"sys_config_menu",
+		"sys_config_form",
+		"sys_config_model",
+		"sys_config_dimension",
+		"sys_config_table",
+		"sys_permissions",
+		"sys_roles",
+		"sys_apps",
+		"sys_users",
 	}
 
 	for _, table := range tables {
@@ -109,7 +109,7 @@ func initTestData() error {
 	hashedPassword := hashPassword("admin123")
 	log.Printf("创建测试用户，密码哈希: %s", hashedPassword)
 	_, err := model.DB.Exec(`
-		INSERT INTO users (id, username, password, email, phone, status, created_at, updated_at)
+		INSERT INTO sys_users (id, username, password, email, phone, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`, 1, "admin", hashedPassword, "admin@test.com", "13800138000", 1, now, now)
 	if err != nil {
@@ -120,7 +120,7 @@ func initTestData() error {
 	// 创建测试应用
 	log.Println("创建测试应用...")
 	_, err = model.DB.Exec(`
-		INSERT INTO apps (name, code, description, status, created_at, updated_at)
+		INSERT INTO sys_apps (name, code, description, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?),
 		(?, ?, ?, ?, ?, ?)
 	`,
@@ -135,7 +135,7 @@ func initTestData() error {
 	// 创建测试角色
 	log.Println("创建测试角色...")
 	_, err = model.DB.Exec(`
-		INSERT INTO roles (name, code, app_code, description, status, created_at, updated_at)
+		INSERT INTO sys_roles (name, code, app_code, description, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?)
 	`, "管理员", "app_admin", "test_app1", "系统管理员", 1, now, now)
 	if err != nil {
@@ -146,7 +146,7 @@ func initTestData() error {
 	// 创建测试权限
 	log.Println("创建测试权限...")
 	_, err = model.DB.Exec(`
-		INSERT INTO permissions (name, code, app_code, type, path, method, description, status, created_at, updated_at)
+		INSERT INTO sys_permissions (name, code, app_code, type, path, method, description, status, created_at, updated_at)
 		VALUES 
 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?),
@@ -168,9 +168,9 @@ func initTestData() error {
 	// 分配角色给用户
 	log.Println("分配角色给用户...")
 	_, err = model.DB.Exec(`
-		INSERT INTO user_roles (user_id, role_id)
+		INSERT INTO sys_user_roles (user_id, role_id)
 		SELECT u.id, r.id
-		FROM users u, roles r
+		FROM sys_users u, sys_roles r
 		WHERE u.username = 'admin' AND r.code = 'app_admin'
 	`)
 	if err != nil {
@@ -181,10 +181,10 @@ func initTestData() error {
 	// 分配权限给角色
 	log.Println("分配权限给角色...")
 	_, err = model.DB.Exec(`
-		INSERT INTO role_permissions (role_id, permission_id)
+		INSERT INTO sys_role_permissions (role_id, permission_id)
 		SELECT r.id, p.id
-		FROM roles r
-		CROSS JOIN permissions p
+		FROM sys_roles r
+		CROSS JOIN sys_permissions p
 		WHERE r.code = 'app_admin' AND r.app_code = p.app_code
 	`)
 	if err != nil {

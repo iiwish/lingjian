@@ -25,7 +25,7 @@ type App struct {
 func (s *AppService) ListApps() (map[string]interface{}, error) {
 	var apps []App
 	query := `
-		SELECT * FROM apps 
+		SELECT * FROM sys_apps 
 		WHERE status = 1
 		ORDER BY created_at DESC
 	`
@@ -45,7 +45,7 @@ func (s *AppService) ListApps() (map[string]interface{}, error) {
 func (s *AppService) CreateApp(name, code, description string) (map[string]interface{}, error) {
 	// 检查应用代码是否已存在
 	var count int
-	err := model.DB.Get(&count, "SELECT COUNT(*) FROM apps WHERE code = ?", code)
+	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_apps WHERE code = ?", code)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (s *AppService) CreateApp(name, code, description string) (map[string]inter
 
 	now := time.Now()
 	result, err := model.DB.Exec(`
-		INSERT INTO apps (name, code, description, status, created_at, updated_at)
+		INSERT INTO sys_apps (name, code, description, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`, name, code, description, 1, now, now)
 	if err != nil {
@@ -84,7 +84,7 @@ func (s *AppService) CreateApp(name, code, description string) (map[string]inter
 func (s *AppService) AssignAppToUser(userID, appID uint, isDefault bool) error {
 	// 检查用户和应用是否存在
 	var userCount, appCount int
-	err := model.DB.Get(&userCount, "SELECT COUNT(*) FROM users WHERE id = ?", userID)
+	err := model.DB.Get(&userCount, "SELECT COUNT(*) FROM sys_users WHERE id = ?", userID)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (s *AppService) AssignAppToUser(userID, appID uint, isDefault bool) error {
 		return errors.New("用户不存在")
 	}
 
-	err = model.DB.Get(&appCount, "SELECT COUNT(*) FROM apps WHERE id = ?", appID)
+	err = model.DB.Get(&appCount, "SELECT COUNT(*) FROM sys_apps WHERE id = ?", appID)
 	if err != nil {
 		return err
 	}
@@ -103,7 +103,7 @@ func (s *AppService) AssignAppToUser(userID, appID uint, isDefault bool) error {
 	// 如果设置为默认应用，先取消其他默认应用
 	if isDefault {
 		_, err = model.DB.Exec(`
-			UPDATE user_apps SET is_default = 0
+			UPDATE sys_user_apps SET is_default = 0
 			WHERE user_id = ? AND is_default = 1
 		`, userID)
 		if err != nil {
@@ -113,7 +113,7 @@ func (s *AppService) AssignAppToUser(userID, appID uint, isDefault bool) error {
 
 	// 分配应用给用户
 	_, err = model.DB.Exec(`
-		INSERT INTO user_apps (user_id, app_id, is_default, created_at, updated_at)
+		INSERT INTO sys_user_apps (user_id, app_id, is_default, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?)
 		ON DUPLICATE KEY UPDATE is_default = ?, updated_at = ?
 	`, userID, appID, isDefault, time.Now(), time.Now(), isDefault, time.Now())
@@ -126,8 +126,8 @@ func (s *AppService) GetUserApps(userID uint) ([]map[string]interface{}, error) 
 	var apps []map[string]interface{}
 	query := `
 		SELECT a.*, ua.is_default
-		FROM apps a
-		JOIN user_apps ua ON a.id = ua.app_id
+		FROM sys_apps a
+		JOIN sys_user_apps ua ON a.id = ua.app_id
 		WHERE ua.user_id = ? AND a.status = 1
 		ORDER BY ua.is_default DESC, a.created_at DESC
 	`
@@ -140,8 +140,8 @@ func (s *AppService) GetDefaultApp(userID uint) (map[string]interface{}, error) 
 	var app map[string]interface{}
 	query := `
 		SELECT a.*
-		FROM apps a
-		JOIN user_apps ua ON a.id = ua.app_id
+		FROM sys_apps a
+		JOIN sys_user_apps ua ON a.id = ua.app_id
 		WHERE ua.user_id = ? AND ua.is_default = 1 AND a.status = 1
 		LIMIT 1
 	`
@@ -152,7 +152,7 @@ func (s *AppService) GetDefaultApp(userID uint) (map[string]interface{}, error) 
 // CreateAppTemplate 创建应用模板
 func (s *AppService) CreateAppTemplate(name, description, configuration string, price float64, creatorID uint) error {
 	_, err := model.DB.Exec(`
-		INSERT INTO app_templates (name, description, configuration, price, creator_id, status, created_at, updated_at)
+		INSERT INTO sys_app_templates (name, description, configuration, price, creator_id, status, created_at, updated_at)
 		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 	`, name, description, configuration, price, creatorID, 0, time.Now(), time.Now())
 	return err
@@ -163,8 +163,8 @@ func (s *AppService) ListAppTemplates(status int) ([]map[string]interface{}, err
 	var templates []map[string]interface{}
 	query := `
 		SELECT t.*, u.username as creator_name
-		FROM app_templates t
-		JOIN users u ON t.creator_id = u.id
+		FROM sys_app_templates t
+		JOIN sys_users u ON t.creator_id = u.id
 		WHERE t.status = ?
 		ORDER BY t.downloads DESC, t.created_at DESC
 	`
@@ -179,7 +179,7 @@ func (s *AppService) CreateAppFromTemplate(templateID, userID uint, name, code s
 		Configuration string
 		Status        int
 	}
-	err := model.DB.Get(&template, "SELECT configuration, status FROM app_templates WHERE id = ?", templateID)
+	err := model.DB.Get(&template, "SELECT configuration, status FROM sys_app_templates WHERE id = ?", templateID)
 	if err != nil {
 		return err
 	}
@@ -200,12 +200,12 @@ func (s *AppService) CreateAppFromTemplate(templateID, userID uint, name, code s
 	}
 
 	// 更新模板下载次数
-	_, err = model.DB.Exec("UPDATE app_templates SET downloads = downloads + 1 WHERE id = ?", templateID)
+	_, err = model.DB.Exec("UPDATE sys_app_templates SET downloads = downloads + 1 WHERE id = ?", templateID)
 	return err
 }
 
 // PublishTemplate 发布模板
 func (s *AppService) PublishTemplate(templateID uint) error {
-	_, err := model.DB.Exec("UPDATE app_templates SET status = 1 WHERE id = ?", templateID)
+	_, err := model.DB.Exec("UPDATE sys_app_templates SET status = 1 WHERE id = ?", templateID)
 	return err
 }

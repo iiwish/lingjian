@@ -13,6 +13,10 @@ type App struct {
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 }
 
+func (App) TableName() string {
+	return "sys_apps"
+}
+
 // UserApp 用户应用关联表
 type UserApp struct {
 	ID        uint      `db:"id" json:"id"`
@@ -21,6 +25,10 @@ type UserApp struct {
 	IsDefault bool      `db:"is_default" json:"is_default"` // 是否默认应用
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (UserApp) TableName() string {
+	return "sys_user_apps"
 }
 
 // AppTemplate 应用模板表
@@ -35,4 +43,8 @@ type AppTemplate struct {
 	Status        int       `db:"status" json:"status"`               // 0:未上架 1:已上架
 	CreatedAt     time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt     time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (AppTemplate) TableName() string {
+	return "sys_app_templates"
 }

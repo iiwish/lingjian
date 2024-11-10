@@ -22,7 +22,7 @@ func TestTaskFlow(t *testing.T) {
 			"type":   "sql",
 			"cron":   "*/5 * * * *",
 			"content": map[string]interface{}{
-				"sql": "SELECT COUNT(*) FROM users",
+				"sql": "SELECT COUNT(*) FROM sys_users",
 			},
 			"timeout":     30,
 			"retry_times": 3,
@@ -60,7 +60,7 @@ func TestTaskFlow(t *testing.T) {
 			"name": "更新后的SQL任务",
 			"cron": "0 */1 * * *",
 			"content": map[string]interface{}{
-				"sql": "SELECT COUNT(*) FROM roles",
+				"sql": "SELECT COUNT(*) FROM sys_roles",
 			},
 			"timeout":     45,
 			"retry_times": 5,
@@ -103,7 +103,7 @@ func TestTaskFlow(t *testing.T) {
 			"trigger_point": "before",
 			"type":          "sql",
 			"content": map[string]interface{}{
-				"sql": "SELECT * FROM users WHERE id = :id",
+				"sql": "SELECT * FROM sys_users WHERE id = :id",
 			},
 		}
 		w := helper.MakeRequest(t, "POST", "/api/v1/triggers", triggerData)
@@ -132,7 +132,7 @@ func TestTaskFlow(t *testing.T) {
 			"type":   "sql",
 			"cron":   "* * * * *",
 			"content": map[string]interface{}{
-				"sql": "DROP TABLE users",
+				"sql": "DROP TABLE sys_users",
 			},
 		}
 		w = helper.MakeRequest(t, "POST", "/api/v1/tasks", dangerousTask)

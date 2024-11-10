@@ -44,7 +44,7 @@ func GetUserProfile(c *gin.Context) {
 
 	// 获取用户信息
 	var user model.User
-	err := model.DB.Get(&user, "SELECT id, username, email, phone, status FROM users WHERE id = ?", userId)
+	err := model.DB.Get(&user, "SELECT id, username, email, phone, status FROM sys_users WHERE id = ?", userId)
 	if err != nil {
 		utils.Error(c, 401, "用户不存在")
 		return

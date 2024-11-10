@@ -33,7 +33,7 @@ func (s *ModelService) CreateModel(dataModel *model.ConfigDataModel, creatorID u
 
 	// 插入数据模型配置
 	result, err := tx.NamedExec(`
-		INSERT INTO config_data_models (
+		INSERT INTO sys_config_data_models (
 			app_id, name, code, table_id, fields,
 			dimensions, metrics, status, version,
 			created_at, updated_at
@@ -44,7 +44,7 @@ func (s *ModelService) CreateModel(dataModel *model.ConfigDataModel, creatorID u
 		)
 	`, dataModel)
 	if err != nil {
-		return fmt.Errorf("insert config_data_models failed: %v", err)
+		return fmt.Errorf("insert sys_config_data_models failed: %v", err)
 	}
 
 	// 获取插入的ID
@@ -65,7 +65,7 @@ func (s *ModelService) CreateModel(dataModel *model.ConfigDataModel, creatorID u
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -74,7 +74,7 @@ func (s *ModelService) CreateModel(dataModel *model.ConfigDataModel, creatorID u
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -96,7 +96,7 @@ func (s *ModelService) UpdateModel(dataModel *model.ConfigDataModel, updaterID u
 
 	// 获取当前版本
 	var currentVersion int
-	err = tx.Get(&currentVersion, "SELECT version FROM config_data_models WHERE id = ?", dataModel.ID)
+	err = tx.Get(&currentVersion, "SELECT version FROM sys_config_data_models WHERE id = ?", dataModel.ID)
 	if err != nil {
 		return fmt.Errorf("get current version failed: %v", err)
 	}
@@ -106,7 +106,7 @@ func (s *ModelService) UpdateModel(dataModel *model.ConfigDataModel, updaterID u
 
 	// 更新数据模型配置
 	_, err = tx.NamedExec(`
-		UPDATE config_data_models SET 
+		UPDATE sys_config_data_models SET 
 			name = :name,
 			code = :code,
 			table_id = :table_id,
@@ -119,7 +119,7 @@ func (s *ModelService) UpdateModel(dataModel *model.ConfigDataModel, updaterID u
 		WHERE id = :id
 	`, dataModel)
 	if err != nil {
-		return fmt.Errorf("update config_data_models failed: %v", err)
+		return fmt.Errorf("update sys_config_data_models failed: %v", err)
 	}
 
 	// 创建新的版本记录
@@ -133,7 +133,7 @@ func (s *ModelService) UpdateModel(dataModel *model.ConfigDataModel, updaterID u
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -142,7 +142,7 @@ func (s *ModelService) UpdateModel(dataModel *model.ConfigDataModel, updaterID u
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -156,7 +156,7 @@ func (s *ModelService) UpdateModel(dataModel *model.ConfigDataModel, updaterID u
 // GetModel 获取数据模型配置
 func (s *ModelService) GetModel(id uint) (*model.ConfigDataModel, error) {
 	var dataModel model.ConfigDataModel
-	err := s.db.Get(&dataModel, "SELECT * FROM config_data_models WHERE id = ?", id)
+	err := s.db.Get(&dataModel, "SELECT * FROM sys_config_data_models WHERE id = ?", id)
 	if err != nil {
 		return nil, fmt.Errorf("get model failed: %v", err)
 	}
@@ -173,7 +173,7 @@ func (s *ModelService) DeleteModel(id uint) error {
 	defer tx.Rollback()
 
 	// 软删除数据模型配置（将状态设置为0）
-	_, err = tx.Exec("UPDATE config_data_models SET status = 0, updated_at = NOW() WHERE id = ?", id)
+	_, err = tx.Exec("UPDATE sys_config_data_models SET status = 0, updated_at = NOW() WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("delete model failed: %v", err)
 	}
@@ -189,7 +189,7 @@ func (s *ModelService) DeleteModel(id uint) error {
 // ListModels 获取数据模型配置列表
 func (s *ModelService) ListModels(appID uint) ([]model.ConfigDataModel, error) {
 	var models []model.ConfigDataModel
-	err := s.db.Select(&models, "SELECT * FROM config_data_models WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
+	err := s.db.Select(&models, "SELECT * FROM sys_config_data_models WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
 	if err != nil {
 		return nil, fmt.Errorf("list models failed: %v", err)
 	}
@@ -200,7 +200,7 @@ func (s *ModelService) ListModels(appID uint) ([]model.ConfigDataModel, error) {
 func (s *ModelService) GetModelVersions(id uint) ([]model.ConfigVersion, error) {
 	var versions []model.ConfigVersion
 	err := s.db.Select(&versions, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'model' AND config_id = ? 
 		ORDER BY version DESC
 	`, id)
@@ -222,7 +222,7 @@ func (s *ModelService) RollbackModel(id uint, version int, updaterID uint) error
 	// 获取指定版本的配置内容
 	var targetVersion model.ConfigVersion
 	err = tx.Get(&targetVersion, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'model' AND config_id = ? AND version = ?
 	`, id, version)
 	if err != nil {
@@ -231,7 +231,7 @@ func (s *ModelService) RollbackModel(id uint, version int, updaterID uint) error
 
 	// 获取当前数据模型配置
 	var dataModel model.ConfigDataModel
-	err = tx.Get(&dataModel, "SELECT * FROM config_data_models WHERE id = ?", id)
+	err = tx.Get(&dataModel, "SELECT * FROM sys_config_data_models WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("get current model failed: %v", err)
 	}
@@ -248,7 +248,7 @@ func (s *ModelService) RollbackModel(id uint, version int, updaterID uint) error
 
 	// 更新数据模型配置
 	_, err = tx.NamedExec(`
-		UPDATE config_data_models SET 
+		UPDATE sys_config_data_models SET 
 			fields = :fields,
 			version = :version,
 			updated_at = NOW()
@@ -270,7 +270,7 @@ func (s *ModelService) RollbackModel(id uint, version int, updaterID uint) error
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, comment, creator_id, created_at
 		) VALUES (

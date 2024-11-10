@@ -68,7 +68,7 @@ func RBACMiddleware() gin.HandlerFunc {
 		// 查询角色ID
 		var roleID uint
 		err := model.DB.Get(&roleID, `
-			SELECT id FROM roles WHERE code = ?
+			SELECT id FROM sys_roles WHERE code = ?
 		`, roleCode)
 		if err != nil {
 			log.Printf("RBAC: 查询角色失败 - %v", err)
@@ -83,8 +83,8 @@ func RBACMiddleware() gin.HandlerFunc {
 			Method string
 		}
 		query := `
-			SELECT DISTINCT p.path, p.method FROM permissions p
-			INNER JOIN role_permissions rp ON p.id = rp.permission_id
+			SELECT DISTINCT p.path, p.method FROM sys_permissions p
+			INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
 			WHERE rp.role_id = ?
 			AND p.method = ?
 			AND p.status = 1

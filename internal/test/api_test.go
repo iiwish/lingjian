@@ -85,7 +85,7 @@ func TestAPIFlow(t *testing.T) {
 			"type":   "sql",
 			"cron":   "0 0 * * *",
 			"content": map[string]interface{}{
-				"sql": "DELETE FROM logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)",
+				"sql": "DELETE FROM sys_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 7 DAY)",
 			},
 			"timeout":     60,
 			"retry_times": 3,

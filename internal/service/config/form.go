@@ -33,7 +33,7 @@ func (s *FormService) CreateForm(form *model.ConfigForm, creatorID uint) error {
 
 	// 插入表单配置
 	result, err := tx.NamedExec(`
-		INSERT INTO config_forms (
+		INSERT INTO sys_config_forms (
 			app_id, name, code, type, table_id,
 			layout, fields, rules, events,
 			status, version, created_at, updated_at
@@ -44,7 +44,7 @@ func (s *FormService) CreateForm(form *model.ConfigForm, creatorID uint) error {
 		)
 	`, form)
 	if err != nil {
-		return fmt.Errorf("insert config_forms failed: %v", err)
+		return fmt.Errorf("insert sys_config_forms failed: %v", err)
 	}
 
 	// 获取插入的ID
@@ -65,7 +65,7 @@ func (s *FormService) CreateForm(form *model.ConfigForm, creatorID uint) error {
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -74,7 +74,7 @@ func (s *FormService) CreateForm(form *model.ConfigForm, creatorID uint) error {
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -96,7 +96,7 @@ func (s *FormService) UpdateForm(form *model.ConfigForm, updaterID uint) error {
 
 	// 获取当前版本
 	var currentVersion int
-	err = tx.Get(&currentVersion, "SELECT version FROM config_forms WHERE id = ?", form.ID)
+	err = tx.Get(&currentVersion, "SELECT version FROM sys_config_forms WHERE id = ?", form.ID)
 	if err != nil {
 		return fmt.Errorf("get current version failed: %v", err)
 	}
@@ -106,7 +106,7 @@ func (s *FormService) UpdateForm(form *model.ConfigForm, updaterID uint) error {
 
 	// 更新表单配置
 	_, err = tx.NamedExec(`
-		UPDATE config_forms SET 
+		UPDATE sys_config_forms SET 
 			name = :name,
 			code = :code,
 			type = :type,
@@ -121,7 +121,7 @@ func (s *FormService) UpdateForm(form *model.ConfigForm, updaterID uint) error {
 		WHERE id = :id
 	`, form)
 	if err != nil {
-		return fmt.Errorf("update config_forms failed: %v", err)
+		return fmt.Errorf("update sys_config_forms failed: %v", err)
 	}
 
 	// 创建新的版本记录
@@ -135,7 +135,7 @@ func (s *FormService) UpdateForm(form *model.ConfigForm, updaterID uint) error {
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -144,7 +144,7 @@ func (s *FormService) UpdateForm(form *model.ConfigForm, updaterID uint) error {
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -158,9 +158,9 @@ func (s *FormService) UpdateForm(form *model.ConfigForm, updaterID uint) error {
 // GetForm 获取表单配置
 func (s *FormService) GetForm(id uint) (*model.ConfigForm, error) {
 	var form model.ConfigForm
-	err := s.db.Get(&form, "SELECT * FROM config_forms WHERE id = ?", id)
+	err := s.db.Get(&form, "SELECT * FROM sys_config_forms WHERE id = ?", id)
 	if err != nil {
-		return nil, fmt.Errorf("get form failed: %v", err)
+		return nil, fmt.Errorf("get form from sys_config_forms failed: %v", err)
 	}
 	return &form, nil
 }
@@ -175,9 +175,9 @@ func (s *FormService) DeleteForm(id uint) error {
 	defer tx.Rollback()
 
 	// 软删除表单配置（将状态设置为0）
-	_, err = tx.Exec("UPDATE config_forms SET status = 0, updated_at = NOW() WHERE id = ?", id)
+	_, err = tx.Exec("UPDATE sys_config_forms SET status = 0, updated_at = NOW() WHERE id = ?", id)
 	if err != nil {
-		return fmt.Errorf("delete form failed: %v", err)
+		return fmt.Errorf("delete form from sys_config_forms failed: %v", err)
 	}
 
 	// 提交事务
@@ -191,9 +191,9 @@ func (s *FormService) DeleteForm(id uint) error {
 // ListForms 获取表单配置列表
 func (s *FormService) ListForms(appID uint) ([]model.ConfigForm, error) {
 	var forms []model.ConfigForm
-	err := s.db.Select(&forms, "SELECT * FROM config_forms WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
+	err := s.db.Select(&forms, "SELECT * FROM sys_config_forms WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
 	if err != nil {
-		return nil, fmt.Errorf("list forms failed: %v", err)
+		return nil, fmt.Errorf("list forms from sys_config_forms failed: %v", err)
 	}
 	return forms, nil
 }
@@ -202,12 +202,12 @@ func (s *FormService) ListForms(appID uint) ([]model.ConfigForm, error) {
 func (s *FormService) GetFormVersions(id uint) ([]model.ConfigVersion, error) {
 	var versions []model.ConfigVersion
 	err := s.db.Select(&versions, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'form' AND config_id = ? 
 		ORDER BY version DESC
 	`, id)
 	if err != nil {
-		return nil, fmt.Errorf("get form versions failed: %v", err)
+		return nil, fmt.Errorf("get form versions from sys_config_versions failed: %v", err)
 	}
 	return versions, nil
 }
@@ -224,18 +224,18 @@ func (s *FormService) RollbackForm(id uint, version int, updaterID uint) error {
 	// 获取指定版本的配置内容
 	var targetVersion model.ConfigVersion
 	err = tx.Get(&targetVersion, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'form' AND config_id = ? AND version = ?
 	`, id, version)
 	if err != nil {
-		return fmt.Errorf("get target version failed: %v", err)
+		return fmt.Errorf("get target version from sys_config_versions failed: %v", err)
 	}
 
 	// 获取当前表单配置
 	var form model.ConfigForm
-	err = tx.Get(&form, "SELECT * FROM config_forms WHERE id = ?", id)
+	err = tx.Get(&form, "SELECT * FROM sys_config_forms WHERE id = ?", id)
 	if err != nil {
-		return fmt.Errorf("get current form failed: %v", err)
+		return fmt.Errorf("get current form from sys_config_forms failed: %v", err)
 	}
 
 	// 解析版本内容
@@ -250,14 +250,14 @@ func (s *FormService) RollbackForm(id uint, version int, updaterID uint) error {
 
 	// 更新表单配置
 	_, err = tx.NamedExec(`
-		UPDATE config_forms SET 
+		UPDATE sys_config_forms SET 
 			fields = :fields,
 			version = :version,
 			updated_at = NOW()
 		WHERE id = :id
 	`, form)
 	if err != nil {
-		return fmt.Errorf("update form failed: %v", err)
+		return fmt.Errorf("update sys_config_forms failed: %v", err)
 	}
 
 	// 创建新的版本记录
@@ -272,7 +272,7 @@ func (s *FormService) RollbackForm(id uint, version int, updaterID uint) error {
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, comment, creator_id, created_at
 		) VALUES (
@@ -281,7 +281,7 @@ func (s *FormService) RollbackForm(id uint, version int, updaterID uint) error {
 		)
 	`, newVersion)
 	if err != nil {
-		return fmt.Errorf("insert version failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务

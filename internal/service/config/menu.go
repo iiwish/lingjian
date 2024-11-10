@@ -33,7 +33,7 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) error {
 
 	// 插入菜单配置
 	result, err := tx.NamedExec(`
-		INSERT INTO config_menus (
+		INSERT INTO sys_config_menus (
 			app_id, parent_id, name, code, icon,
 			path, component, sort, status, version,
 			created_at, updated_at
@@ -44,7 +44,7 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) error {
 		)
 	`, menu)
 	if err != nil {
-		return fmt.Errorf("insert config_menus failed: %v", err)
+		return fmt.Errorf("insert sys_config_menus failed: %v", err)
 	}
 
 	// 获取插入的ID
@@ -70,7 +70,7 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) error {
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -79,7 +79,7 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) error {
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -101,7 +101,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 
 	// 获取当前版本
 	var currentVersion int
-	err = tx.Get(&currentVersion, "SELECT version FROM config_menus WHERE id = ?", menu.ID)
+	err = tx.Get(&currentVersion, "SELECT version FROM sys_config_menus WHERE id = ?", menu.ID)
 	if err != nil {
 		return fmt.Errorf("get current version failed: %v", err)
 	}
@@ -111,7 +111,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 
 	// 更新菜单配置
 	_, err = tx.NamedExec(`
-		UPDATE config_menus SET 
+		UPDATE sys_config_menus SET 
 			parent_id = :parent_id,
 			name = :name,
 			code = :code,
@@ -125,7 +125,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 		WHERE id = :id
 	`, menu)
 	if err != nil {
-		return fmt.Errorf("update config_menus failed: %v", err)
+		return fmt.Errorf("update sys_config_menus failed: %v", err)
 	}
 
 	// 创建新的版本记录
@@ -144,7 +144,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, creator_id, created_at
 		) VALUES (
@@ -153,7 +153,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 		)
 	`, version)
 	if err != nil {
-		return fmt.Errorf("insert config_versions failed: %v", err)
+		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -167,7 +167,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 // GetMenu 获取菜单配置
 func (s *MenuService) GetMenu(id uint) (*model.ConfigMenu, error) {
 	var menu model.ConfigMenu
-	err := s.db.Get(&menu, "SELECT * FROM config_menus WHERE id = ?", id)
+	err := s.db.Get(&menu, "SELECT * FROM sys_config_menus WHERE id = ?", id)
 	if err != nil {
 		return nil, fmt.Errorf("get menu failed: %v", err)
 	}
@@ -184,7 +184,7 @@ func (s *MenuService) DeleteMenu(id uint) error {
 	defer tx.Rollback()
 
 	// 软删除菜单配置（将状态设置为0）
-	_, err = tx.Exec("UPDATE config_menus SET status = 0, updated_at = NOW() WHERE id = ?", id)
+	_, err = tx.Exec("UPDATE sys_config_menus SET status = 0, updated_at = NOW() WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("delete menu failed: %v", err)
 	}
@@ -201,7 +201,7 @@ func (s *MenuService) DeleteMenu(id uint) error {
 func (s *MenuService) ListMenus(appID uint) ([]model.ConfigMenu, error) {
 	var menus []model.ConfigMenu
 	err := s.db.Select(&menus, `
-		SELECT * FROM config_menus 
+		SELECT * FROM sys_config_menus 
 		WHERE app_id = ? AND status = 1 
 		ORDER BY sort ASC, id ASC
 	`, appID)
@@ -215,7 +215,7 @@ func (s *MenuService) ListMenus(appID uint) ([]model.ConfigMenu, error) {
 func (s *MenuService) GetMenuVersions(id uint) ([]model.ConfigVersion, error) {
 	var versions []model.ConfigVersion
 	err := s.db.Select(&versions, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'menu' AND config_id = ? 
 		ORDER BY version DESC
 	`, id)
@@ -237,7 +237,7 @@ func (s *MenuService) RollbackMenu(id uint, version int, updaterID uint) error {
 	// 获取指定版本的配置内容
 	var targetVersion model.ConfigVersion
 	err = tx.Get(&targetVersion, `
-		SELECT * FROM config_versions 
+		SELECT * FROM sys_config_versions 
 		WHERE config_type = 'menu' AND config_id = ? AND version = ?
 	`, id, version)
 	if err != nil {
@@ -246,7 +246,7 @@ func (s *MenuService) RollbackMenu(id uint, version int, updaterID uint) error {
 
 	// 获取当前菜单配置
 	var menu model.ConfigMenu
-	err = tx.Get(&menu, "SELECT * FROM config_menus WHERE id = ?", id)
+	err = tx.Get(&menu, "SELECT * FROM sys_config_menus WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("get current menu failed: %v", err)
 	}
@@ -264,7 +264,7 @@ func (s *MenuService) RollbackMenu(id uint, version int, updaterID uint) error {
 
 	// 更新菜单配置
 	_, err = tx.NamedExec(`
-		UPDATE config_menus SET 
+		UPDATE sys_config_menus SET 
 			parent_id = :parent_id,
 			name = :name,
 			code = :code,
@@ -298,7 +298,7 @@ func (s *MenuService) RollbackMenu(id uint, version int, updaterID uint) error {
 	}
 
 	_, err = tx.NamedExec(`
-		INSERT INTO config_versions (
+		INSERT INTO sys_config_versions (
 			app_id, config_type, config_id, version,
 			content, comment, creator_id, created_at
 		) VALUES (

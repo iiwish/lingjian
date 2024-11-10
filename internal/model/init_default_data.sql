@@ -1,15 +1,15 @@
 -- 创建默认管理员账号
-INSERT INTO users (username, password, email, status, created_at, updated_at)
+INSERT INTO sys_users (username, password, email, status, created_at, updated_at)
 VALUES ('admin', 'admin123', 'admin@lingjian.com', 1, NOW(), NOW())
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- 创建默认角色
-INSERT INTO roles (name, code, status, created_at, updated_at)
+INSERT INTO sys_roles (name, code, status, created_at, updated_at)
 VALUES ('超级管理员', 'super_admin', 1, NOW(), NOW())
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- 创建基本权限
-INSERT INTO permissions (name, code, type, path, method, status, created_at, updated_at)
+INSERT INTO sys_permissions (name, code, type, path, method, status, created_at, updated_at)
 VALUES 
     ('用户管理', 'user_manage', 'menu', '/users', '*', 1, NOW(), NOW()),
     ('角色管理', 'role_manage', 'menu', '/roles', '*', 1, NOW(), NOW()),
@@ -34,15 +34,15 @@ VALUES
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- 为超级管理员角色分配所有权限
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT INTO sys_role_permissions (role_id, permission_id)
 SELECT r.id, p.id
-FROM roles r, permissions p
+FROM sys_roles r, sys_permissions p
 WHERE r.code = 'super_admin'
 ON DUPLICATE KEY UPDATE role_id = role_id;
 
 -- 为管理员用户分配超级管理员角色
-INSERT INTO user_roles (user_id, role_id)
+INSERT INTO sys_user_roles (user_id, role_id)
 SELECT u.id, r.id
-FROM users u, roles r
+FROM sys_users u, sys_roles r
 WHERE u.username = 'admin' AND r.code = 'super_admin'
 ON DUPLICATE KEY UPDATE user_id = user_id;

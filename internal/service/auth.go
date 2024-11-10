@@ -136,7 +136,7 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 	}
 
 	var user model.User
-	err := model.DB.Get(&user, "SELECT * FROM users WHERE username = ?", req.Username)
+	err := model.DB.Get(&user, "SELECT * FROM sys_users WHERE username = ?", req.Username)
 	if err != nil {
 		return nil, errors.New("用户不存在")
 	}
@@ -191,7 +191,7 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 	}
 
 	var user model.User
-	err = model.DB.Get(&user, "SELECT * FROM users WHERE id = ?", userId)
+	err = model.DB.Get(&user, "SELECT * FROM sys_users WHERE id = ?", userId)
 	if err != nil {
 		return nil, errors.New("用户不存在")
 	}
@@ -235,8 +235,8 @@ func (s *AuthService) SwitchRole(userId uint, req *SwitchRoleRequest) (*LoginRes
 	// 检查用户是否有该角色
 	var count int
 	err := model.DB.Get(&count, `
-		SELECT COUNT(*) FROM user_roles ur
-		INNER JOIN roles r ON ur.role_id = r.id
+		SELECT COUNT(*) FROM sys_user_roles ur
+		INNER JOIN sys_roles r ON ur.role_id = r.id
 		WHERE ur.user_id = ? AND r.code = ? AND r.status = 1
 	`, userId, req.RoleCode)
 	if err != nil {
@@ -249,7 +249,7 @@ func (s *AuthService) SwitchRole(userId uint, req *SwitchRoleRequest) (*LoginRes
 
 	// 获取用户信息
 	var user model.User
-	err = model.DB.Get(&user, "SELECT * FROM users WHERE id = ?", userId)
+	err = model.DB.Get(&user, "SELECT * FROM sys_users WHERE id = ?", userId)
 	if err != nil {
 		log.Printf("查询用户信息失败: %v", err)
 		return nil, errors.New("用户不存在")

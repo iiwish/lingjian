@@ -26,6 +26,10 @@ type ScheduledTask struct {
 	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
 }
 
+func (ScheduledTask) TableName() string {
+	return "sys_scheduled_tasks"
+}
+
 // TaskLog 任务执行日志表
 type TaskLog struct {
 	ID        uint      `db:"id" json:"id"`
@@ -35,6 +39,10 @@ type TaskLog struct {
 	Error     string    `db:"error" json:"error"`   // 错误信息
 	StartTime time.Time `db:"start_time" json:"start_time"`
 	EndTime   time.Time `db:"end_time" json:"end_time"`
+}
+
+func (TaskLog) TableName() string {
+	return "sys_task_logs"
 }
 
 // ElementTrigger 元素触发器表
@@ -49,4 +57,8 @@ type ElementTrigger struct {
 	Status       int       `db:"status" json:"status"`               // 0:禁用 1:启用
 	CreatedAt    time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (ElementTrigger) TableName() string {
+	return "sys_element_triggers"
 }

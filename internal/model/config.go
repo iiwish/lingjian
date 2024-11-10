@@ -18,6 +18,10 @@ type ConfigTable struct {
 	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
 }
 
+func (ConfigTable) TableName() string {
+	return "sys_config_tables"
+}
+
 // TableField 表字段定义
 type TableField struct {
 	Name        string `json:"name"`
@@ -54,6 +58,10 @@ type ConfigDimension struct {
 	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
 }
 
+func (ConfigDimension) TableName() string {
+	return "sys_config_dimensions"
+}
+
 // DimensionConfig 维度配置详情
 type DimensionConfig struct {
 	NodeIDField   string `json:"node_id_field"`   // 节点ID字段
@@ -78,6 +86,10 @@ type ConfigDataModel struct {
 	Version    int       `db:"version" json:"version"`       // 版本号
 	CreatedAt  time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt  time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (ConfigDataModel) TableName() string {
+	return "sys_config_data_models"
 }
 
 // ModelField 模型字段配置
@@ -119,6 +131,10 @@ type ConfigForm struct {
 	Version   int       `db:"version" json:"version"`   // 版本号
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (ConfigForm) TableName() string {
+	return "sys_config_forms"
 }
 
 // FormLayout 表单布局配置
@@ -180,6 +196,10 @@ type ConfigMenu struct {
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
+func (ConfigMenu) TableName() string {
+	return "sys_config_menus"
+}
+
 // ConfigVersion 配置版本记录
 type ConfigVersion struct {
 	ID         uint      `db:"id" json:"id"`
@@ -191,4 +211,8 @@ type ConfigVersion struct {
 	Comment    string    `db:"comment" json:"comment"`         // 版本说明
 	CreatorID  uint      `db:"creator_id" json:"creator_id"`   // 创建人ID
 	CreatedAt  time.Time `db:"created_at" json:"created_at"`
+}
+
+func (ConfigVersion) TableName() string {
+	return "sys_config_versions"
 }

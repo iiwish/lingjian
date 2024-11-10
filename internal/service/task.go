@@ -48,7 +48,7 @@ func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, co
 
 	// 检查应用是否存在
 	var appCount int
-	err := model.DB.Get(&appCount, "SELECT COUNT(*) FROM apps WHERE id = ?", appID)
+	err := model.DB.Get(&appCount, "SELECT COUNT(*) FROM sys_apps WHERE id = ?", appID)
 	if err != nil {
 		return fmt.Errorf("检查应用失败: %v", err)
 	}
@@ -58,7 +58,7 @@ func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, co
 
 	// 检查任务名称是否已存在
 	var taskCount int
-	err = model.DB.Get(&taskCount, "SELECT COUNT(*) FROM scheduled_tasks WHERE app_id = ? AND name = ?", appID, name)
+	err = model.DB.Get(&taskCount, "SELECT COUNT(*) FROM sys_scheduled_tasks WHERE app_id = ? AND name = ?", appID, name)
 	if err != nil {
 		return fmt.Errorf("检查任务名称失败: %v", err)
 	}
@@ -87,7 +87,7 @@ func (s *TaskService) CreateScheduledTask(appID uint, name, typ, cron string, co
 
 	// 创建任务
 	_, err = model.DB.Exec(`
-		INSERT INTO scheduled_tasks (
+		INSERT INTO sys_scheduled_tasks (
 			app_id, name, type, cron, content, timeout, retry_times, status, created_at, updated_at
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, appID, name, typ, cron, string(contentJSON), timeout, retryTimes, TaskStatusEnabled, time.Now(), time.Now())
@@ -106,7 +106,7 @@ func (s *TaskService) UpdateScheduledTask(taskID uint, name, cron string, conten
 		Type   string
 		Status int
 	}
-	err := model.DB.Get(&task, "SELECT type, status FROM scheduled_tasks WHERE id = ?", taskID)
+	err := model.DB.Get(&task, "SELECT type, status FROM sys_scheduled_tasks WHERE id = ?", taskID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("任务不存在")
@@ -132,7 +132,7 @@ func (s *TaskService) UpdateScheduledTask(taskID uint, name, cron string, conten
 
 	// 更新任务
 	_, err = model.DB.Exec(`
-		UPDATE scheduled_tasks
+		UPDATE sys_scheduled_tasks
 		SET name = ?, cron = ?, content = ?, timeout = ?, retry_times = ?, updated_at = ?
 		WHERE id = ?
 	`, name, cron, string(contentJSON), timeout, retryTimes, time.Now(), taskID)
@@ -149,7 +149,7 @@ func (s *TaskService) ToggleTaskStatus(taskID uint, status int) error {
 
 	// 检查任务是否存在
 	var currentStatus int
-	err := model.DB.Get(&currentStatus, "SELECT status FROM scheduled_tasks WHERE id = ?", taskID)
+	err := model.DB.Get(&currentStatus, "SELECT status FROM sys_scheduled_tasks WHERE id = ?", taskID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("任务不存在")
@@ -164,7 +164,7 @@ func (s *TaskService) ToggleTaskStatus(taskID uint, status int) error {
 
 	// 更新状态
 	_, err = model.DB.Exec(`
-		UPDATE scheduled_tasks
+		UPDATE sys_scheduled_tasks
 		SET status = ?, updated_at = ?
 		WHERE id = ?
 	`, status, time.Now(), taskID)
@@ -177,7 +177,7 @@ func (s *TaskService) GetTaskLogs(taskID uint, limit, offset int) ([]map[string]
 	var logs []map[string]interface{}
 	query := `
 		SELECT *
-		FROM task_logs
+		FROM sys_task_logs
 		WHERE task_id = ?
 		ORDER BY start_time DESC
 		LIMIT ? OFFSET ?
@@ -197,7 +197,7 @@ func (s *TaskService) ExecuteTask(taskID uint) error {
 		Timeout    int
 		RetryTimes int
 	}
-	err := model.DB.Get(&task, "SELECT id, type, content, status, timeout, retry_times FROM scheduled_tasks WHERE id = ?", taskID)
+	err := model.DB.Get(&task, "SELECT id, type, content, status, timeout, retry_times FROM sys_scheduled_tasks WHERE id = ?", taskID)
 	if err != nil {
 		return errors.New("任务不存在")
 	}
@@ -212,11 +212,11 @@ func (s *TaskService) ExecuteTask(taskID uint) error {
 	defer s.runningTasks.Delete(taskID)
 
 	// 更新任务状态为运行中
-	_, err = model.DB.Exec("UPDATE scheduled_tasks SET status = ? WHERE id = ?", TaskStatusRunning, taskID)
+	_, err = model.DB.Exec("UPDATE sys_scheduled_tasks SET status = ? WHERE id = ?", TaskStatusRunning, taskID)
 	if err != nil {
 		return err
 	}
-	defer model.DB.Exec("UPDATE scheduled_tasks SET status = ? WHERE id = ?", TaskStatusEnabled, taskID)
+	defer model.DB.Exec("UPDATE sys_scheduled_tasks SET status = ? WHERE id = ?", TaskStatusEnabled, taskID)
 
 	// 记录执行开始时间
 	startTime := time.Now()
@@ -234,11 +234,12 @@ func (s *TaskService) ExecuteTask(taskID uint) error {
 	}
 
 	// 执行任务（带重试）
+RetryLoop:
 	for i := 0; i <= task.RetryTimes; i++ {
 		select {
 		case <-ctx.Done():
 			execErr = ctx.Err()
-			break
+			break RetryLoop
 		default:
 			// 根据任务类型执行
 			switch task.Type {
@@ -251,12 +252,12 @@ func (s *TaskService) ExecuteTask(taskID uint) error {
 			}
 
 			if execErr == nil {
-				break
+				break RetryLoop
 			}
 
 			// 最后一次重试失败
 			if i == task.RetryTimes {
-				break
+				break RetryLoop
 			}
 
 			// 等待一段时间后重试
@@ -272,9 +273,12 @@ func (s *TaskService) ExecuteTask(taskID uint) error {
 	}
 
 	_, err = model.DB.Exec(`
-		INSERT INTO task_logs (task_id, status, result, error, start_time, end_time)
+		INSERT INTO sys_task_logs (task_id, status, result, error, start_time, end_time)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`, taskID, status, result, execErr, startTime, time.Now())
+	if err != nil {
+		return fmt.Errorf("记录任务日志失败: %v", err)
+	}
 
 	return execErr
 }
@@ -406,7 +410,7 @@ func (s *TaskService) CreateElementTrigger(appID uint, elementType string, eleme
 
 	// 检查应用是否存在
 	var appCount int
-	err := model.DB.Get(&appCount, "SELECT COUNT(*) FROM apps WHERE id = ?", appID)
+	err := model.DB.Get(&appCount, "SELECT COUNT(*) FROM sys_apps WHERE id = ?", appID)
 	if err != nil {
 		return err
 	}
@@ -427,7 +431,7 @@ func (s *TaskService) CreateElementTrigger(appID uint, elementType string, eleme
 
 	// 创建触发器
 	_, err = model.DB.Exec(`
-		INSERT INTO element_triggers (
+		INSERT INTO sys_element_triggers (
 			app_id, element_type, element_id, trigger_point, type, content, status, created_at, updated_at
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, appID, elementType, elementID, triggerPoint, typ, string(contentJSON), TaskStatusEnabled, time.Now(), time.Now())
