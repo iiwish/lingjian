@@ -53,7 +53,7 @@ func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 		return
 	}
 
-	var dataModel model.ConfigDataModel
+	var dataModel model.ConfigModel
 	if err := c.ShouldBindJSON(&dataModel); err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return

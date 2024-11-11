@@ -12,7 +12,7 @@ import (
 type RBACService struct{}
 
 // CreateRole 创建角色
-func (s *RBACService) CreateRole(req *model.CreateRoleRequest) error {
+func (s *RBACService) CreateRole(req *model.Role) error {
 	// 检查角色代码是否已存在
 	var count int
 	err := model.DB.Get(&count, "SELECT COUNT(*) FROM roles WHERE code = ? AND app_code = ?", req.Code, req.AppCode)
@@ -50,7 +50,7 @@ func (s *RBACService) CreateRole(req *model.CreateRoleRequest) error {
 }
 
 // CreatePermission 创建权限
-func (s *RBACService) CreatePermission(req *model.CreatePermissionRequest) error {
+func (s *RBACService) CreatePermission(req *model.Permission) error {
 	// 检查权限代码是否已存在
 	var count int
 	err := model.DB.Get(&count, "SELECT COUNT(*) FROM permissions WHERE code = ? AND app_code = ?", req.Code, req.AppCode)
@@ -185,24 +185,9 @@ func (s *RBACService) GetUserRoles(userID uint) ([]map[string]interface{}, error
 	return roles, err
 }
 
-// Permission 权限信息
-type Permission struct {
-	ID          uint      `db:"id" json:"id"`
-	Name        string    `db:"name" json:"name"`
-	Code        string    `db:"code" json:"code"`
-	AppCode     string    `db:"app_code" json:"app_code"`
-	Type        string    `db:"type" json:"type"`
-	Path        string    `db:"path" json:"path"`
-	Method      string    `db:"method" json:"method"`
-	Description string    `db:"description" json:"description"`
-	Status      int       `db:"status" json:"status"`
-	CreatedAt   time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
-}
-
 // GetRolePermissions 获取角色的权限列表
-func (s *RBACService) GetRolePermissions(roleCode, appCode string) ([]Permission, error) {
-	var permissions []Permission
+func (s *RBACService) GetRolePermissions(roleCode, appCode string) ([]model.Permission, error) {
+	var permissions []model.Permission
 	query := `
 		SELECT p.*
 		FROM permissions p

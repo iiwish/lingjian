@@ -9,8 +9,9 @@ CREATE TABLE IF NOT EXISTS sys_scheduled_tasks (
     timeout     INT NOT NULL DEFAULT 60 COMMENT '超时时间（秒）',
     retry_times INT NOT NULL DEFAULT 0 COMMENT '重试次数',
     status      TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0禁用/1启用/2运行中',
-    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    created_at  DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
     updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted_at  DATETIME NULL DEFAULT '1901-01-01 00:00:00' COMMENT '删除时间',
     PRIMARY KEY (id),
     UNIQUE KEY uk_app_name (app_id, name) COMMENT '应用ID和任务名称唯一索引',
     KEY idx_status (status) COMMENT '状态索引',
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS sys_task_logs (
     error      TEXT COMMENT '错误信息',
     start_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '开始时间',
     end_time   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '结束时间',
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     PRIMARY KEY (id),
     KEY idx_task_time (task_id, start_time) COMMENT '任务ID和开始时间索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='任务执行日志表' COLLATE=utf8mb4_general_ci;
@@ -40,8 +42,9 @@ CREATE TABLE IF NOT EXISTS sys_element_triggers (
     type          VARCHAR(20) NOT NULL DEFAULT '' COMMENT '触发器类型：sql/http',
     content       TEXT NOT NULL COMMENT '触发器内容（JSON格式）',
     status        TINYINT NOT NULL DEFAULT 1 COMMENT '状态：0禁用/1启用',
-    created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    created_at    DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
     updated_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    deleted_at    DATETIME NULL DEFAULT '1901-01-01 00:00:00' COMMENT '删除时间',
     PRIMARY KEY (id),
     KEY idx_element (app_id, element_type, element_id) COMMENT '应用ID、元素类型和元素ID索引',
     KEY idx_status (status) COMMENT '状态索引'

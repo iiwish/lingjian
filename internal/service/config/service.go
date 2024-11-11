@@ -43,7 +43,7 @@ func (s *ConfigService) CreateTable(req *CreateTableRequest, creatorID uint) err
 	// 创建数据表配置
 	table := &model.ConfigTable{
 		AppID:          req.AppID,
-		Name:           req.Name,
+		TableName:      req.Name,
 		Code:           req.Code,
 		Description:    req.Description,
 		MySQLTableName: req.MySQLTableName,
@@ -165,11 +165,11 @@ func (s *ConfigService) CreateModel(req *CreateModelRequest, creatorID uint) err
 	return s.modelService.CreateModel(dataModel, creatorID)
 }
 
-func (s *ConfigService) UpdateModel(dataModel *model.ConfigDataModel, updaterID uint) error {
+func (s *ConfigService) UpdateModel(dataModel *model.ConfigModel, updaterID uint) error {
 	return s.modelService.UpdateModel(dataModel, updaterID)
 }
 
-func (s *ConfigService) GetModel(id uint) (*model.ConfigDataModel, error) {
+func (s *ConfigService) GetModel(id uint) (*model.ConfigModel, error) {
 	return s.modelService.GetModel(id)
 }
 

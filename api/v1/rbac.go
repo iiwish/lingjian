@@ -33,7 +33,7 @@ func RegisterRBACRoutes(r *gin.RouterGroup) {
 // @Failure      500  {object}  utils.Response
 // @Router       /roles [post]
 func CreateRole(c *gin.Context) {
-	var req model.CreateRoleRequest
+	var req model.Role
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
@@ -59,7 +59,7 @@ func CreateRole(c *gin.Context) {
 // @Failure      500  {object}  utils.Response
 // @Router       /permissions [post]
 func CreatePermission(c *gin.Context) {
-	var req model.CreatePermissionRequest
+	var req model.Permission
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
@@ -103,13 +103,13 @@ func AssignRoleToUser(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        role_code path string true "角色代码"
-// @Param        request body model.AssignPermissionsRequest true "分配权限请求参数"
+// @Param        request body model.Permission true "分配权限请求参数"
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
 // @Router       /roles/{role_code}/permissions [post]
 func AssignPermissionsToRole(c *gin.Context) {
-	var req model.AssignPermissionsRequest
+	var req model.Permission
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
@@ -122,7 +122,7 @@ func AssignPermissionsToRole(c *gin.Context) {
 	}
 
 	rbacService := &service.RBACService{}
-	if err := rbacService.AssignPermissionsToRole(roleCode, req.AppCode, req.PermissionCodes); err != nil {
+	if err := rbacService.AssignPermissionsToRole(roleCode, req.AppCode, req.PermissionCode); err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}

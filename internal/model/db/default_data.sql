@@ -11,10 +11,10 @@ ON DUPLICATE KEY UPDATE updated_at = NOW();
 -- 创建基本权限
 INSERT INTO sys_permissions (name, code, type, path, method, status, created_at, updated_at)
 VALUES 
-    ('用户管理', 'user_manage', 'menu', '/users', '*', 1, NOW(), NOW()),
-    ('角色管理', 'role_manage', 'menu', '/roles', '*', 1, NOW(), NOW()),
-    ('权限管理', 'permission_manage', 'menu', '/permissions', '*', 1, NOW(), NOW()),
-    ('应用管理', 'app_manage', 'menu', '/apps', '*', 1, NOW(), NOW()),
+    ('用户管理', 'user_manage', 'sys_menu', '/users', '*', 1, NOW(), NOW()),
+    ('角色管理', 'role_manage', 'sys_menu', '/roles', '*', 1, NOW(), NOW()),
+    ('权限管理', 'permission_manage', 'sys_menu', '/permissions', '*', 1, NOW(), NOW()),
+    ('应用管理', 'app_manage', 'sys_menu', '/apps', '*', 1, NOW(), NOW()),
     ('用户查询', 'user_query', 'api', '/api/v1/users', 'GET', 1, NOW(), NOW()),
     ('用户创建', 'user_create', 'api', '/api/v1/users', 'POST', 1, NOW(), NOW()),
     ('用户更新', 'user_update', 'api', '/api/v1/users/:id', 'PUT', 1, NOW(), NOW()),
