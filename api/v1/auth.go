@@ -1,7 +1,11 @@
 package v1
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
+	"github.com/iiwish/lingjian/internal/middleware"
+	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/internal/service"
 	"github.com/iiwish/lingjian/pkg/store"
 	"github.com/iiwish/lingjian/pkg/utils"
@@ -12,17 +16,25 @@ var authService *service.AuthService
 // InitAuthService 初始化认证服务
 func InitAuthService(s store.Store) {
 	authService = service.NewAuthService(s)
+	middleware.SetStore(s) // 添加这行代码
 }
 
 // RegisterAuthRoutes 注册认证相关路由
 func RegisterAuthRoutes(r *gin.RouterGroup) {
 	auth := r.Group("/auth")
 	{
+		// 不需要认证的路由
 		auth.GET("/captcha", GetCaptcha)
 		auth.POST("/login", Login)
 		auth.POST("/refresh", RefreshToken)
-		auth.POST("/logout", Logout)
-		auth.POST("/switch-role", SwitchRole)
+
+		// 需要认证的路由
+		authRequired := auth.Group("/", middleware.AuthMiddleware())
+		{
+			authRequired.POST("/logout", Logout)
+			authRequired.POST("/switch-role", SwitchRole)
+			authRequired.GET("/userinfo", GetUserInfo)
+		}
 
 		// OAuth2.0相关路由
 		oauth := auth.Group("/oauth")
@@ -32,6 +44,73 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 			oauth.POST("/token", TokenHandler)
 		}
 	}
+}
+
+// @Summary      获取用户详细信息
+// @Description  获取当前登录用户的详细信息，包括角色和权限
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Success      200  {object}  utils.Response
+// @Failure      401  {object}  utils.Response
+// @Router       /auth/userinfo [get]
+func GetUserInfo(c *gin.Context) {
+	// 打印context中的信息
+	fmt.Println("context:", c.Keys)
+
+	// 从上下文中获取用户ID
+	userId := c.GetUint("user_id")
+	if userId == 0 {
+		utils.Error(c, 401, "未授权")
+		return
+	}
+
+	// 获取用户基本信息
+	var user model.User
+	err := model.DB.Get(&user, `
+		SELECT id, username, nickname, avatar, email 
+		FROM sys_users 
+		WHERE id = ?`, userId)
+	if err != nil {
+		utils.Error(c, 401, "用户不存在")
+		return
+	}
+
+	// 获取用户角色
+	var roles []string
+	err = model.DB.Select(&roles, `
+		SELECT r.code 
+		FROM sys_roles r 
+		JOIN sys_user_roles ur ON r.id = ur.role_id 
+		WHERE ur.user_id = ? AND r.status = 1`, userId)
+	if err != nil {
+		utils.Error(c, 500, "获取角色信息失败")
+		return
+	}
+
+	// 获取用户权限
+	var permissions []string
+	err = model.DB.Select(&permissions, `
+		SELECT DISTINCT p.code 
+		FROM sys_permissions p 
+		JOIN sys_role_permissions rp ON p.id = rp.permission_id 
+		JOIN sys_user_roles ur ON rp.role_id = ur.role_id 
+		WHERE ur.user_id = ? AND p.status = 1`, userId)
+	if err != nil {
+		utils.Error(c, 500, "获取权限信息失败")
+		return
+	}
+
+	utils.Success(c, gin.H{
+		"id":          user.ID,
+		"username":    user.Username,
+		"nickname":    user.Nickname,
+		"avatar":      user.Avatar,
+		"email":       user.Email,
+		"roles":       roles,
+		"permissions": permissions,
+	})
 }
 
 // @Summary      获取验证码
@@ -205,7 +284,7 @@ func AuthorizeHandler(c *gin.Context) {
 					<input type="hidden" name="scope" value="` + scope + `">
 					<input type="hidden" name="state" value="` + state + `">
 					<button type="submit" name="approved" value="true">同意授权</button>
-					<button type="submit" name="approved" value="false">拒绝授权</button>
+					<button type="submit" name="approved" value="false">���绝授权</button>
 				</form>
 			</body>
 		</html>
@@ -248,7 +327,7 @@ func ConfirmAuthorize(c *gin.Context) {
 // @Produce      json
 // @Param        request body service.TokenRequest true "令牌请求参数"
 // @Success      200  {object} utils.Response{data=service.TokenResponse}
-// @Failure      400  {object} utils.Response
+// @Failure      400  {object}  utils.Response
 // @Router       /auth/oauth/token [post]
 func TokenHandler(c *gin.Context) {
 	var req service.TokenRequest
