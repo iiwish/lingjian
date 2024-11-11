@@ -29,7 +29,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		auth := c.GetHeader("Authorization")
 		if auth == "" {
 			log.Printf("Auth: 未提供Authorization头")
-			utils.Error(c, 401, "未授权")
+			utils.Error(c, 401, "未提供Authorization头")
 			c.Abort()
 			return
 		}
@@ -37,7 +37,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		parts := strings.SplitN(auth, " ", 2)
 		if !(len(parts) == 2 && parts[0] == "Bearer") {
 			log.Printf("Auth: 无效的Authorization格式")
-			utils.Error(c, 401, "无效的授权格式")
+			utils.Error(c, 401, "无效的Authorization格式")
 			c.Abort()
 			return
 		}

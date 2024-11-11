@@ -123,10 +123,10 @@ func NotFoundError(c *gin.Context, resource string) {
 
 // UnauthorizedError 未授权错误响应
 func UnauthorizedError(c *gin.Context) {
-	Error(c, 401, "未授权访问")
+	Error(c, 401, "未登录或会话过期")
 }
 
 // ForbiddenError 禁止访问错误响应
 func ForbiddenError(c *gin.Context) {
-	Error(c, 403, "禁止访问")
+	Error(c, 403, "未授权访问")
 }

@@ -45,7 +45,7 @@ func RBACMiddleware() gin.HandlerFunc {
 		userId, exists := c.Get("user_id")
 		if !exists {
 			log.Printf("RBAC: 用户未认证")
-			utils.Error(c, 401, "未授权")
+			utils.Error(c, 403, "未授权")
 			c.Abort()
 			return
 		}
@@ -58,7 +58,7 @@ func RBACMiddleware() gin.HandlerFunc {
 		roleCode, exists := c.Get("role_code")
 		if !exists {
 			log.Printf("RBAC: 用户 %v 未指定角色", userId)
-			utils.Error(c, 401, "未指定角色")
+			utils.Error(c, 403, "未指定角色")
 			c.Abort()
 			return
 		}

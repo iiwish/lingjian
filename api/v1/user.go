@@ -22,7 +22,7 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 // @Produce      json
 // @Security     Bearer
 // @Success      200  {object}  utils.Response
-// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
 // @Router       /user/profile [get]
 func GetUserProfile(c *gin.Context) {
 	// 检查是否是OAuth2访问
@@ -38,7 +38,7 @@ func GetUserProfile(c *gin.Context) {
 	// JWT用户访问
 	userId := c.GetUint("user_id")
 	if userId == 0 {
-		utils.Error(c, 401, "未授权")
+		utils.Error(c, 403, "未授权")
 		return
 	}
 
@@ -46,7 +46,7 @@ func GetUserProfile(c *gin.Context) {
 	var user model.User
 	err := model.DB.Get(&user, "SELECT id, username, email, phone, status FROM sys_users WHERE id = ?", userId)
 	if err != nil {
-		utils.Error(c, 401, "用户不存在")
+		utils.Error(c, 403, "用户不存在")
 		return
 	}
 

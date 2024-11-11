@@ -53,7 +53,7 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 // @Produce      json
 // @Security     Bearer
 // @Success      200  {object}  utils.Response
-// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
 // @Router       /auth/userinfo [get]
 func GetUserInfo(c *gin.Context) {
 	// 打印context中的信息
@@ -62,7 +62,7 @@ func GetUserInfo(c *gin.Context) {
 	// 从上下文中获取用户ID
 	userId := c.GetUint("user_id")
 	if userId == 0 {
-		utils.Error(c, 401, "未授权")
+		utils.Error(c, 403, "未授权")
 		return
 	}
 
@@ -73,7 +73,7 @@ func GetUserInfo(c *gin.Context) {
 		FROM sys_users 
 		WHERE id = ?`, userId)
 	if err != nil {
-		utils.Error(c, 401, "用户不存在")
+		utils.Error(c, 403, "用户不存在")
 		return
 	}
 
@@ -188,14 +188,14 @@ func RefreshToken(c *gin.Context) {
 // @Produce      json
 // @Security     Bearer
 // @Success      200  {object}  utils.Response
-// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Router       /auth/logout [post]
 func Logout(c *gin.Context) {
 	// 从JWT中获取用户ID
 	userId := c.GetUint("user_id")
 	if userId == 0 {
-		utils.Error(c, 401, "未授权")
+		utils.Error(c, 403, "未授权")
 		return
 	}
 
@@ -216,7 +216,7 @@ func Logout(c *gin.Context) {
 // @Param        request body service.SwitchRoleRequest true "切换角色请求参数"
 // @Success      200  {object}  utils.Response{data=service.TokenResponse}
 // @Failure      400  {object}  utils.Response
-// @Failure      401  {object}  utils.Response
+// @Failure      403  {object}  utils.Response
 // @Router       /auth/switch-role [post]
 func SwitchRole(c *gin.Context) {
 	var req service.SwitchRoleRequest
@@ -228,7 +228,7 @@ func SwitchRole(c *gin.Context) {
 	// 从JWT中获取用户ID
 	userId := c.GetUint("user_id")
 	if userId == 0 {
-		utils.Error(c, 401, "未授权")
+		utils.Error(c, 403, "未授权")
 		return
 	}
 
