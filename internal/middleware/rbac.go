@@ -54,29 +54,6 @@ func RBACMiddleware() gin.HandlerFunc {
 		reqPath := c.Request.URL.Path
 		method := c.Request.Method
 
-		// 获取用户当前角色
-		roleCode, exists := c.Get("role_code")
-		if !exists {
-			log.Printf("RBAC: 用户 %v 未指定角色", userId)
-			utils.Error(c, 403, "未指定角色")
-			c.Abort()
-			return
-		}
-
-		log.Printf("RBAC: 用户 %v 使用角色 %v 访问 %s %s", userId, roleCode, method, reqPath)
-
-		// 查询角色ID
-		var roleID uint
-		err := model.DB.Get(&roleID, `
-			SELECT id FROM sys_roles WHERE code = ?
-		`, roleCode)
-		if err != nil {
-			log.Printf("RBAC: 查询角色失败 - %v", err)
-			utils.Error(c, 500, "服务器错误")
-			c.Abort()
-			return
-		}
-
 		// 查询角色的所有权限
 		var permissions []struct {
 			Path   string
@@ -85,12 +62,13 @@ func RBACMiddleware() gin.HandlerFunc {
 		query := `
 			SELECT DISTINCT p.path, p.method FROM sys_permissions p
 			INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
-			WHERE rp.role_id = ?
+			INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
+			WHERE ur.user_id = ?
 			AND p.method = ?
 			AND p.status = 1
 		`
 
-		err = model.DB.Select(&permissions, query, roleID, method)
+		err := model.DB.Select(&permissions, query, userId, method)
 		if err != nil {
 			log.Printf("RBAC: 查询权限失败 - %v", err)
 			utils.Error(c, 500, "服务器错误")
@@ -108,13 +86,13 @@ func RBACMiddleware() gin.HandlerFunc {
 		}
 
 		if !hasPermission {
-			log.Printf("RBAC: 用户 %v 使用角色 %v 访问 %s %s 被拒绝", userId, roleCode, method, reqPath)
+			log.Printf("RBAC: 用户 %v 访问 %s %s 被拒绝", userId, method, reqPath)
 			utils.Error(c, 403, "没有访问权限")
 			c.Abort()
 			return
 		}
 
-		log.Printf("RBAC: 用户 %v 使用角色 %v 访问 %s %s 通过", userId, roleCode, method, reqPath)
+		log.Printf("RBAC: 用户 %v 访问 %s %s 通过", userId, method, reqPath)
 		c.Next()
 	}
 }
