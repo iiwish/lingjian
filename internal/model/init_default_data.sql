@@ -1,6 +1,6 @@
 -- 创建默认管理员账号
-INSERT INTO sys_users (username, password, email, status, created_at, updated_at)
-VALUES ('admin', '4336fe705174a646e5ffd19d5976421088ec707c30e036ffc32f99190af113ce', 'admin@lingjian.com', 1, NOW(), NOW())
+INSERT INTO sys_users (username, nickname, password, email, status, created_at, updated_at)
+VALUES ('admin', '超级管理员', '4336fe705174a646e5ffd19d5976421088ec707c30e036ffc32f99190af113ce', 'admin@lingjian.com', 1, NOW(), NOW())
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- 创建默认角色
