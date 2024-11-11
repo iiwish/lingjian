@@ -182,7 +182,7 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 // RefreshToken 刷新访问令牌
 func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) {
 	// 验证刷新令牌并获取claims
-	claims, err := utils.ParseToken(refreshToken, utils.RefreshToken)
+	_, err := utils.ParseToken(refreshToken, utils.RefreshToken)
 	if err != nil {
 		return nil, errors.New("无效的刷新令牌")
 	}
@@ -205,9 +205,8 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 
 	// 生成包含角色信息的新令牌
 	tokenClaims := map[string]interface{}{
-		"user_id":   userId,
-		"username":  user.Username,
-		"role_code": claims.RoleCode,
+		"user_id":  userId,
+		"username": user.Username,
 	}
 
 	// 生成新的访问令牌
@@ -231,77 +230,6 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 // Logout 用户登出
 func (s *AuthService) Logout(userId uint) error {
 	return s.store.RemoveUserTokens(userId)
-}
-
-// SwitchRole 切换用户角色
-func (s *AuthService) SwitchRole(userId uint, req *SwitchRoleRequest) (*LoginResponse, error) {
-	// 检查用户是否有该角色
-	var count int
-	err := model.DB.Get(&count, `
-		SELECT COUNT(*) FROM sys_user_roles ur
-		INNER JOIN sys_roles r ON ur.role_id = r.id
-		WHERE ur.user_id = ? AND r.code = ? AND r.status = 1
-	`, userId, req.RoleCode)
-	if err != nil {
-		log.Printf("查询用户角色失败: %v", err)
-		return nil, errors.New("服务器错误")
-	}
-	if count == 0 {
-		return nil, errors.New("无效的角色")
-	}
-
-	// 获取用户信息
-	var user model.User
-	err = model.DB.Get(&user, "SELECT * FROM sys_users WHERE id = ?", userId)
-	if err != nil {
-		log.Printf("查询用户信息失败: %v", err)
-		return nil, errors.New("用户不存在")
-	}
-
-	// 生成包含角色信息的新令牌
-	claims := map[string]interface{}{
-		"user_id":   userId,
-		"username":  user.Username,
-		"role_code": req.RoleCode,
-	}
-
-	// 生成新的访问令牌
-	accessToken, err := utils.GenerateTokenWithClaims(claims, utils.AccessToken)
-	if err != nil {
-		log.Printf("生成访问令牌失败: %v", err)
-		return nil, err
-	}
-
-	// 生成新的刷新令牌
-	refreshToken, err := utils.GenerateTokenWithClaims(claims, utils.RefreshToken)
-	if err != nil {
-		log.Printf("生成刷新令牌失败: %v", err)
-		return nil, err
-	}
-
-	// 先移除旧的令牌
-	if err := s.store.RemoveUserTokens(userId); err != nil {
-		log.Printf("移除旧令牌失败: %v", err)
-		return nil, err
-	}
-
-	// 存储新令牌
-	if err := s.store.StoreAccessToken(user.ID, accessToken); err != nil {
-		log.Printf("存储访问令牌失败: %v", err)
-		return nil, err
-	}
-	if err := s.store.StoreRefreshToken(user.ID, refreshToken); err != nil {
-		log.Printf("存储刷新令牌失败: %v", err)
-		return nil, err
-	}
-
-	log.Printf("切换角色成功 - UserID: %d, RoleCode: %s", userId, req.RoleCode)
-
-	return &LoginResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-		ExpiresIn:    7200, // 2小时
-	}, nil
 }
 
 // HandleAuthorize 处理OAuth2授权请求

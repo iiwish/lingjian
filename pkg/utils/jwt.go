@@ -21,7 +21,6 @@ type CustomClaims struct {
 	UserID    uint      `json:"user_id"`
 	Username  string    `json:"username"`
 	TokenType TokenType `json:"token_type"`
-	RoleCode  string    `json:"role_code,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -76,11 +75,6 @@ func GenerateTokenWithClaims(claims map[string]interface{}, tokenType TokenType)
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
-	}
-
-	// 添加角色代码（如果存在）
-	if roleCode, ok := claims["role_code"].(string); ok {
-		customClaims.RoleCode = roleCode
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, customClaims)

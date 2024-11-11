@@ -246,7 +246,6 @@ func setupTestRouter() *gin.Engine {
 				auth := authorized.Group("/auth")
 				{
 					auth.POST("/logout", v1.Logout)
-					auth.POST("/switch-role", v1.SwitchRole)
 				}
 
 				// 需要RBAC权限控制的路由

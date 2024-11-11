@@ -92,13 +92,8 @@ func (s *MockStore) VerifyToken(token, tokenType string) (uint, error) {
 		return 0, fmt.Errorf("user id mismatch")
 	}
 
-	if storedClaims.RoleCode != claims.RoleCode {
-		log.Printf("角色不匹配 - Stored: %s, Token: %s", storedClaims.RoleCode, claims.RoleCode)
-		return 0, fmt.Errorf("role code mismatch")
-	}
-
-	log.Printf("令牌验证成功 - UserID: %d, RoleCode: %s, Token: %s, TokenType: %s",
-		claims.UserID, claims.RoleCode, token, tokenType)
+	log.Printf("令牌验证成功 - UserID: %d, Token: %s, TokenType: %s",
+		claims.UserID, token, tokenType)
 	return claims.UserID, nil
 }
 

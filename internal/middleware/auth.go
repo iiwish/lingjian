@@ -69,20 +69,6 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.Set("user_id", claims.UserID)
 			c.Set("username", claims.Username)
 
-			// 如果token中包含角色信息，也存储到上下文中
-			if claims.RoleCode != "" {
-				log.Printf("Auth: 设置角色信息 - UserID: %d, RoleCode: %s", claims.UserID, claims.RoleCode)
-				c.Set("role_code", claims.RoleCode)
-			} else {
-				log.Printf("Auth: token中没有角色信息 - UserID: %d", claims.UserID)
-				// 检查是否是切换角色的请求，如果是则允许通过
-				if c.Request.URL.Path == "/api/v1/auth/switch-role" && c.Request.Method == "POST" {
-					log.Printf("Auth: 允许切换角色请求通过")
-					c.Next()
-					return
-				}
-			}
-
 			c.Next()
 			return
 		} else {

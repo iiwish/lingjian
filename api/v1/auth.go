@@ -32,7 +32,6 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 		authRequired := auth.Group("/", middleware.AuthMiddleware())
 		{
 			authRequired.POST("/logout", Logout)
-			authRequired.POST("/switch-role", SwitchRole)
 			authRequired.GET("/userinfo", GetUserInfo)
 		}
 
@@ -205,40 +204,6 @@ func Logout(c *gin.Context) {
 	}
 
 	utils.Success(c, gin.H{"message": "登出成功"})
-}
-
-// @Summary      切换角色
-// @Description  切换用户当前角色
-// @Tags         Auth
-// @Accept       json
-// @Produce      json
-// @Security     Bearer
-// @Param        request body service.SwitchRoleRequest true "切换角色请求参数"
-// @Success      200  {object}  utils.Response{data=service.TokenResponse}
-// @Failure      400  {object}  utils.Response
-// @Failure      403  {object}  utils.Response
-// @Router       /auth/switch-role [post]
-func SwitchRole(c *gin.Context) {
-	var req service.SwitchRoleRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		utils.Error(c, 400, "无效的请求参数")
-		return
-	}
-
-	// 从JWT中获取用户ID
-	userId := c.GetUint("user_id")
-	if userId == 0 {
-		utils.Error(c, 403, "未授权")
-		return
-	}
-
-	resp, err := authService.SwitchRole(userId, &req)
-	if err != nil {
-		utils.Error(c, 400, err.Error())
-		return
-	}
-
-	utils.Success(c, resp)
 }
 
 // @Summary      OAuth2授权页面
