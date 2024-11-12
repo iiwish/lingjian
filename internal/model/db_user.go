@@ -53,8 +53,6 @@ type UserRole struct {
 	RoleID    uint      `db:"role_id" json:"role_id"`
 	CreateAt  time.Time `db:"created_at" json:"created_at"`
 	CreatorID uint      `db:"creator_id" json:"creator_id"`
-	UpdateAt  time.Time `db:"updated_at" json:"updated_at"`
-	UpdaterID uint      `db:"updater_id" json:"updater_id"`
 }
 
 // RolePermission 角色权限关联表
@@ -64,6 +62,4 @@ type RolePermission struct {
 	PermissionID uint      `db:"permission_id" json:"permission_id"`
 	CreateAt     time.Time `db:"created_at" json:"created_at"`
 	CreatorID    uint      `db:"creator_id" json:"creator_id"`
-	UpdateAt     time.Time `db:"updated_at" json:"updated_at"`
-	UpdaterID    uint      `db:"updater_id" json:"updater_id"`
 }

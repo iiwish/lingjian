@@ -10,9 +10,10 @@ import (
 // RegisterRBACRoutes 注册RBAC相关路由
 func RegisterRBACRoutes(r *gin.RouterGroup) {
 	// 角色相关路由
+	r.GET("/roles", ListRoles)
 	r.POST("/roles", CreateRole)
-	r.GET("/roles/:role_code/permissions", GetRolePermissions)
-	r.POST("/roles/:role_code/permissions", AssignPermissionsToRole)
+	r.GET("/roles/:role_id/permissions", GetRolePermissions)
+	r.PATCH("/roles/:role_id/permissions", AssignPermissionsToRole)
 
 	// 权限相关路由
 	r.POST("/permissions", CreatePermission)
@@ -97,34 +98,51 @@ func AssignRoleToUser(c *gin.Context) {
 	utils.Success(c, nil)
 }
 
-// @Summary      为角色分配权限
-// @Description  为指定角色分配权限
+// @Summary      修改角色权限
+// @Description  为指定角色添加或移除权限
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
-// @Param        role_code path string true "角色代码"
-// @Param        request body model.Permission true "分配权限请求参数"
+// @Param        role_id path string true "角色ID"
+// @Param        request body PatchRolePerms true "权限修改操作" example:[{"op":"add","value":["权限1ID","权限2ID"]},{"op":"remove","value":["权限3ID","权限4ID"]}]
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /roles/{role_code}/permissions [post]
+// @Router       /roles/{role_id}/permissions [patch]
 func AssignPermissionsToRole(c *gin.Context) {
-	var req model.Permission
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var patches model.PatchRolePerms
+	if err := c.ShouldBindJSON(&patches); err != nil {
 		utils.Error(c, 400, "无效的请求参数")
 		return
 	}
 
-	roleCode := c.Param("role_code")
-	if roleCode == "" {
+	roleID := c.Param("role_id")
+	if roleID == "" {
 		utils.Error(c, 400, "角色代码不能为空")
 		return
 	}
 
-	rbacService := &service.RBACService{}
-	if err := rbacService.AssignPermissionsToRole(roleCode, req.AppCode, req.PermissionCode); err != nil {
-		utils.Error(c, 500, err.Error())
+	userId := c.GetUint("user_id")
+	if userId == 0 {
+		utils.Error(c, 403, "未授权")
 		return
+	}
+
+	rbacService := &service.RBACService{}
+
+	for _, patch := range patches {
+		switch patch.Op {
+		case "add":
+			if err := rbacService.AddPermissionsToRole(userID, roleID, patch.Value); err != nil {
+				utils.Error(c, 500, err.Error())
+				return
+			}
+		case "remove":
+			if err := rbacService.RemovePermissionsFromRole(userID, roleID, patch.Value); err != nil {
+				utils.Error(c, 500, err.Error())
+				return
+			}
+		}
 	}
 
 	utils.Success(c, nil)
@@ -157,13 +175,13 @@ func GetUserRoles(c *gin.Context) {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
-// @Param        role_code path string true "角色代码"
+// @Param        role_id path string true "角色代码"
 // @Param        app_code query string true "应用代码"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /roles/{role_code}/permissions [get]
+// @Router       /roles/{role_id}/permissions [get]
 func GetRolePermissions(c *gin.Context) {
-	roleCode := c.Param("role_code")
+	roleCode := c.Param("role_id")
 	appCode := c.Query("app_code")
 
 	if roleCode == "" || appCode == "" {

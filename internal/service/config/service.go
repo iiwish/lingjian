@@ -258,16 +258,12 @@ func (s *ConfigService) RollbackForm(id uint, version int, updaterID uint) error
 func (s *ConfigService) CreateMenu(req *CreateMenuRequest, creatorID uint) error {
 	// 创建菜单配置
 	menu := &model.ConfigMenu{
-		AppID:     req.AppID,
-		ParentID:  req.ParentID,
-		Name:      req.Name,
-		Code:      req.Code,
-		Icon:      req.Icon,
-		Path:      req.Path,
-		Component: req.Component,
-		Sort:      req.Sort,
-		Status:    1,
-		Version:   1,
+		AppID:    req.AppID,
+		ParentID: req.ParentID,
+		Icon:     req.Icon,
+		Path:     req.Path,
+		Sort:     req.Sort,
+		Status:   1,
 	}
 
 	return s.menuService.CreateMenu(menu, creatorID)

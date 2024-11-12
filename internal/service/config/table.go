@@ -53,7 +53,6 @@ func (s *TableService) CreateTable(table *model.ConfigTable, creatorID uint) err
 		ConfigType: "table",
 		ConfigID:   uint(id),
 		Version:    1,
-		Content:    table.Fields, // 使用字段定义作为版本内容
 		CreatorID:  creatorID,
 	}
 
@@ -121,7 +120,6 @@ func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint) err
 		ConfigType: "table",
 		ConfigID:   table.ID,
 		Version:    table.Version,
-		Content:    table.Fields, // 使用字段定义作为版本内容
 		CreatorID:  updaterID,
 	}
 

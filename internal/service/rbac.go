@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"strings"
 	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
@@ -100,48 +99,10 @@ func (s *RBACService) AssignRoleToUser(userID, roleID uint) error {
 	return err
 }
 
-// AssignPermissionsToRole 为角色分配权限
-func (s *RBACService) AssignPermissionsToRole(roleCode, appCode string, permissionCodes []string) error {
-	if len(permissionCodes) == 0 {
-		return errors.New("权限代码列表不能为空")
-	}
-
-	// 获取角色ID
-	var roleID uint
-	err := model.DB.Get(&roleID, "SELECT id FROM roles WHERE code = ? AND app_code = ?", roleCode, appCode)
-	if err != nil {
-		return errors.New("角色不存在")
-	}
-
-	// 构建IN查询的占位符
-	placeholders := strings.Repeat("?,", len(permissionCodes))
-	placeholders = placeholders[:len(placeholders)-1] // 移除最后一个逗号
-
-	// 获取权限IDs
-	query := "SELECT id FROM permissions WHERE code IN (" + placeholders + ") AND app_code = ?"
-	args := make([]interface{}, len(permissionCodes)+1)
-	for i, code := range permissionCodes {
-		args[i] = code
-	}
-	args[len(permissionCodes)] = appCode
-
-	rows, err := model.DB.Query(query, args...)
-	if err != nil {
-		return err
-	}
-	defer rows.Close()
-
-	var permissionIDs []uint
-	for rows.Next() {
-		var id uint
-		if err := rows.Scan(&id); err != nil {
-			return err
-		}
-		permissionIDs = append(permissionIDs, id)
-	}
-
-	if len(permissionIDs) != len(permissionCodes) {
-		return errors.New("部分权限代码不存在")
+// AddPermissionsToRole 为角色添加权限
+func (s *RBACService) AddPermissionsToRole(userID uint, roleID string, permissions []uint) error {
+	if len(permissions) == 0 {
+		return errors.New("权限代码列表为空")
 	}
 
 	// 开始事务
@@ -151,18 +112,12 @@ func (s *RBACService) AssignPermissionsToRole(roleCode, appCode string, permissi
 	}
 	defer tx.Rollback()
 
-	// 删除现有权限
-	_, err = tx.Exec("DELETE FROM role_permissions WHERE role_id = ?", roleID)
-	if err != nil {
-		return err
-	}
-
-	// 分配新权限
-	for _, permID := range permissionIDs {
+	// 添加新权限
+	for _, permID := range permissions {
 		_, err = tx.Exec(`
-			INSERT INTO role_permissions (role_id, permission_id)
-			VALUES (?, ?)
-		`, roleID, permID)
+			INSERT INTO role_permissions (role_id, permission_id, creator_id, created_at)
+			VALUES (?, ?, ?, ?)
+		`, roleID, permID, userID, time.Now())
 		if err != nil {
 			return err
 		}
