@@ -40,6 +40,7 @@ type Permission struct {
 	Type        string    `db:"type" json:"type"`
 	Path        string    `db:"path" json:"path"`
 	Method      string    `db:"method" json:"method"`
+	MenuID      uint      `db:"menu_id" json:"menu_id"`
 	Status      int       `db:"status" json:"status"`
 	Description string    `db:"description" json:"description"`
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`

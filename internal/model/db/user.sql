@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS sys_permissions (
     type VARCHAR(20) NOT NULL DEFAULT '' COMMENT '类型 menu:菜单 api:接口',
     path VARCHAR(255) DEFAULT '' COMMENT '路径',
     method VARCHAR(10) DEFAULT '' COMMENT '方法',
+    menu_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '菜单ID',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 0:禁用 1:启用',
     description VARCHAR(200) DEFAULT '' COMMENT '描述',
     created_at DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',

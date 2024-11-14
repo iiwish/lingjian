@@ -1,8 +1,6 @@
 package config
 
 import (
-	"encoding/json"
-
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -28,31 +26,7 @@ func NewConfigService(db *sqlx.DB) *ConfigService {
 }
 
 // 表配置相关方法
-func (s *ConfigService) CreateTable(req *CreateTableRequest, creatorID uint) error {
-	// 将字段和索引转换为JSON字符串
-	fields, err := json.Marshal(req.Fields)
-	if err != nil {
-		return err
-	}
-
-	indexes, err := json.Marshal(req.Indexes)
-	if err != nil {
-		return err
-	}
-
-	// 创建数据表配置
-	table := &model.ConfigTable{
-		AppID:          req.AppID,
-		TableName:      req.Name,
-		Code:           req.Code,
-		Description:    req.Description,
-		MySQLTableName: req.MySQLTableName,
-		Fields:         string(fields),
-		Indexes:        string(indexes),
-		Status:         1,
-		Version:        1,
-	}
-
+func (s *ConfigService) CreateTable(table *model.ConfigTable, creatorID uint) error {
 	return s.tableService.CreateTable(table, creatorID)
 }
 
@@ -72,34 +46,8 @@ func (s *ConfigService) ListTables(appID uint) ([]model.ConfigTable, error) {
 	return s.tableService.ListTables(appID)
 }
 
-func (s *ConfigService) GetTableVersions(id uint) ([]model.ConfigVersion, error) {
-	return s.tableService.GetTableVersions(id)
-}
-
-func (s *ConfigService) RollbackTable(id uint, version int, updaterID uint) error {
-	return s.tableService.RollbackTable(id, version, updaterID)
-}
-
 // 维度配置相关方法
-func (s *ConfigService) CreateDimension(req *CreateDimensionRequest, creatorID uint) error {
-	// 将配置转换为JSON字符串
-	config, err := json.Marshal(req.Configuration)
-	if err != nil {
-		return err
-	}
-
-	// 创建维度配置
-	dimension := &model.ConfigDimension{
-		AppID:          req.AppID,
-		Name:           req.Name,
-		Code:           req.Code,
-		Type:           req.Type,
-		MySQLTableName: req.MySQLTableName,
-		Configuration:  string(config),
-		Status:         1,
-		Version:        1,
-	}
-
+func (s *ConfigService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) error {
 	return s.dimensionService.CreateDimension(dimension, creatorID)
 }
 
@@ -119,49 +67,12 @@ func (s *ConfigService) ListDimensions(appID uint) ([]model.ConfigDimension, err
 	return s.dimensionService.ListDimensions(appID)
 }
 
-func (s *ConfigService) GetDimensionVersions(id uint) ([]model.ConfigVersion, error) {
-	return s.dimensionService.GetDimensionVersions(id)
-}
-
-func (s *ConfigService) RollbackDimension(id uint, version int, updaterID uint) error {
-	return s.dimensionService.RollbackDimension(id, version, updaterID)
-}
-
 func (s *ConfigService) GetDimensionValues(dimensionID uint, filter map[string]any) ([]map[string]any, error) {
 	return s.dimensionService.GetDimensionValues(dimensionID, filter)
 }
 
 // 数据模型配置相关方法
-func (s *ConfigService) CreateModel(req *CreateModelRequest, creatorID uint) error {
-	// 将字段、维度和指标转换为JSON字符串
-	fields, err := json.Marshal(req.Fields)
-	if err != nil {
-		return err
-	}
-
-	dimensions, err := json.Marshal(req.Dimensions)
-	if err != nil {
-		return err
-	}
-
-	metrics, err := json.Marshal(req.Metrics)
-	if err != nil {
-		return err
-	}
-
-	// 创建数据模型配置
-	dataModel := &model.ConfigDataModel{
-		AppID:      req.AppID,
-		Name:       req.Name,
-		Code:       req.Code,
-		TableID:    req.TableID,
-		Fields:     string(fields),
-		Dimensions: string(dimensions),
-		Metrics:    string(metrics),
-		Status:     1,
-		Version:    1,
-	}
-
+func (s *ConfigService) CreateModel(dataModel *model.ConfigModel, creatorID uint) error {
 	return s.modelService.CreateModel(dataModel, creatorID)
 }
 
@@ -177,7 +88,7 @@ func (s *ConfigService) DeleteModel(id uint) error {
 	return s.modelService.DeleteModel(id)
 }
 
-func (s *ConfigService) ListModels(appID uint) ([]model.ConfigDataModel, error) {
+func (s *ConfigService) ListModels(appID uint) ([]model.ConfigModel, error) {
 	return s.modelService.ListModels(appID)
 }
 
@@ -190,43 +101,7 @@ func (s *ConfigService) RollbackModel(id uint, version int, updaterID uint) erro
 }
 
 // 表单配置相关方法
-func (s *ConfigService) CreateForm(req *CreateFormRequest, creatorID uint) error {
-	// 将布局、字段、规则和事件转换为JSON字符串
-	layout, err := json.Marshal(req.Layout)
-	if err != nil {
-		return err
-	}
-
-	fields, err := json.Marshal(req.Fields)
-	if err != nil {
-		return err
-	}
-
-	rules, err := json.Marshal(req.Rules)
-	if err != nil {
-		return err
-	}
-
-	events, err := json.Marshal(req.Events)
-	if err != nil {
-		return err
-	}
-
-	// 创建表单配置
-	form := &model.ConfigForm{
-		AppID:   req.AppID,
-		Name:    req.Name,
-		Code:    req.Code,
-		Type:    req.Type,
-		TableID: req.TableID,
-		Layout:  string(layout),
-		Fields:  string(fields),
-		Rules:   string(rules),
-		Events:  string(events),
-		Status:  1,
-		Version: 1,
-	}
-
+func (s *ConfigService) CreateForm(form *model.ConfigForm, creatorID uint) error {
 	return s.formService.CreateForm(form, creatorID)
 }
 
@@ -255,7 +130,7 @@ func (s *ConfigService) RollbackForm(id uint, version int, updaterID uint) error
 }
 
 // 菜单配置相关方法
-func (s *ConfigService) CreateMenu(req *CreateMenuRequest, creatorID uint) error {
+func (s *ConfigService) CreateMenu(req *CreateMenuRequest, creatorID uint) (uint, error) {
 	// 创建菜单配置
 	menu := &model.ConfigMenu{
 		AppID:    req.AppID,
@@ -281,14 +156,6 @@ func (s *ConfigService) DeleteMenu(id uint) error {
 	return s.menuService.DeleteMenu(id)
 }
 
-func (s *ConfigService) ListMenus(appID uint) ([]model.ConfigMenu, error) {
-	return s.menuService.ListMenus(appID)
-}
-
-func (s *ConfigService) GetMenuVersions(id uint) ([]model.ConfigVersion, error) {
-	return s.menuService.GetMenuVersions(id)
-}
-
-func (s *ConfigService) RollbackMenu(id uint, version int, updaterID uint) error {
-	return s.menuService.RollbackMenu(id, version, updaterID)
+func (s *ConfigService) ListMenus(appID uint, userID uint) ([]model.ConfigMenu, error) {
+	return s.menuService.ListMenus(appID, userID)
 }

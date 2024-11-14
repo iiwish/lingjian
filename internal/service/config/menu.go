@@ -1,10 +1,11 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/pkg/utils"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -19,79 +20,47 @@ func NewMenuService(db *sqlx.DB) *MenuService {
 }
 
 // CreateMenu 创建菜单配置
-func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) error {
+func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, error) {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
-		return fmt.Errorf("begin transaction failed: %v", err)
+		return 0, fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
 
-	// 设置初始版本
-	menu.Version = 1
 	menu.Status = 1
 
 	// 插入菜单配置
 	result, err := tx.NamedExec(`
 		INSERT INTO sys_config_menus (
-			app_id, parent_id, name, code, icon,
-			path, component, sort, status, version,
-			created_at, updated_at
+			app_id, parent_id, node_id, menu_name, menu_code, menu_type, level, sort, icon, path, status, created_at, creator_id, updated_at, updater_id
 		) VALUES (
-			:app_id, :parent_id, :name, :code, :icon,
-			:path, :component, :sort, :status, :version,
-			NOW(), NOW()
+			:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :level, :sort, :icon, :path, :status, NOW(), :creator_id, NOW(), :creator_id
 		)
 	`, menu)
 	if err != nil {
-		return fmt.Errorf("insert sys_config_menus failed: %v", err)
+		return 0, fmt.Errorf("insert sys_config_menus failed: %v", err)
 	}
 
 	// 获取插入的ID
 	id, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("get last insert id failed: %v", err)
+		return 0, fmt.Errorf("get last insert id failed: %v", err)
 	}
 	menu.ID = uint(id)
 
-	// 创建版本记录
-	menuContent, err := json.Marshal(menu)
-	if err != nil {
-		return fmt.Errorf("marshal menu failed: %v", err)
-	}
-
-	version := &model.ConfigVersion{
-		AppID:      menu.AppID,
-		ConfigType: "menu",
-		ConfigID:   menu.ID,
-		Version:    1,
-		Content:    string(menuContent), // 使用完整菜单配置作为版本内容
-		CreatorID:  creatorID,
-	}
-
-	_, err = tx.NamedExec(`
-		INSERT INTO sys_config_versions (
-			app_id, config_type, config_id, version,
-			content, creator_id, created_at
-		) VALUES (
-			:app_id, :config_type, :config_id, :version,
-			:content, :creator_id, NOW()
-		)
-	`, version)
-	if err != nil {
-		return fmt.Errorf("insert sys_config_versions failed: %v", err)
-	}
-
 	// 提交事务
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction failed: %v", err)
+		return 0, fmt.Errorf("commit transaction failed: %v", err)
 	}
 
-	return nil
+	return menu.ID, nil
 }
 
 // UpdateMenu 更新菜单配置
 func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
+
+	menu.UpdaterID = updaterID
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -99,61 +68,25 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 	}
 	defer tx.Rollback()
 
-	// 获取当前版本
-	var currentVersion int
-	err = tx.Get(&currentVersion, "SELECT version FROM sys_config_menus WHERE id = ?", menu.ID)
-	if err != nil {
-		return fmt.Errorf("get current version failed: %v", err)
-	}
-
-	// 更新版本号
-	menu.Version = currentVersion + 1
-
 	// 更新菜单配置
 	_, err = tx.NamedExec(`
 		UPDATE sys_config_menus SET 
-			parent_id = :parent_id,
-			name = :name,
-			code = :code,
+			app_id = :app_id, 
+			parent_id = :parent_id, 
+			node_id = :node_id, 
+			menu_name = :menu_name, 
+			menu_code = :menu_code,
+			menu_type = :menu_type,
+			level = :level,
+			sort = :sort,
 			icon = :icon,
 			path = :path,
-			component = :component,
-			sort = :sort,
-			status = :status,
-			version = :version,
-			updated_at = NOW()
+			updated_at = NOW(),
+			updater_id = :updater_id
 		WHERE id = :id
 	`, menu)
 	if err != nil {
 		return fmt.Errorf("update sys_config_menus failed: %v", err)
-	}
-
-	// 创建新的版本记录
-	menuContent, err := json.Marshal(menu)
-	if err != nil {
-		return fmt.Errorf("marshal menu failed: %v", err)
-	}
-
-	version := &model.ConfigVersion{
-		AppID:      menu.AppID,
-		ConfigType: "menu",
-		ConfigID:   menu.ID,
-		Version:    menu.Version,
-		Content:    string(menuContent),
-		CreatorID:  updaterID,
-	}
-
-	_, err = tx.NamedExec(`
-		INSERT INTO sys_config_versions (
-			app_id, config_type, config_id, version,
-			content, creator_id, created_at
-		) VALUES (
-			:app_id, :config_type, :config_id, :version,
-			:content, :creator_id, NOW()
-		)
-	`, version)
-	if err != nil {
-		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -198,122 +131,82 @@ func (s *MenuService) DeleteMenu(id uint) error {
 }
 
 // ListMenus 获取菜单配置列表
-func (s *MenuService) ListMenus(appID uint) ([]model.ConfigMenu, error) {
+func (s *MenuService) ListMenus(appID uint, userID uint) ([]model.ConfigMenu, error) {
 	var menus []model.ConfigMenu
-	err := s.db.Select(&menus, `
-		SELECT * FROM sys_config_menus 
-		WHERE app_id = ? AND status = 1 
-		ORDER BY sort ASC, id ASC
-	`, appID)
+	query := `
+        SELECT m.* FROM sys_config_menus m
+        INNER JOIN sys_permissions p ON m.id = p.menu_id
+        INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
+        INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
+        WHERE ur.user_id = ?
+        AND m.app_id = ?
+        AND p.status = 1
+        ORDER BY m.sort ASC, m.id ASC
+    `
+	err := s.db.Select(&menus, query, userID, appID)
 	if err != nil {
 		return nil, fmt.Errorf("list menus failed: %v", err)
 	}
-	return menus, nil
-}
 
-// GetMenuVersions 获取菜单配置版本历史
-func (s *MenuService) GetMenuVersions(id uint) ([]model.ConfigVersion, error) {
-	var versions []model.ConfigVersion
-	err := s.db.Select(&versions, `
-		SELECT * FROM sys_config_versions 
-		WHERE config_type = 'menu' AND config_id = ? 
-		ORDER BY version DESC
-	`, id)
-	if err != nil {
-		return nil, fmt.Errorf("get menu versions failed: %v", err)
-	}
-	return versions, nil
-}
-
-// RollbackMenu 回滚菜单配置到指定版本
-func (s *MenuService) RollbackMenu(id uint, version int, updaterID uint) error {
-	// 开启事务
-	tx, err := s.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transaction failed: %v", err)
-	}
-	defer tx.Rollback()
-
-	// 获取指定版本的配置内容
-	var targetVersion model.ConfigVersion
-	err = tx.Get(&targetVersion, `
-		SELECT * FROM sys_config_versions 
-		WHERE config_type = 'menu' AND config_id = ? AND version = ?
-	`, id, version)
-	if err != nil {
-		return fmt.Errorf("get target version failed: %v", err)
+	// 获取所有子菜单和父级菜单
+	result := make(map[uint]*model.ConfigMenu)
+	queryIDs := make(map[uint]struct{})
+	for _, menu := range menus {
+		result[menu.ID] = &menu
+		if menu.ParentID != 0 {
+			nodeIDs := strings.Split(menu.NodeID, "_")
+			for _, nodeID := range nodeIDs {
+				id := utils.ParseUint(nodeID)
+				if _, ok := result[id]; !ok {
+					queryIDs[id] = struct{}{}
+				}
+			}
+		}
 	}
 
-	// 获取当前菜单配置
-	var menu model.ConfigMenu
-	err = tx.Get(&menu, "SELECT * FROM sys_config_menus WHERE id = ?", id)
-	if err != nil {
-		return fmt.Errorf("get current menu failed: %v", err)
+	if len(queryIDs) > 0 {
+		ids := make([]uint, 0, len(queryIDs))
+		for id := range queryIDs {
+			ids = append(ids, id)
+		}
+
+		query, args, err := sqlx.In(`
+            SELECT * FROM sys_config_menus WHERE id IN (?)
+        `, ids)
+		if err != nil {
+			return nil, err
+		}
+
+		query = s.db.Rebind(query)
+		var parents []model.ConfigMenu
+		err = s.db.Select(&parents, query, args...)
+		if err != nil {
+			return nil, err
+		}
+		for _, parent := range parents {
+			result[parent.ID] = &parent
+		}
 	}
 
-	// 解析版本内容
-	var targetMenu model.ConfigMenu
-	if err := json.Unmarshal([]byte(targetVersion.Content), &targetMenu); err != nil {
-		return fmt.Errorf("unmarshal menu failed: %v", err)
+	for _, menu := range menus {
+		query := `
+            SELECT * FROM sys_config_menus WHERE node_id LIKE ? ORDER BY sort ASC, id ASC
+        `
+		var children []model.ConfigMenu
+		err := s.db.Select(&children, query, menu.NodeID+"%")
+		if err != nil {
+			return nil, fmt.Errorf("list children menus failed: %v", err)
+		}
+		for _, child := range children {
+			result[child.ID] = &child
+		}
 	}
 
-	// 更新菜单配置（保留ID和AppID）
-	targetMenu.ID = menu.ID
-	targetMenu.AppID = menu.AppID
-	targetMenu.Version = menu.Version + 1
-
-	// 更新菜单配置
-	_, err = tx.NamedExec(`
-		UPDATE sys_config_menus SET 
-			parent_id = :parent_id,
-			name = :name,
-			code = :code,
-			icon = :icon,
-			path = :path,
-			component = :component,
-			sort = :sort,
-			status = :status,
-			version = :version,
-			updated_at = NOW()
-		WHERE id = :id
-	`, targetMenu)
-	if err != nil {
-		return fmt.Errorf("update menu failed: %v", err)
+	// 将结果转换为数组
+	resultList := make([]model.ConfigMenu, 0, len(result))
+	for _, menu := range result {
+		resultList = append(resultList, *menu)
 	}
 
-	// 创建新的版本记录
-	menuContent, err := json.Marshal(targetMenu)
-	if err != nil {
-		return fmt.Errorf("marshal menu failed: %v", err)
-	}
-
-	newVersion := &model.ConfigVersion{
-		AppID:      targetMenu.AppID,
-		ConfigType: "menu",
-		ConfigID:   targetMenu.ID,
-		Version:    targetMenu.Version,
-		Content:    string(menuContent),
-		Comment:    fmt.Sprintf("Rollback to version %d", version),
-		CreatorID:  updaterID,
-	}
-
-	_, err = tx.NamedExec(`
-		INSERT INTO sys_config_versions (
-			app_id, config_type, config_id, version,
-			content, comment, creator_id, created_at
-		) VALUES (
-			:app_id, :config_type, :config_id, :version,
-			:content, :comment, :creator_id, NOW()
-		)
-	`, newVersion)
-	if err != nil {
-		return fmt.Errorf("insert version failed: %v", err)
-	}
-
-	// 提交事务
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction failed: %v", err)
-	}
-
-	return nil
+	return resultList, nil
 }

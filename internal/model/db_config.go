@@ -70,7 +70,7 @@ type ConfigForm struct {
 type ConfigMenu struct {
 	ID        uint      `db:"id" json:"id"`
 	AppID     uint      `db:"app_id" json:"app_id"`
-	NodeID    uint      `db:"node_id" json:"node_id"`     // 节点ID
+	NodeID    string    `db:"node_id" json:"node_id"`     // 节点ID
 	ParentID  uint      `db:"parent_id" json:"parent_id"` // 父菜单ID，0表示顶级菜单
 	MenuName  string    `db:"menu_name" json:"menu_name"` // 菜单名称
 	MenuCode  string    `db:"menu_code" json:"menu_code"` // 菜单代码

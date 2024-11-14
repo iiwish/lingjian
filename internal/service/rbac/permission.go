@@ -2,7 +2,6 @@ package rbac
 
 import (
 	"errors"
-	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
 )
@@ -19,6 +18,9 @@ func (s *PermissionService) ListPermissions() ([]model.Permission, error) {
 
 // CreatePermission 创建权限
 func (s *PermissionService) CreatePermission(operatorID uint, req *model.Permission) error {
+	req.CreatorID = operatorID
+	req.UpdaterID = operatorID
+
 	// 检查权限代码是否已存在
 	var count int
 	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_permissions WHERE code = ?", req.Code)
@@ -31,15 +33,16 @@ func (s *PermissionService) CreatePermission(operatorID uint, req *model.Permiss
 
 	// 创建权限
 	_, err = model.DB.Exec(`
-		INSERT INTO sys_permissions (name, code, type, path, method, status, description, created_at, creator_id, updated_at, updater_id)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-	`, req.Name, req.Code, req.Type, req.Path, req.Method, 1, req.Description, time.Now(), operatorID, time.Now(), operatorID)
+		INSERT INTO sys_permissions (name, code, type, path, method, menu_id, status, description, created_at, creator_id, updated_at, updater_id)
+		VALUES (:name, :code, :type, :path, :method, :menu_id, :status, :description, NOW(), :creator_id, NOW(), :updater_id)
+	`, req)
 
 	return err
 }
 
 // UpdatePermission 更新权限
 func (s *PermissionService) UpdatePermission(operatorID uint, permissionID uint, req *model.Permission) error {
+	req.UpdaterID = operatorID
 	// 检查权限是否存在
 	var count int
 	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_permissions WHERE id = ?", permissionID)
@@ -62,9 +65,17 @@ func (s *PermissionService) UpdatePermission(operatorID uint, permissionID uint,
 	// 更新权限
 	_, err = model.DB.Exec(`
 		UPDATE sys_permissions 
-		SET name = ?, code = ?, type = ?, path = ?, method = ?, description = ?, updated_at = ?, updater_id = ?
+		SET name = :name, 
+		code = :code, 
+		type = :type, 
+		path = :path, 
+		method = :method, 
+		menu_id = :menu_id,
+		description = :description, 
+		updated_at = NOW(), 
+		updater_id = :updater_id
 		WHERE id = ?
-	`, req.Name, req.Code, req.Type, req.Path, req.Method, req.Description, time.Now(), operatorID, permissionID)
+	`, req)
 
 	return err
 }

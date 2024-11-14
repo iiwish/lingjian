@@ -41,8 +41,6 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/tables", api.ListTables)
 		config.GET("/tables/:id", api.GetTable)
 		config.DELETE("/tables/:id", api.DeleteTable)
-		config.GET("/tables/:id/versions", api.GetTableVersions)
-		config.POST("/tables/:id/rollback", api.RollbackTable)
 
 		// 维度配置
 		config.POST("/dimensions", api.CreateDimension)
@@ -50,8 +48,6 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/dimensions", api.ListDimensions)
 		config.GET("/dimensions/:id", api.GetDimension)
 		config.DELETE("/dimensions/:id", api.DeleteDimension)
-		config.GET("/dimensions/:id/versions", api.GetDimensionVersions)
-		config.POST("/dimensions/:id/rollback", api.RollbackDimension)
 
 		// 数据模型配置
 		config.POST("/models", api.CreateModel)
@@ -75,9 +71,8 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.POST("/menus", api.CreateMenu)
 		config.PUT("/menus/:id", api.UpdateMenu)
 		config.GET("/menus", api.ListMenus)
+		config.GET("/menus/tree", api.MenusTree)
 		config.GET("/menus/:id", api.GetMenu)
 		config.DELETE("/menus/:id", api.DeleteMenu)
-		config.GET("/menus/:id/versions", api.GetMenuVersions)
-		config.POST("/menus/:id/rollback", api.RollbackMenu)
 	}
 }

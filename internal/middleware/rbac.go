@@ -54,18 +54,29 @@ func RBACMiddleware() gin.HandlerFunc {
 		reqPath := c.Request.URL.Path
 		method := c.Request.Method
 
+		// 获取应用 ID
+		appID := c.GetHeader("App-ID")
+		if appID == "" {
+			log.Printf("RBAC: 缺少应用 ID")
+			utils.Error(c, 400, "缺少应用 ID")
+			c.Abort()
+			return
+		}
+
 		// 查询角色的所有权限
 		var permissions []struct {
 			Path   string
 			Method string
 		}
 		query := `
-			SELECT DISTINCT p.path, p.method FROM sys_permissions p
-			INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
-			INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
-			WHERE ur.user_id = ?
-			AND p.method = ?
-			AND p.status = 1
+            SELECT DISTINCT p.path, p.method FROM sys_permissions p
+            INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
+            INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
+            INNER JOIN sys_config_menus m ON p.menu_id = m.id
+            WHERE ur.user_id = ?
+            AND p.method = ?
+            AND p.status = 1
+            AND m.app_id = ?
 		`
 
 		err := model.DB.Select(&permissions, query, userId, method)

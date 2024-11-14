@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/internal/service/config"
+	"github.com/iiwish/lingjian/pkg/utils"
 )
 
 // @Summary      创建菜单配置
@@ -27,7 +28,7 @@ func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-	if err := api.configService.CreateMenu(&req, userID); err != nil {
+	if _, err := api.configService.CreateMenu(&req, userID); err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
@@ -86,7 +87,13 @@ func (api *ConfigAPI) ListMenus(c *gin.Context) {
 		return
 	}
 
-	menus, err := api.configService.ListMenus(uint(appID))
+	operatorID := c.GetUint("user_id")
+	if operatorID == 0 {
+		utils.Error(c, 403, "未授权")
+		return
+	}
+
+	menus, err := api.configService.ListMenus(uint(appID), operatorID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
@@ -144,63 +151,4 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
-}
-
-// @Summary      获取菜单配置版本历史
-// @Description  获取指定菜单配置的版本历史记录
-// @Tags         ConfigMenu
-// @Accept       json
-// @Produce      json
-// @Param        id path int true "配置ID"
-// @Success      200  {array}   model.ConfigVersion
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/menus/{id}/versions [get]
-func (api *ConfigAPI) GetMenuVersions(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
-		return
-	}
-
-	versions, err := api.configService.GetMenuVersions(uint(id))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, versions)
-}
-
-// @Summary      回滚菜单配置
-// @Description  将菜单配置回滚到指定版本
-// @Tags         ConfigMenu
-// @Accept       json
-// @Produce      json
-// @Param        id path int true "配置ID"
-// @Param        version query int true "目标版本号"
-// @Success      200  {object}  nil
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/menus/{id}/rollback [post]
-func (api *ConfigAPI) RollbackMenu(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
-		return
-	}
-
-	version, err := strconv.Atoi(c.Query("version"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid version"})
-		return
-	}
-
-	userID := uint(c.GetInt64("user_id"))
-	if err := api.configService.RollbackMenu(uint(id), version, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
-		return
-	}
-
-	c.Status(http.StatusOK)
 }
