@@ -26,7 +26,7 @@ func NewConfigService(db *sqlx.DB) *ConfigService {
 }
 
 // 表配置相关方法
-func (s *ConfigService) CreateTable(table *model.ConfigTable, creatorID uint) error {
+func (s *ConfigService) CreateTable(table *model.CreateTableReq, creatorID uint) (uint, error) {
 	return s.tableService.CreateTable(table, creatorID)
 }
 
@@ -34,7 +34,7 @@ func (s *ConfigService) UpdateTable(table *model.ConfigTable, updaterID uint) er
 	return s.tableService.UpdateTable(table, updaterID)
 }
 
-func (s *ConfigService) GetTable(id uint) (*model.ConfigTable, error) {
+func (s *ConfigService) GetTable(id uint) (*model.CreateTableReq, error) {
 	return s.tableService.GetTable(id)
 }
 
@@ -47,7 +47,7 @@ func (s *ConfigService) ListTables(appID uint) ([]model.ConfigTable, error) {
 }
 
 // 维度配置相关方法
-func (s *ConfigService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) error {
+func (s *ConfigService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) (uint, error) {
 	return s.dimensionService.CreateDimension(dimension, creatorID)
 }
 
@@ -67,12 +67,8 @@ func (s *ConfigService) ListDimensions(appID uint) ([]model.ConfigDimension, err
 	return s.dimensionService.ListDimensions(appID)
 }
 
-func (s *ConfigService) GetDimensionValues(dimensionID uint, filter map[string]any) ([]map[string]any, error) {
-	return s.dimensionService.GetDimensionValues(dimensionID, filter)
-}
-
 // 数据模型配置相关方法
-func (s *ConfigService) CreateModel(dataModel *model.ConfigModel, creatorID uint) error {
+func (s *ConfigService) CreateModel(dataModel *model.ConfigModel, creatorID uint) (uint, error) {
 	return s.modelService.CreateModel(dataModel, creatorID)
 }
 
@@ -92,16 +88,8 @@ func (s *ConfigService) ListModels(appID uint) ([]model.ConfigModel, error) {
 	return s.modelService.ListModels(appID)
 }
 
-func (s *ConfigService) GetModelVersions(id uint) ([]model.ConfigVersion, error) {
-	return s.modelService.GetModelVersions(id)
-}
-
-func (s *ConfigService) RollbackModel(id uint, version int, updaterID uint) error {
-	return s.modelService.RollbackModel(id, version, updaterID)
-}
-
 // 表单配置相关方法
-func (s *ConfigService) CreateForm(form *model.ConfigForm, creatorID uint) error {
+func (s *ConfigService) CreateForm(form *model.ConfigForm, creatorID uint) (uint, error) {
 	return s.formService.CreateForm(form, creatorID)
 }
 
@@ -121,26 +109,8 @@ func (s *ConfigService) ListForms(appID uint) ([]model.ConfigForm, error) {
 	return s.formService.ListForms(appID)
 }
 
-func (s *ConfigService) GetFormVersions(id uint) ([]model.ConfigVersion, error) {
-	return s.formService.GetFormVersions(id)
-}
-
-func (s *ConfigService) RollbackForm(id uint, version int, updaterID uint) error {
-	return s.formService.RollbackForm(id, version, updaterID)
-}
-
 // 菜单配置相关方法
-func (s *ConfigService) CreateMenu(req *CreateMenuRequest, creatorID uint) (uint, error) {
-	// 创建菜单配置
-	menu := &model.ConfigMenu{
-		AppID:    req.AppID,
-		ParentID: req.ParentID,
-		Icon:     req.Icon,
-		Path:     req.Path,
-		Sort:     req.Sort,
-		Status:   1,
-	}
-
+func (s *ConfigService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, error) {
 	return s.menuService.CreateMenu(menu, creatorID)
 }
 
@@ -158,4 +128,8 @@ func (s *ConfigService) DeleteMenu(id uint) error {
 
 func (s *ConfigService) ListMenus(appID uint, userID uint) ([]model.ConfigMenu, error) {
 	return s.menuService.ListMenus(appID, userID)
+}
+
+func (s *ConfigService) TreeMenus(appID uint, userID uint) ([]model.TreeConfigMenu, error) {
+	return s.menuService.TreeMenus(appID, userID)
 }

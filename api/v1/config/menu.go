@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
-	"github.com/iiwish/lingjian/internal/service/config"
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
@@ -21,7 +20,7 @@ import (
 // @Failure      500  {object}  Response
 // @Router       /config/menus [post]
 func (api *ConfigAPI) CreateMenu(c *gin.Context) {
-	var req config.CreateMenuRequest
+	var req model.ConfigMenu
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
@@ -151,4 +150,37 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// treeMenus
+// @Summary      获取菜单树
+// @Description  获取指定应用的菜单树
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Param        app_id query int true "应用ID"
+// @Success      200  {object}  []model.TreeConfigMenu
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /config/menus/tree [get]
+func (api *ConfigAPI) TreeMenus(c *gin.Context) {
+	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
+		return
+	}
+
+	operatorID := c.GetUint("user_id")
+	if operatorID == 0 {
+		utils.Error(c, 403, "未授权")
+		return
+	}
+
+	menus, err := api.configService.TreeMenus(uint(appID), operatorID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, menus)
 }

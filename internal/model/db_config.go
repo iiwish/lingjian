@@ -9,8 +9,7 @@ type ConfigTable struct {
 	TableName   string    `db:"table_name" json:"table_name"`
 	DisplayName string    `db:"display_name" json:"display_name"`
 	Description string    `db:"description" json:"description"`
-	Status      int       `db:"status" json:"status"`   // 0:禁用 1:启用
-	Version     int       `db:"version" json:"version"` // 版本号
+	Status      int       `db:"status" json:"status"` // 0:禁用 1:启用
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 	CreatorID   uint      `db:"creator_id" json:"creator_id"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
@@ -24,8 +23,7 @@ type ConfigDimension struct {
 	TableName   string    `db:"table_name" json:"table_name"`
 	DisplayName string    `db:"display_name" json:"display_name"`
 	Description string    `db:"description" json:"description"`
-	Status      int       `db:"status" json:"status"`   // 0:禁用 1:启用
-	Version     int       `db:"version" json:"version"` // 版本号
+	Status      int       `db:"status" json:"status"` // 0:禁用 1:启用
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 	CreatorID   uint      `db:"creator_id" json:"creator_id"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`

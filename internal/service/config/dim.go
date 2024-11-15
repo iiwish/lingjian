@@ -1,7 +1,6 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/iiwish/lingjian/internal/model"
@@ -19,63 +18,74 @@ func NewDimensionService(db *sqlx.DB) *DimensionService {
 }
 
 // CreateDimension 创建维度配置
-func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) error {
+func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) (uint, error) {
+	dimension.Status = 1
+	dimension.CreatorID = creatorID
+	dimension.UpdaterID = creatorID
+
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
-		return fmt.Errorf("begin transaction failed: %v", err)
+		return 0, fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
+
+	// 检查表名是否已存在
+	var count int
+	err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", dimension.TableName)
+	if err != nil {
+		return 0, fmt.Errorf("check table name failed: %v", err)
+	}
+	if count > 0 {
+		return 0, fmt.Errorf("table name already exists")
+	}
 
 	// 插入维度配置
 	result, err := tx.NamedExec(`
 		INSERT INTO sys_config_dimensions (
-			app_id, name, code, type, mysql_table_name,
-			configuration, status, version, created_at, updated_at
+			app_id, table_name, display_name, description, status, created_at, creator_id, updated_at, updater_id
 		) VALUES (
-			:app_id, :name, :code, :type, :mysql_table_name,
-			:configuration, :status, :version, NOW(), NOW()
+			:app_id, :table_name, :display_name, :description, :status, NOW(), :creator_id, NOW(), :creator_id
 		)
 	`, dimension)
+
 	if err != nil {
-		return fmt.Errorf("insert sys_config_dimensions failed: %v", err)
+		return 0, fmt.Errorf("insert sys_config_dimensions failed: %v", err)
 	}
 
 	// 获取插入的ID
 	id, err := result.LastInsertId()
 	if err != nil {
-		return fmt.Errorf("get last insert id failed: %v", err)
+		return 0, fmt.Errorf("get last insert id failed: %v", err)
 	}
 
-	// 创建版本记录
-	version := &model.ConfigVersion{
-		AppID:      dimension.AppID,
-		ConfigType: "dimension",
-		ConfigID:   uint(id),
-		Version:    1,
-		Content:    dimension.Configuration, // 使用配置作为版本内容
-		CreatorID:  creatorID,
-	}
-
-	_, err = tx.NamedExec(`
-		INSERT INTO sys_config_versions (
-			app_id, config_type, config_id, version,
-			content, creator_id, created_at
-		) VALUES (
-			:app_id, :config_type, :config_id, :version,
-			:content, :creator_id, NOW()
+	// 创建维度数据表
+	tableName := dimension.TableName
+	createTableSQL := fmt.Sprintf(`
+		CREATE TABLE %s (
+			id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
+			node_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '节点ID',
+			parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父节点ID',
+			name VARCHAR(100) NOT NULL DEFAULT '' COMMENT '名称',
+			code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '编码',
+			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+			creator_id INT NOT NULL DEFAULT 0 COMMENT '创建者ID',
+			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+			updater_id INT NOT NULL DEFAULT 0 COMMENT '更新者ID',
+			UNIQUE KEY uk_code (code)
 		)
-	`, version)
+	`, tableName)
+	_, err = tx.Exec(createTableSQL)
 	if err != nil {
-		return fmt.Errorf("insert sys_config_versions failed: %v", err)
+		return 0, fmt.Errorf("create table failed: %v", err)
 	}
 
 	// 提交事务
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction failed: %v", err)
+		return 0, fmt.Errorf("commit transaction failed: %v", err)
 	}
 
-	return nil
+	return uint(id), nil
 }
 
 // UpdateDimension 更新维度配置
@@ -87,54 +97,44 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 	}
 	defer tx.Rollback()
 
-	// 获取当前版本
-	var currentVersion int
-	err = tx.Get(&currentVersion, "SELECT version FROM sys_config_dimensions WHERE id = ?", dimension.ID)
+	// 获取旧数据表名
+	var oldTableName string
+	err = tx.Get(&oldTableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimension.ID)
 	if err != nil {
-		return fmt.Errorf("get current version failed: %v", err)
+		return fmt.Errorf("get old table name failed: %v", err)
 	}
 
-	// 更新版本号
-	dimension.Version = currentVersion + 1
+	// 对比数据表名是否有变化
+	if oldTableName != dimension.TableName {
+		// 检查新表名是否已存在
+		var count int
+		err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", dimension.TableName)
+		if err != nil {
+			return fmt.Errorf("check table name failed: %v", err)
+		}
+		if count > 0 {
+			return fmt.Errorf("table name already exists")
+		}
+
+		// 修改数据表名
+		_, err = tx.Exec("RENAME TABLE " + oldTableName + " TO " + dimension.TableName)
+		if err != nil {
+			return fmt.Errorf("rename table failed: %v", err)
+		}
+	}
 
 	// 更新维度配置
 	_, err = tx.NamedExec(`
 			UPDATE sys_config_dimensions SET 
-				name = :name,
-				code = :code,
-				type = :type,
-				mysql_table_name = :mysql_table_name,
-				configuration = :configuration,
-				status = :status,
-				version = :version,
-				updated_at = NOW()
+				table_name = :table_name,
+				display_name = :display_name, 
+				description = :description, 
+				updated_at = NOW(), 
+				updater_id = :updater_id
 			WHERE id = :id
 		`, dimension)
 	if err != nil {
 		return fmt.Errorf("update sys_config_dimensions failed: %v", err)
-	}
-
-	// 创建新的版本记录
-	version := &model.ConfigVersion{
-		AppID:      dimension.AppID,
-		ConfigType: "dimension",
-		ConfigID:   dimension.ID,
-		Version:    dimension.Version,
-		Content:    dimension.Configuration, // 使用配置作为版本内容
-		CreatorID:  updaterID,
-	}
-
-	_, err = tx.NamedExec(`
-		INSERT INTO sys_config_versions (
-			app_id, config_type, config_id, version,
-			content, creator_id, created_at
-		) VALUES (
-			:app_id, :config_type, :config_id, :version,
-			:content, :creator_id, NOW()
-		)
-	`, version)
-	if err != nil {
-		return fmt.Errorf("insert sys_config_versions failed: %v", err)
 	}
 
 	// 提交事务
@@ -186,51 +186,4 @@ func (s *DimensionService) ListDimensions(appID uint) ([]model.ConfigDimension, 
 		return nil, fmt.Errorf("list dimensions failed: %v", err)
 	}
 	return dimensions, nil
-}
-
-// GetDimensionValues 获取维度值列表
-func (s *DimensionService) GetDimensionValues(dimensionID uint, filter map[string]any) ([]map[string]any, error) {
-	// 获取维度配置
-	dimension, err := s.GetDimension(dimensionID)
-	if err != nil {
-		return nil, err
-	}
-
-	// 解析维度配置
-	var config model.DimensionConfig
-	if err := json.Unmarshal([]byte(dimension.Configuration), &config); err != nil {
-		return nil, fmt.Errorf("unmarshal configuration failed: %v", err)
-	}
-
-	// 构建查询SQL
-	query := fmt.Sprintf("SELECT * FROM %s", dimension.MySQLTableName)
-	var params []any
-
-	// 添加过滤条件
-	if len(filter) > 0 {
-		query += " WHERE "
-		var conditions []string
-		for k, v := range filter {
-			conditions = append(conditions, fmt.Sprintf("%s = ?", k))
-			params = append(params, v)
-		}
-		query += fmt.Sprint(conditions[0])
-		for i := 1; i < len(conditions); i++ {
-			query += fmt.Sprintf(" AND %s", conditions[i])
-		}
-	}
-
-	// 添加排序
-	if config.OrderField != "" {
-		query += fmt.Sprintf(" ORDER BY %s", config.OrderField)
-	}
-
-	// 执行查询
-	var values []map[string]any
-	err = s.db.Select(&values, query, params...)
-	if err != nil {
-		return nil, fmt.Errorf("query dimension values failed: %v", err)
-	}
-
-	return values, nil
 }

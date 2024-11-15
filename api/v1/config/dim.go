@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
-	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // @Summary      创建维度配置
@@ -20,19 +19,20 @@ import (
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions [post]
 func (api *ConfigAPI) CreateDimension(c *gin.Context) {
-	var req config.CreateDimensionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	var dimension model.ConfigDimension
+	if err := c.ShouldBindJSON(&dimension); err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-	if err := api.configService.CreateDimension(&req, userID); err != nil {
+	id, err := api.configService.CreateDimension(&dimension, userID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, Response{})
+	c.JSON(http.StatusCreated, gin.H{"ID": id})
 }
 
 // @Summary      更新维度配置

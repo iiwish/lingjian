@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/iiwish/lingjian/internal/model"
@@ -208,5 +209,62 @@ func (s *MenuService) ListMenus(appID uint, userID uint) ([]model.ConfigMenu, er
 		resultList = append(resultList, *menu)
 	}
 
+	// 按照 id 字段排序
+	sort.Slice(resultList, func(i, j int) bool {
+		return resultList[i].ID < resultList[j].ID
+	})
+
 	return resultList, nil
+}
+
+// TreeMenus 获取菜单树形结构
+func (s *MenuService) TreeMenus(appID uint, userID uint) ([]model.TreeConfigMenu, error) {
+	// 调用 ListMenus 获取所有相关的菜单
+	menus, err := s.ListMenus(appID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("list menus failed: %v", err)
+	}
+
+	// 创建一个map来存储所有菜单
+	menuMap := make(map[uint]*model.TreeConfigMenu)
+	for _, menu := range menus {
+		menuMap[menu.ID] = &model.TreeConfigMenu{
+			ID:        menu.ID,
+			AppID:     menu.AppID,
+			NodeID:    menu.NodeID,
+			ParentID:  menu.ParentID,
+			MenuName:  menu.MenuName,
+			MenuCode:  menu.MenuCode,
+			MenuType:  menu.MenuType,
+			Level:     menu.Level,
+			Sort:      menu.Sort,
+			Icon:      menu.Icon,
+			Path:      menu.Path,
+			Status:    menu.Status,
+			CreatedAt: menu.CreatedAt,
+			CreatorID: menu.CreatorID,
+			UpdatedAt: menu.UpdatedAt,
+			UpdaterID: menu.UpdaterID,
+			Children:  []*model.TreeConfigMenu{},
+		}
+	}
+
+	// 创建树形结构
+	var treeMenus []model.TreeConfigMenu
+	for _, menu := range menuMap {
+		if menu.ParentID == 0 {
+			treeMenus = append(treeMenus, *menu)
+		} else {
+			if parent, ok := menuMap[menu.ParentID]; ok {
+				parent.Children = append(parent.Children, menu)
+			}
+		}
+	}
+
+	// 按照 id 字段排序
+	sort.Slice(treeMenus, func(i, j int) bool {
+		return treeMenus[i].ID < treeMenus[j].ID
+	})
+
+	return treeMenus, nil
 }

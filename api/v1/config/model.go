@@ -6,7 +6,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
-	"github.com/iiwish/lingjian/internal/service/config"
 )
 
 // @Summary      创建数据模型配置
@@ -20,19 +19,20 @@ import (
 // @Failure      500  {object}  Response
 // @Router       /config/models [post]
 func (api *ConfigAPI) CreateModel(c *gin.Context) {
-	var req config.CreateModelRequest
+	var req model.ConfigModel
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-	if err := api.configService.CreateModel(&req, userID); err != nil {
+	id, err := api.configService.CreateModel(&req, userID)
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusCreated, Response{})
+	c.JSON(http.StatusCreated, gin.H{"ID": id})
 }
 
 // @Summary      更新数据模型配置
@@ -144,63 +144,4 @@ func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 	}
 
 	c.Status(http.StatusNoContent)
-}
-
-// @Summary      获取数据模型配置版本历史
-// @Description  获取指定数据模型配置的版本历史记录
-// @Tags         ConfigModel
-// @Accept       json
-// @Produce      json
-// @Param        id path int true "配置ID"
-// @Success      200  {array}   model.ConfigVersion
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/models/{id}/versions [get]
-func (api *ConfigAPI) GetModelVersions(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
-		return
-	}
-
-	versions, err := api.configService.GetModelVersions(uint(id))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, versions)
-}
-
-// @Summary      回滚数据模型配置
-// @Description  将数据模型配置回滚到指定版本
-// @Tags         ConfigModel
-// @Accept       json
-// @Produce      json
-// @Param        id path int true "配置ID"
-// @Param        version query int true "目标版本号"
-// @Success      200  {object}  nil
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/models/{id}/rollback [post]
-func (api *ConfigAPI) RollbackModel(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
-		return
-	}
-
-	version, err := strconv.Atoi(c.Query("version"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid version"})
-		return
-	}
-
-	userID := uint(c.GetInt64("user_id"))
-	if err := api.configService.RollbackModel(uint(id), version, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
-		return
-	}
-
-	c.Status(http.StatusOK)
 }

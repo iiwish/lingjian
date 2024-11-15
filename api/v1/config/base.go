@@ -35,19 +35,33 @@ func RegisterConfigRoutes(router *gin.RouterGroup) {
 func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 	config := router.Group("/config")
 	{
-		// 数据表配置
+		// 数据表主体配置
 		config.POST("/tables", api.CreateTable)
 		config.PUT("/tables/:id", api.UpdateTable)
 		config.GET("/tables", api.ListTables)
 		config.GET("/tables/:id", api.GetTable)
 		config.DELETE("/tables/:id", api.DeleteTable)
 
-		// 维度配置
+		// 数据表明细配置
+		// config.POST("/tables/items", api.CreateTableItem)
+		// config.PATCH("/tables/items/:id", api.PatchTableItem)
+		// config.GET("/tables/items", api.ListTableItems)
+		// config.GET("/tables/items/:id", api.GetTableItem)
+		// config.DELETE("/tables/items/:id", api.DeleteTableItem)
+
+		// 维度主体配置
 		config.POST("/dimensions", api.CreateDimension)
 		config.PUT("/dimensions/:id", api.UpdateDimension)
 		config.GET("/dimensions", api.ListDimensions)
 		config.GET("/dimensions/:id", api.GetDimension)
 		config.DELETE("/dimensions/:id", api.DeleteDimension)
+
+		// 维度明细配置
+		// config.POST("/dimensions/items", api.CreateDimensionItem)
+		// config.PATCH("/dimensions/items/:id", api.PatchDimensionItem)
+		// config.GET("/dimensions/items", api.TreeDimensionItems)
+		// config.GET("/dimensions/items/:id", api.GetDimensionItem)
+		// config.DELETE("/dimensions/items/:id", api.DeleteDimensionItem)
 
 		// 数据模型配置
 		config.POST("/models", api.CreateModel)
@@ -55,8 +69,6 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/models", api.ListModels)
 		config.GET("/models/:id", api.GetModel)
 		config.DELETE("/models/:id", api.DeleteModel)
-		config.GET("/models/:id/versions", api.GetModelVersions)
-		config.POST("/models/:id/rollback", api.RollbackModel)
 
 		// 表单配置
 		config.POST("/forms", api.CreateForm)
@@ -64,14 +76,12 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/forms", api.ListForms)
 		config.GET("/forms/:id", api.GetForm)
 		config.DELETE("/forms/:id", api.DeleteForm)
-		config.GET("/forms/:id/versions", api.GetFormVersions)
-		config.POST("/forms/:id/rollback", api.RollbackForm)
 
 		// 菜单配置
 		config.POST("/menus", api.CreateMenu)
 		config.PUT("/menus/:id", api.UpdateMenu)
 		config.GET("/menus", api.ListMenus)
-		config.GET("/menus/tree", api.MenusTree)
+		config.GET("/menus/tree", api.TreeMenus)
 		config.GET("/menus/:id", api.GetMenu)
 		config.DELETE("/menus/:id", api.DeleteMenu)
 	}
