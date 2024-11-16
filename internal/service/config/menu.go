@@ -2,11 +2,8 @@ package config
 
 import (
 	"fmt"
-	"sort"
-	"strings"
 
 	"github.com/iiwish/lingjian/internal/model"
-	"github.com/iiwish/lingjian/pkg/utils"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -99,7 +96,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 }
 
 // GetMenu 获取菜单配置
-func (s *MenuService) GetMenu(id uint) (*model.ConfigMenu, error) {
+func (s *MenuService) GetMenuByID(id uint) (*model.ConfigMenu, error) {
 	var menu model.ConfigMenu
 	err := s.db.Get(&menu, "SELECT * FROM sys_config_menus WHERE id = ?", id)
 	if err != nil {
@@ -117,8 +114,8 @@ func (s *MenuService) DeleteMenu(id uint) error {
 	}
 	defer tx.Rollback()
 
-	// 软删除菜单配置（将状态设置为0）
-	_, err = tx.Exec("UPDATE sys_config_menus SET status = 0, updated_at = NOW() WHERE id = ?", id)
+	// 删除菜单配置
+	_, err = tx.Exec("DELETE FROM sys_config_menus WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("delete menu failed: %v", err)
 	}
@@ -131,140 +128,116 @@ func (s *MenuService) DeleteMenu(id uint) error {
 	return nil
 }
 
-// ListMenus 获取菜单配置列表
-func (s *MenuService) ListMenus(appID uint, userID uint) ([]model.ConfigMenu, error) {
-	var menus []model.ConfigMenu
-	query := `
-        SELECT m.* FROM sys_config_menus m
+// GetMenus 获取菜单列表
+func (s *MenuService) GetMenus(appID uint, userID uint, level *int, parentID *uint, menuType string) ([]model.TreeConfigMenu, error) {
+	// 基础查询,添加权限控制
+	baseQuery := `
+        SELECT DISTINCT m.* FROM sys_config_menus m
         INNER JOIN sys_permissions p ON m.id = p.menu_id
         INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
         INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
-        WHERE ur.user_id = ?
+        WHERE ur.user_id = ? 
         AND m.app_id = ?
+        AND m.status = 1
         AND p.status = 1
-        ORDER BY m.sort ASC, m.id ASC
     `
-	err := s.db.Select(&menus, query, userID, appID)
-	if err != nil {
-		return nil, fmt.Errorf("list menus failed: %v", err)
+	args := []interface{}{userID, appID}
+
+	// 添加level过滤
+	if level != nil {
+		baseQuery += " AND m.level = ?"
+		args = append(args, *level)
 	}
 
-	// 获取所有子菜单和父级菜单
-	result := make(map[uint]*model.ConfigMenu)
-	queryIDs := make(map[uint]struct{})
+	// 添加parentID和menuType过滤
+	if parentID != nil {
+		if menuType == "descendants" {
+			baseQuery += " AND (m.node_id LIKE ? OR m.node_id LIKE ?)"
+			args = append(args, fmt.Sprintf("%d_%%", *parentID), fmt.Sprintf("%%_%d_%%", *parentID))
+		} else {
+			baseQuery += " AND m.parent_id = ?"
+			args = append(args, *parentID)
+		}
+	}
+
+	baseQuery += " ORDER BY m.sort ASC, m.id ASC"
+
+	var menus []model.TreeConfigMenu
+	err := s.db.Select(&menus, baseQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("get menus failed: %v", err)
+	}
+
+	// 如果只需要指定level的菜单,直接返回
+	if level != nil {
+		return menus, nil
+	}
+
+	// 构建树形结构
+	menuMap := make(map[uint]*model.TreeConfigMenu)
 	for _, menu := range menus {
-		result[menu.ID] = &menu
-		if menu.ParentID != 0 {
-			nodeIDs := strings.Split(menu.NodeID, "_")
-			for _, nodeID := range nodeIDs {
-				id := utils.ParseUint(nodeID)
-				if _, ok := result[id]; !ok {
-					queryIDs[id] = struct{}{}
+		menuCopy := menu // 创建副本避免指针问题
+		menuMap[menu.ID] = &menuCopy
+		menuMap[menu.ID].Children = []*model.TreeConfigMenu{}
+	}
+
+	// 如果是查询子集,需要额外查询父级菜单以构建完整的树形结构
+	if parentID != nil && len(menus) > 0 {
+		parentQuery := `
+            SELECT DISTINCT m.* FROM sys_config_menus m
+            INNER JOIN sys_permissions p ON m.id = p.menu_id
+            INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
+            INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
+            WHERE ur.user_id = ? 
+            AND m.app_id = ?
+            AND m.status = 1
+            AND p.status = 1
+            AND m.id = ?
+        `
+		var parent model.TreeConfigMenu
+		err := s.db.Get(&parent, parentQuery, userID, appID, *parentID)
+		if err == nil {
+			menuMap[parent.ID] = &parent
+			menuMap[parent.ID].Children = []*model.TreeConfigMenu{}
+		}
+	}
+
+	// 构建树形结构
+	var treeMenus []model.TreeConfigMenu
+	if menuType == "children" && parentID != nil {
+		// 只返回直接子集
+		for _, menu := range menuMap {
+			if menu.ID == *parentID {
+				children := make([]model.TreeConfigMenu, 0)
+				for _, child := range menu.Children {
+					children = append(children, *child)
+				}
+				return children, nil
+			}
+		}
+		return []model.TreeConfigMenu{}, nil
+	} else {
+		// 构建完整的树形结构
+		for _, menu := range menuMap {
+			if menu.ParentID == 0 || (parentID != nil && menu.ID == *parentID) {
+				treeMenus = append(treeMenus, *menu)
+			} else {
+				if parent, ok := menuMap[menu.ParentID]; ok {
+					parent.Children = append(parent.Children, menu)
 				}
 			}
 		}
-	}
 
-	if len(queryIDs) > 0 {
-		ids := make([]uint, 0, len(queryIDs))
-		for id := range queryIDs {
-			ids = append(ids, id)
-		}
-
-		query, args, err := sqlx.In(`
-            SELECT * FROM sys_config_menus WHERE id IN (?)
-        `, ids)
-		if err != nil {
-			return nil, err
-		}
-
-		query = s.db.Rebind(query)
-		var parents []model.ConfigMenu
-		err = s.db.Select(&parents, query, args...)
-		if err != nil {
-			return nil, err
-		}
-		for _, parent := range parents {
-			result[parent.ID] = &parent
-		}
-	}
-
-	for _, menu := range menus {
-		query := `
-            SELECT * FROM sys_config_menus WHERE node_id LIKE ? ORDER BY sort ASC, id ASC
-        `
-		var children []model.ConfigMenu
-		err := s.db.Select(&children, query, menu.NodeID+"%")
-		if err != nil {
-			return nil, fmt.Errorf("list children menus failed: %v", err)
-		}
-		for _, child := range children {
-			result[child.ID] = &child
-		}
-	}
-
-	// 将结果转换为数组
-	resultList := make([]model.ConfigMenu, 0, len(result))
-	for _, menu := range result {
-		resultList = append(resultList, *menu)
-	}
-
-	// 按照 id 字段排序
-	sort.Slice(resultList, func(i, j int) bool {
-		return resultList[i].ID < resultList[j].ID
-	})
-
-	return resultList, nil
-}
-
-// TreeMenus 获取菜单树形结构
-func (s *MenuService) TreeMenus(appID uint, userID uint) ([]model.TreeConfigMenu, error) {
-	// 调用 ListMenus 获取所有相关的菜单
-	menus, err := s.ListMenus(appID, userID)
-	if err != nil {
-		return nil, fmt.Errorf("list menus failed: %v", err)
-	}
-
-	// 创建一个map来存储所有菜单
-	menuMap := make(map[uint]*model.TreeConfigMenu)
-	for _, menu := range menus {
-		menuMap[menu.ID] = &model.TreeConfigMenu{
-			ID:        menu.ID,
-			AppID:     menu.AppID,
-			NodeID:    menu.NodeID,
-			ParentID:  menu.ParentID,
-			MenuName:  menu.MenuName,
-			MenuCode:  menu.MenuCode,
-			MenuType:  menu.MenuType,
-			Level:     menu.Level,
-			Sort:      menu.Sort,
-			Icon:      menu.Icon,
-			Path:      menu.Path,
-			Status:    menu.Status,
-			CreatedAt: menu.CreatedAt,
-			CreatorID: menu.CreatorID,
-			UpdatedAt: menu.UpdatedAt,
-			UpdaterID: menu.UpdaterID,
-			Children:  []*model.TreeConfigMenu{},
-		}
-	}
-
-	// 创建树形结构
-	var treeMenus []model.TreeConfigMenu
-	for _, menu := range menuMap {
-		if menu.ParentID == 0 {
-			treeMenus = append(treeMenus, *menu)
-		} else {
-			if parent, ok := menuMap[menu.ParentID]; ok {
-				parent.Children = append(parent.Children, menu)
+		// 如果是descendants类型,只返回指定parentID的子树
+		if menuType == "descendants" && parentID != nil {
+			for _, menu := range treeMenus {
+				if menu.ID == *parentID {
+					return []model.TreeConfigMenu{menu}, nil
+				}
 			}
+			return []model.TreeConfigMenu{}, nil
 		}
 	}
-
-	// 按照 id 字段排序
-	sort.Slice(treeMenus, func(i, j int) bool {
-		return treeMenus[i].ID < treeMenus[j].ID
-	})
 
 	return treeMenus, nil
 }

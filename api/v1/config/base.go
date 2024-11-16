@@ -63,8 +63,8 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		// 菜单配置
 		config.POST("/menus", api.CreateMenu)
 		config.PUT("/menus/:id", api.UpdateMenu)
-		config.GET("/menus", api.TreeMenus)
-		config.GET("/menus/:id", api.GetMenu)
+		config.GET("/menus", api.GetMenus)
+		config.GET("/menus/:id", api.GetMenuByID)
 		config.DELETE("/menus/:id", api.DeleteMenu)
 
 		// 数据模型配置

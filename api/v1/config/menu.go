@@ -14,7 +14,7 @@ import (
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
-// @Param        request body config.CreateMenuRequest true "创建菜单配置请求参数"
+// @Param        request body model.ConfigMenu true "创建菜单配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
@@ -79,14 +79,14 @@ func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/menus/{id} [get]
-func (api *ConfigAPI) GetMenu(c *gin.Context) {
+func (api *ConfigAPI) GetMenuByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
-	menu, err := api.configService.GetMenu(uint(id))
+	menu, err := api.configService.GetMenuByID(uint(id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
@@ -106,11 +106,7 @@ func (api *ConfigAPI) GetMenu(c *gin.Context) {
 // @Failure      500  {object}  Response
 // @Router       /config/menus/{id} [delete]
 func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
-		return
-	}
+	id := utils.ParseUint(c.Param("id"))
 
 	if err := api.configService.DeleteMenu(uint(id)); err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
@@ -120,21 +116,22 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// treeMenus
-// @Summary      获取菜单树
-// @Description  获取指定应用的菜单树
+// @Summary      获取菜单列表
+// @Description  根据可选的 level、parent_id 和 type 参数获取菜单列表
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
-// @Param        app_id query int true "应用ID"
-// @Success      200  {object}  []model.TreeConfigMenu
+// @Param        level     query    int     false  "菜单级别"
+// @Param        parent_id query    uint    false  "父菜单ID"
+// @Param        type      query    string  false  "菜单类型，可选值为 'children'、'descendants' , 默认为 'children'"
+// @Success      200  {object}  []model.ConfigMenu
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/menus/tree [get]
-func (api *ConfigAPI) TreeMenus(c *gin.Context) {
-	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
+// @Router       /config/menus [get]
+func (api *ConfigAPI) GetMenus(c *gin.Context) {
+	appID := c.GetUint("app_id")
+	if appID == 0 {
+		utils.Error(c, 400, "无效的 app_id 参数")
 		return
 	}
 
@@ -144,7 +141,46 @@ func (api *ConfigAPI) TreeMenus(c *gin.Context) {
 		return
 	}
 
-	menus, err := api.configService.TreeMenus(uint(appID), operatorID)
+	// 获取可选参数
+	levelStr := c.Query("level")
+	parentIDStr := c.Query("parent_id")
+	menuType := c.Query("type")
+
+	if menuType == "" {
+		menuType = "children"
+	}
+
+	var (
+		level    *int
+		parentID *uint
+		err      error
+	)
+
+	if levelStr != "" {
+		lvl := utils.ParseInt(levelStr)
+		if levelStr != "0" && lvl == 0 {
+			c.JSON(http.StatusBadRequest, Response{Error: "无效的 level 参数"})
+			return
+		}
+		level = &lvl
+	}
+
+	if parentIDStr != "" {
+		pid := utils.ParseUint(parentIDStr)
+		if parentIDStr != "0" && pid == 0 {
+			c.JSON(http.StatusBadRequest, Response{Error: "无效的 parent_id 参数"})
+			return
+		}
+		parentID = &pid
+	}
+
+	if menuType != "children" && menuType != "descendants" {
+		c.JSON(http.StatusBadRequest, Response{Error: "无效的 type 参数"})
+		return
+	}
+
+	// 调用服务获取菜单列表
+	menus, err := api.configService.GetMenus(appID, operatorID, level, parentID, menuType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return

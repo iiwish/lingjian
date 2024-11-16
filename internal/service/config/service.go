@@ -143,18 +143,14 @@ func (s *ConfigService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error
 	return s.menuService.UpdateMenu(menu, updaterID)
 }
 
-func (s *ConfigService) GetMenu(id uint) (*model.ConfigMenu, error) {
-	return s.menuService.GetMenu(id)
+func (s *ConfigService) GetMenuByID(id uint) (*model.ConfigMenu, error) {
+	return s.menuService.GetMenuByID(id)
 }
 
 func (s *ConfigService) DeleteMenu(id uint) error {
 	return s.menuService.DeleteMenu(id)
 }
 
-func (s *ConfigService) ListMenus(appID uint, userID uint) ([]model.ConfigMenu, error) {
-	return s.menuService.ListMenus(appID, userID)
-}
-
-func (s *ConfigService) TreeMenus(appID uint, userID uint) ([]model.TreeConfigMenu, error) {
-	return s.menuService.TreeMenus(appID, userID)
+func (s *ConfigService) GetMenus(appID uint, operatorID uint, level *int, parentID *uint, menuType string) ([]model.TreeConfigMenu, error) {
+	return s.menuService.GetMenus(appID, operatorID, level, parentID, menuType)
 }
