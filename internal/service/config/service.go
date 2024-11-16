@@ -46,6 +46,35 @@ func (s *ConfigService) ListTables(appID uint) ([]model.ConfigTable, error) {
 	return s.tableService.ListTables(appID)
 }
 
+// 表记录相关方法
+func (s *ConfigService) CreateTableItem(tableItem map[string]interface{}, creatorID uint, tableID uint) (uint, error) {
+	return s.tableService.CreateTableItem(tableItem, creatorID, tableID)
+}
+
+func (s *ConfigService) BatchCreateTableItems(tableItems []map[string]interface{}, creatorID uint, tableID uint) error {
+	return s.tableService.BatchCreateTableItems(tableItems, creatorID, tableID)
+}
+
+func (s *ConfigService) UpdateTableItem(tableItem map[string]interface{}, updaterID uint, tableID uint, itemID uint) error {
+	return s.tableService.UpdateTableItem(tableItem, updaterID, tableID, itemID)
+}
+
+func (s *ConfigService) GetTableItem(tableID uint, itemID uint) (map[string]interface{}, error) {
+	return s.tableService.GetTableItem(tableID, itemID)
+}
+
+func (s *ConfigService) ListTableItems(tableID uint, page int, pageSize int, query *model.QueryCondition) ([]map[string]interface{}, int, error) {
+	return s.tableService.ListTableItems(tableID, page, pageSize, query)
+}
+
+func (s *ConfigService) DeleteTableItem(operatorID uint, tableID uint, itemID uint) error {
+	return s.tableService.DeleteTableItem(operatorID, tableID, itemID)
+}
+
+func (s *ConfigService) BatchDeleteTableItems(operatorID uint, tableID uint, itemIDs []uint) error {
+	return s.tableService.BatchDeleteTableItems(operatorID, tableID, itemIDs)
+}
+
 // 维度配置相关方法
 func (s *ConfigService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) (uint, error) {
 	return s.dimensionService.CreateDimension(dimension, creatorID)

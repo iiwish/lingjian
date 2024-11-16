@@ -7,7 +7,7 @@ import (
 )
 
 // CreateDimensionItem 创建维度明细配置
-func (s *DimensionService) CreateDimensionItem(dimension *model.ConfigDimensionItem, creatorID uint, dimID uint) (uint, error) {
+func (s *DimensionService) CreateDimensionItem(dimension *model.ConfigDimensionItem, creatorID uint, dim_id uint) (uint, error) {
 	dimension.Status = 1
 	dimension.CreatorID = creatorID
 	dimension.UpdaterID = creatorID
@@ -21,7 +21,7 @@ func (s *DimensionService) CreateDimensionItem(dimension *model.ConfigDimensionI
 
 	// 从配置表读取维度配置
 	var table_name string
-	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimID)
+	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
 		return 0, fmt.Errorf("get table name failed: %v", err)
 	}
@@ -50,7 +50,7 @@ func (s *DimensionService) CreateDimensionItem(dimension *model.ConfigDimensionI
 }
 
 // BatchCreateDimensionItems 批量创建维度明细配置
-func (s *DimensionService) BatchCreateDimensionItems(dimensionItems []*model.ConfigDimensionItem, creatorID uint, dimID uint) error {
+func (s *DimensionService) BatchCreateDimensionItems(dimensionItems []*model.ConfigDimensionItem, creatorID uint, dim_id uint) error {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -60,7 +60,7 @@ func (s *DimensionService) BatchCreateDimensionItems(dimensionItems []*model.Con
 
 	// 从配置表读取维度配置
 	var table_name string
-	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimID)
+	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
 		return fmt.Errorf("get table name failed: %v", err)
 	}
@@ -89,7 +89,7 @@ func (s *DimensionService) BatchCreateDimensionItems(dimensionItems []*model.Con
 }
 
 // UpdateDimensionItem 更新维度明细配置
-func (s *DimensionService) UpdateDimensionItem(dimension *model.ConfigDimensionItem, updaterID uint, dimID uint) error {
+func (s *DimensionService) UpdateDimensionItem(dimension *model.ConfigDimensionItem, updaterID uint, dim_id uint) error {
 	dimension.UpdaterID = updaterID
 
 	// 开启事务
@@ -101,7 +101,7 @@ func (s *DimensionService) UpdateDimensionItem(dimension *model.ConfigDimensionI
 
 	// 从配置表读取维度配置
 	var table_name string
-	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimID)
+	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
 		return fmt.Errorf("get table name failed: %v", err)
 	}
@@ -124,10 +124,10 @@ func (s *DimensionService) UpdateDimensionItem(dimension *model.ConfigDimensionI
 }
 
 // TreeDimensionItems 获取维度明细配置树形结构
-func (s *DimensionService) TreeDimensionItems(dimID uint) ([]*model.TreeConfigDimensionItem, error) {
+func (s *DimensionService) TreeDimensionItems(dim_id uint) ([]*model.TreeConfigDimensionItem, error) {
 	// 从配置表读取维度配置
 	var tableName string
-	err := s.db.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimID)
+	err := s.db.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
 		return nil, fmt.Errorf("获取表名失败: %v", err)
 	}
@@ -175,7 +175,7 @@ func (s *DimensionService) TreeDimensionItems(dimID uint) ([]*model.TreeConfigDi
 }
 
 // DeleteDimensionItem 删除维度明细配置
-func (s *DimensionService) DeleteDimensionItem(operatorID uint, dimID uint, itemID uint) error {
+func (s *DimensionService) DeleteDimensionItem(operatorID uint, dim_id uint, itemID uint) error {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -185,7 +185,7 @@ func (s *DimensionService) DeleteDimensionItem(operatorID uint, dimID uint, item
 
 	// 从配置表读取维度配置
 	var tableName string
-	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimID)
+	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
 		return fmt.Errorf("get table name failed: %v", err)
 	}
@@ -205,7 +205,7 @@ func (s *DimensionService) DeleteDimensionItem(operatorID uint, dimID uint, item
 }
 
 // BatchDeleteDimensionItems 批量删除维度明细配置
-func (s *DimensionService) BatchDeleteDimensionItems(operatorID uint, dimID uint, itemIDs []uint) error {
+func (s *DimensionService) BatchDeleteDimensionItems(operatorID uint, dim_id uint, itemIDs []uint) error {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -215,7 +215,7 @@ func (s *DimensionService) BatchDeleteDimensionItems(operatorID uint, dimID uint
 
 	// 从配置表读取维度配置
 	var tableName string
-	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimID)
+	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
 		return fmt.Errorf("get table name failed: %v", err)
 	}
