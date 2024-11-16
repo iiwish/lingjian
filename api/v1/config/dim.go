@@ -13,8 +13,8 @@ import (
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
-// @Param        request body config.CreateDimensionRequest true "创建维度配置请求参数"
-// @Success      201  {object}  Response
+// @Param        dimension body model.ConfigDimension true "创建维度配置请求参数"
+// @Success      201  {object}  gin.H{"ID": uint}
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions [post]
@@ -50,8 +50,8 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
-// @Param        id path int true "配置ID"
-// @Param        request body model.ConfigDimension true "更新维度配置请求参数"
+// @Param        id     path int true "配置ID"
+// @Param        dimension body model.ConfigDimension true "更新维度配置请求参数"
 // @Success      200  {object}  model.ConfigDimension
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
@@ -97,7 +97,6 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
-// @Param        app_id query int true "应用ID"
 // @Success      200  {array}   model.ConfigDimension
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response

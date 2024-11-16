@@ -8,16 +8,17 @@ import (
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
-// @Summary      创建维度配置
-// @Description  创建新的维度配置
-// @Tags         ConfigDimension
+// @Summary      创建维度配置项
+// @Description  创建新的维度配置项
+// @Tags         ConfigDimensionItem
 // @Accept       json
 // @Produce      json
-// @Param        request body config.CreateDimensionRequest true "创建维度配置请求参数"
-// @Success      201  {object}  Response
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/dimensions/:id/items [post]
+// @Param        id         path int                      true  "维度ID"
+// @Param        dimension  body model.ConfigDimensionItem true  "创建维度配置项的请求参数"
+// @Success      201        {object}  gin.H{"ID": uint}
+// @Failure      400        {object}  Response
+// @Failure      500        {object}  Response
+// @Router       /config/dimensions/{id}/items [post]
 func (api *ConfigAPI) CreateDimensionItem(c *gin.Context) {
 	// 获取id参数
 	dimID := c.Param("id")
@@ -53,6 +54,17 @@ func (api *ConfigAPI) CreateDimensionItem(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"ID": id})
 }
 
+// @Summary      批量创建维度配置项
+// @Description  批量创建新的维度配置项
+// @Tags         ConfigDimensionItem
+// @Accept       json
+// @Produce      json
+// @Param        id          path int                        true  "维度ID"
+// @Param        dimensions  body []model.ConfigDimensionItem true  "批量创建维度配置项的请求参数"
+// @Success      201         {object}  gin.H{}
+// @Failure      400         {object}  Response
+// @Failure      500         {object}  Response
+// @Router       /config/dimensions/{id}/items/batch [post]
 func (api *ConfigAPI) BatchCreateDimensionItems(c *gin.Context) {
 	// 获取id参数
 	dimID := c.Param("id")
@@ -90,6 +102,18 @@ func (api *ConfigAPI) BatchCreateDimensionItems(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{})
 }
 
+// @Summary      更新维度配置项
+// @Description  更新已存在的维度配置项
+// @Tags         ConfigDimensionItem
+// @Accept       json
+// @Produce      json
+// @Param        dim_id     path int                      true  "维度ID"
+// @Param        id         path int                      true  "配置项ID"
+// @Param        dimension  body model.ConfigDimensionItem true  "更新维度配置项的请求参数"
+// @Success      200        {object}  model.ConfigDimensionItem
+// @Failure      400        {object}  Response
+// @Failure      500        {object}  Response
+// @Router       /config/dimensions/{dim_id}/items/{id} [put]
 func (api *ConfigAPI) UpdateDimensionItem(c *gin.Context) {
 	// 获取id参数
 	id := c.Param("id")
@@ -131,6 +155,16 @@ func (api *ConfigAPI) UpdateDimensionItem(c *gin.Context) {
 	c.JSON(http.StatusOK, dimension)
 }
 
+// @Summary      获取维度配置项树
+// @Description  获取指定维度的配置项树
+// @Tags         ConfigDimensionItem
+// @Accept       json
+// @Produce      json
+// @Param        id  path int true "维度ID"
+// @Success      200 {array}   model.ConfigDimensionItem
+// @Failure      400 {object}  Response
+// @Failure      500 {object}  Response
+// @Router       /config/dimensions/{id}/items [get]
 func (api *ConfigAPI) TreeDimensionItems(c *gin.Context) {
 	// 获取id参数
 	id := c.Param("id")
@@ -148,6 +182,17 @@ func (api *ConfigAPI) TreeDimensionItems(c *gin.Context) {
 	c.JSON(http.StatusOK, items)
 }
 
+// @Summary      删除维度配置项
+// @Description  删除指定的维度配置项
+// @Tags         ConfigDimensionItem
+// @Accept       json
+// @Produce      json
+// @Param        dim_id  path int true "维度ID"
+// @Param        id      path int true "配置项ID"
+// @Success      204     {object}  nil
+// @Failure      400     {object}  Response
+// @Failure      500     {object}  Response
+// @Router       /config/dimensions/{dim_id}/items/{id} [delete]
 func (api *ConfigAPI) DeleteDimensionItem(c *gin.Context) {
 	// 获取id参数
 	id := c.Param("id")
@@ -171,6 +216,17 @@ func (api *ConfigAPI) DeleteDimensionItem(c *gin.Context) {
 	c.JSON(http.StatusNoContent, nil)
 }
 
+// @Summary      批量删除维度配置项
+// @Description  批量删除指定的维度配置项
+// @Tags         ConfigDimensionItem
+// @Accept       json
+// @Produce      json
+// @Param        id   path int    true  "维度ID"
+// @Param        ids  body []uint true  "配置项ID列表"
+// @Success      204  {object}  nil
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /config/dimensions/{id}/items/batch [delete]
 func (api *ConfigAPI) BatchDeleteDimensionItems(c *gin.Context) {
 	// 获取dimID参数
 	dimID := c.Param("id")

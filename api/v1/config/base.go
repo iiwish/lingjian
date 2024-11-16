@@ -35,20 +35,6 @@ func RegisterConfigRoutes(router *gin.RouterGroup) {
 func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 	config := router.Group("/config")
 	{
-		// 数据表主体配置
-		config.POST("/tables", api.CreateTable)
-		config.PUT("/tables/:id", api.UpdateTable)
-		config.GET("/tables", api.ListTables)
-		config.GET("/tables/:id", api.GetTable)
-		config.DELETE("/tables/:id", api.DeleteTable)
-
-		// 数据表明细配置
-		// config.POST("/tables/items", api.CreateTableItem)
-		// config.PATCH("/tables/items/:id", api.PatchTableItem)
-		// config.GET("/tables/items", api.ListTableItems)
-		// config.GET("/tables/items/:id", api.GetTableItem)
-		// config.DELETE("/tables/items/:id", api.DeleteTableItem)
-
 		// 维度主体配置
 		config.POST("/dimensions/", api.CreateDimension)
 		config.PUT("/dimensions/:id", api.UpdateDimension)
@@ -67,13 +53,6 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.DELETE("/dimensions/:id/items/batch", api.BatchDeleteDimensionItems)
 		// config.GET("/dimensions/:id/items/search", api.SearchDimensionItems)
 
-		// 数据模型配置
-		config.POST("/models", api.CreateModel)
-		config.PUT("/models/:id", api.UpdateModel)
-		config.GET("/models", api.ListModels)
-		config.GET("/models/:id", api.GetModel)
-		config.DELETE("/models/:id", api.DeleteModel)
-
 		// 表单配置
 		config.POST("/forms", api.CreateForm)
 		config.PUT("/forms/:id", api.UpdateForm)
@@ -87,5 +66,26 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/menus", api.TreeMenus)
 		config.GET("/menus/:id", api.GetMenu)
 		config.DELETE("/menus/:id", api.DeleteMenu)
+
+		// 数据模型配置
+		config.POST("/models", api.CreateModel)
+		config.PUT("/models/:id", api.UpdateModel)
+		config.GET("/models", api.ListModels)
+		config.GET("/models/:id", api.GetModel)
+		config.DELETE("/models/:id", api.DeleteModel)
+
+		// 数据表主体配置
+		config.POST("/tables", api.CreateTable)
+		config.PUT("/tables/:id", api.UpdateTable)
+		config.GET("/tables", api.ListTables)
+		config.GET("/tables/:id", api.GetTable)
+		config.DELETE("/tables/:id", api.DeleteTable)
+
+		// 数据表明细配置
+		// config.POST("/tables/items", api.CreateTableItem)
+		// config.PATCH("/tables/items/:id", api.PatchTableItem)
+		// config.GET("/tables/items", api.ListTableItems)
+		// config.GET("/tables/items/:id", api.GetTableItem)
+		// config.DELETE("/tables/items/:id", api.DeleteTableItem)
 	}
 }
