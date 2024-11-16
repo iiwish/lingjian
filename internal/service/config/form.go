@@ -131,7 +131,7 @@ func (s *FormService) DeleteForm(id uint) error {
 // ListForms 获取表单配置列表
 func (s *FormService) ListForms(appID uint) ([]model.ConfigForm, error) {
 	var forms []model.ConfigForm
-	err := s.db.Select(&forms, "SELECT * FROM sys_config_forms WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
+	err := s.db.Select(&forms, "SELECT id, app_id, model_id, form_name, form_type, display_name, description, status, version, created_at, creator_id, updated_at, updater_id FROM sys_config_forms WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
 	if err != nil {
 		return nil, fmt.Errorf("list forms from sys_config_forms failed: %v", err)
 	}

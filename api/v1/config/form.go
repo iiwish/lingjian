@@ -70,11 +70,10 @@ func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 }
 
 // @Summary      获取表单配置列表
-// @Description  获取指定应用的表单配置列表
+// @Description  获取表单配置列表
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
-// @Param        app_id query int true "应用ID"
 // @Success      200  {array}   model.ConfigForm
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
