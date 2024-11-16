@@ -69,38 +69,6 @@ func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 	c.JSON(http.StatusOK, menu)
 }
 
-// @Summary      获取菜单配置列表
-// @Description  获取指定应用的菜单配置列表
-// @Tags         ConfigMenu
-// @Accept       json
-// @Produce      json
-// @Param        app_id query int true "应用ID"
-// @Success      200  {array}   model.ConfigMenu
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/menus [get]
-func (api *ConfigAPI) ListMenus(c *gin.Context) {
-	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
-		return
-	}
-
-	operatorID := c.GetUint("user_id")
-	if operatorID == 0 {
-		utils.Error(c, 403, "未授权")
-		return
-	}
-
-	menus, err := api.configService.ListMenus(uint(appID), operatorID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, menus)
-}
-
 // @Summary      获取菜单配置详情
 // @Description  获取指定菜单配置的详细信息
 // @Tags         ConfigMenu

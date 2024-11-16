@@ -50,18 +50,22 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		// config.DELETE("/tables/items/:id", api.DeleteTableItem)
 
 		// 维度主体配置
-		config.POST("/dimensions", api.CreateDimension)
+		config.POST("/dimensions/", api.CreateDimension)
 		config.PUT("/dimensions/:id", api.UpdateDimension)
 		config.GET("/dimensions", api.ListDimensions)
 		config.GET("/dimensions/:id", api.GetDimension)
 		config.DELETE("/dimensions/:id", api.DeleteDimension)
 
 		// 维度明细配置
-		// config.POST("/dimensions/items", api.CreateDimensionItem)
-		// config.PATCH("/dimensions/items/:id", api.PatchDimensionItem)
-		// config.GET("/dimensions/items", api.TreeDimensionItems)
-		// config.GET("/dimensions/items/:id", api.GetDimensionItem)
-		// config.DELETE("/dimensions/items/:id", api.DeleteDimensionItem)
+		config.POST("/dimensions/:id/items", api.CreateDimensionItem)
+		config.POST("/dimensions/:id/items/batch", api.BatchCreateDimensionItems)
+		// config.PATCH("/dimensions/:id/items", api.PatchDimensionItem)
+		config.PUT("/dimensions/:dim_id/items/:id", api.UpdateDimensionItem)
+		config.GET("/dimensions/:id/items", api.TreeDimensionItems)
+		// config.GET("/dimensions/:dim_id/items/:item_id", api.GetDimensionItem)
+		config.DELETE("/dimensions/:dim_id/items/:id", api.DeleteDimensionItem)
+		config.DELETE("/dimensions/:id/items/batch", api.BatchDeleteDimensionItems)
+		// config.GET("/dimensions/:id/items/search", api.SearchDimensionItems)
 
 		// 数据模型配置
 		config.POST("/models", api.CreateModel)
@@ -80,8 +84,7 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		// 菜单配置
 		config.POST("/menus", api.CreateMenu)
 		config.PUT("/menus/:id", api.UpdateMenu)
-		config.GET("/menus", api.ListMenus)
-		config.GET("/menus/tree", api.TreeMenus)
+		config.GET("/menus", api.TreeMenus)
 		config.GET("/menus/:id", api.GetMenu)
 		config.DELETE("/menus/:id", api.DeleteMenu)
 	}

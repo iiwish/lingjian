@@ -67,6 +67,31 @@ func (s *ConfigService) ListDimensions(appID uint) ([]model.ConfigDimension, err
 	return s.dimensionService.ListDimensions(appID)
 }
 
+// 维度明细配置相关方法
+func (s *ConfigService) CreateDimensionItem(item *model.ConfigDimensionItem, creatorID uint, dimID uint) (uint, error) {
+	return s.dimensionService.CreateDimensionItem(item, creatorID, dimID)
+}
+
+func (s *ConfigService) BatchCreateDimensionItems(items []*model.ConfigDimensionItem, creatorID uint, dimID uint) error {
+	return s.dimensionService.BatchCreateDimensionItems(items, creatorID, dimID)
+}
+
+func (s *ConfigService) UpdateDimensionItem(item *model.ConfigDimensionItem, updaterID uint, dimID uint) error {
+	return s.dimensionService.UpdateDimensionItem(item, updaterID, dimID)
+}
+
+func (s *ConfigService) DeleteDimensionItem(operatorID uint, dimID uint, itemID uint) error {
+	return s.dimensionService.DeleteDimensionItem(operatorID, dimID, itemID)
+}
+
+func (s *ConfigService) BatchDeleteDimensionItems(operatorID uint, dimID uint, itemIDs []uint) error {
+	return s.dimensionService.BatchDeleteDimensionItems(operatorID, dimID, itemIDs)
+}
+
+func (s *ConfigService) TreeDimensionItems(itemID uint) ([]*model.TreeConfigDimensionItem, error) {
+	return s.dimensionService.TreeDimensionItems(itemID)
+}
+
 // 数据模型配置相关方法
 func (s *ConfigService) CreateModel(dataModel *model.ConfigModel, creatorID uint) (uint, error) {
 	return s.modelService.CreateModel(dataModel, creatorID)

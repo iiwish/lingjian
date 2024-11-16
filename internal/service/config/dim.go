@@ -68,6 +68,10 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 			parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父节点ID',
 			name VARCHAR(100) NOT NULL DEFAULT '' COMMENT '名称',
 			code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '编码',
+			description VARCHAR(200) NOT NULL DEFAULT '' COMMENT '描述',
+			level INT NOT NULL DEFAULT 0 COMMENT '层级',
+			sort INT NOT NULL DEFAULT 0 COMMENT '排序',
+			status TINYINT NOT NULL DEFAULT 1 COMMENT '状态',
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 			creator_id INT NOT NULL DEFAULT 0 COMMENT '创建者ID',
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -164,10 +168,23 @@ func (s *DimensionService) DeleteDimension(id uint) error {
 	}
 	defer tx.Rollback()
 
-	// 软删除维度配置（将状态设置为0）
-	_, err = tx.Exec("UPDATE sys_config_dimensions SET status = 0, updated_at = NOW() WHERE id = ?", id)
+	// 获取数据表名
+	var tableName string
+	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", id)
+	if err != nil {
+		return fmt.Errorf("get table name failed: %v", err)
+	}
+
+	// 删除维度配置
+	_, err = tx.Exec("DELETE FROM sys_config_dimensions WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("delete dimension failed: %v", err)
+	}
+
+	// 删除数据表
+	_, err = tx.Exec("DROP TABLE " + tableName)
+	if err != nil {
+		return fmt.Errorf("drop table failed: %v", err)
 	}
 
 	// 提交事务

@@ -63,6 +63,8 @@ func RBACMiddleware() gin.HandlerFunc {
 			return
 		}
 
+		c.Set("app_id", utils.ParseUint(appID))
+
 		// 查询角色的所有权限
 		var permissions []struct {
 			Path   string

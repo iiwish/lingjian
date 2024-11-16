@@ -25,6 +25,16 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 		return
 	}
 
+	// 校验请求参数
+	if dimension.AppID != uint(c.GetInt64("app_id")) {
+		c.JSON(http.StatusBadRequest, Response{Error: "app_id与请求路径中的ID不一致"})
+		return
+	}
+	if dimension.TableName == "" {
+		c.JSON(http.StatusBadRequest, Response{Error: "table_name不能为空"})
+		return
+	}
+
 	userID := uint(c.GetInt64("user_id"))
 	id, err := api.configService.CreateDimension(&dimension, userID)
 	if err != nil {
@@ -47,18 +57,31 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions/{id} [put]
 func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
+	// 获取请求参数
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
 
+	// 绑定请求参数
 	var dimension model.ConfigDimension
 	if err := c.ShouldBindJSON(&dimension); err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
 		return
 	}
 	dimension.ID = uint(id)
+
+	// 校验请求参数
+	if dimension.ID != uint(c.GetInt64("app_id")) {
+		c.JSON(http.StatusBadRequest, Response{Error: "app_id与请求路径中的ID不一致"})
+		return
+	}
+
+	if dimension.TableName == "" {
+		c.JSON(http.StatusBadRequest, Response{Error: "table_name不能为空"})
+		return
+	}
 
 	userID := uint(c.GetInt64("user_id"))
 	if err := api.configService.UpdateDimension(&dimension, userID); err != nil {
@@ -80,13 +103,9 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions [get]
 func (api *ConfigAPI) ListDimensions(c *gin.Context) {
-	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
-		return
-	}
+	appID := uint(c.GetInt64("app_id"))
 
-	dimensions, err := api.configService.ListDimensions(uint(appID))
+	dimensions, err := api.configService.ListDimensions(appID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return
