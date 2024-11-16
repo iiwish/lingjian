@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/pkg/utils"
 )
 
 // @Summary      创建数据模型配置
@@ -13,7 +14,7 @@ import (
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
-// @Param        request body config.CreateModelRequest true "创建数据模型配置请求参数"
+// @Param        request body model.ConfigModel true "创建数据模型配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
@@ -41,14 +42,14 @@ func (api *ConfigAPI) CreateModel(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "配置ID"
-// @Param        request body model.ConfigDataModel true "更新数据模型配置请求参数"
-// @Success      200  {object}  model.ConfigDataModel
+// @Param        request body model.ConfigModel true "更新数据模型配置请求参数"
+// @Success      200  {object}  model.ConfigModel
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/models/{id} [put]
 func (api *ConfigAPI) UpdateModel(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
-	if err != nil {
+	id := utils.ParseUint(c.Param("id"))
+	if id == 0 {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
 	}
@@ -74,8 +75,7 @@ func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
-// @Param        app_id query int true "应用ID"
-// @Success      200  {array}   model.ConfigDataModel
+// @Success      200  {array}   model.ConfigModel
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/models [get]
@@ -101,7 +101,7 @@ func (api *ConfigAPI) ListModels(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Param        id path int true "配置ID"
-// @Success      200  {object}  model.ConfigDataModel
+// @Success      200  {object}  model.ConfigModel
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/models/{id} [get]

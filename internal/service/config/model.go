@@ -121,7 +121,7 @@ func (s *ModelService) DeleteModel(id uint) error {
 // ListModels 获取数据模型配置列表
 func (s *ModelService) ListModels(appID uint) ([]model.ConfigModel, error) {
 	var models []model.ConfigModel
-	err := s.db.Select(&models, "SELECT * FROM sys_config_models WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
+	err := s.db.Select(&models, "SELECT id, app_id, model_name, display_name, description, status, version, created_at, creator_id, updated_at, updater_id FROM sys_config_models WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
 	if err != nil {
 		return nil, fmt.Errorf("list models failed: %v", err)
 	}
