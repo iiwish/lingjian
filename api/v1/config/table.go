@@ -41,14 +41,14 @@ func (api *ConfigAPI) CreateTable(c *gin.Context) {
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
-// @Param        id path int true "配置ID"
+// @Param        table_id path int true "配置ID"
 // @Param        request body model.ConfigTable true "更新数据表配置请求参数"
 // @Success      200  {object}  model.ConfigTable
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/tables/{id} [put]
+// @Router       /config/tables/{table_id} [put]
 func (api *ConfigAPI) UpdateTable(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("table_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
@@ -101,13 +101,13 @@ func (api *ConfigAPI) ListTables(c *gin.Context) {
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
-// @Param        id path int true "配置ID"
+// @Param        table_id path int true "配置ID"
 // @Success      200  {object}  model.ConfigTable
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/tables/{id} [get]
+// @Router       /config/tables/{table_id} [get]
 func (api *ConfigAPI) GetTable(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("table_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
@@ -127,13 +127,13 @@ func (api *ConfigAPI) GetTable(c *gin.Context) {
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
-// @Param        id path int true "配置ID"
+// @Param        table_id path int true "配置ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/tables/{id} [delete]
+// @Router       /config/tables/{table_id} [delete]
 func (api *ConfigAPI) DeleteTable(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("table_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return

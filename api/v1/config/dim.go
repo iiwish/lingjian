@@ -50,15 +50,15 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
-// @Param        id     path int true "配置ID"
+// @Param        dim_id path int true "配置ID"
 // @Param        dimension body model.ConfigDimension true "更新维度配置请求参数"
 // @Success      200  {object}  model.ConfigDimension
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/dimensions/{id} [put]
+// @Router       /config/dimensions/{dim_id} [put]
 func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	// 获取请求参数
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("dim_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
@@ -118,13 +118,13 @@ func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
-// @Param        id path int true "配置ID"
+// @Param        dim_id path int true "配置ID"
 // @Success      200  {object}  model.ConfigDimension
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/dimensions/{id} [get]
+// @Router       /config/dimensions/{dim_id} [get]
 func (api *ConfigAPI) GetDimension(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("dim_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
@@ -144,13 +144,13 @@ func (api *ConfigAPI) GetDimension(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
-// @Param        id path int true "配置ID"
+// @Param        dim_id path int true "配置ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/dimensions/{id} [delete]
+// @Router       /config/dimensions/{dim_id} [delete]
 func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Param("dim_id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
 		return
