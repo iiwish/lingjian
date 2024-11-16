@@ -5,31 +5,49 @@ import (
 	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/jmoiron/sqlx"
 )
 
 // AppService 应用服务
 type AppService struct{}
 
-// App 应用结构体
-type App struct {
-	ID          uint      `db:"id" json:"id"`
-	Name        string    `db:"name" json:"name"`
-	Code        string    `db:"code" json:"code"`
-	Description string    `db:"description" json:"description"`
-	Status      int       `db:"status" json:"status"`
-	CreatedAt   time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
-}
-
 // ListApps 获取所有应用列表
-func (s *AppService) ListApps() (map[string]interface{}, error) {
-	var apps []App
+func (s *AppService) ListApps(userID uint) (map[string]interface{}, error) {
+	var apps []model.App
+
+	// 基础查询,添加权限控制
+	appIDs := []uint{}
 	query := `
-		SELECT * FROM sys_apps 
-		WHERE status = 1
-		ORDER BY created_at DESC
+        SELECT DISTINCT m.app_id FROM sys_config_menus m
+        INNER JOIN sys_permissions p ON m.id = p.menu_id
+        INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
+        INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
+        WHERE ur.user_id = ?
+        AND m.status = 1
+        AND p.status = 1
+    `
+	err := model.DB.Select(&appIDs, query, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(appIDs) == 0 {
+		return map[string]interface{}{
+			"items": []model.App{},
+			"total": 0,
+		}, nil
+	}
+
+	// 查询应用列表
+	query = `
+		SELECT * FROM sys_apps
+		WHERE id IN (?)
 	`
-	err := model.DB.Select(&apps, query)
+	query, args, err := sqlx.In(query, appIDs)
+	if err != nil {
+		return nil, err
+	}
+	err = model.DB.Select(&apps, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +60,14 @@ func (s *AppService) ListApps() (map[string]interface{}, error) {
 }
 
 // CreateApp 创建应用
-func (s *AppService) CreateApp(name, code, description string) (map[string]interface{}, error) {
+func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error) {
+	app.Status = 1
+	app.CreatorID = user_id
+	app.UpdaterID = user_id
+
 	// 检查应用代码是否已存在
 	var count int
-	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_apps WHERE code = ?", code)
+	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_apps WHERE code = ?", app.Code)
 	if err != nil {
 		return nil, err
 	}
@@ -53,11 +75,18 @@ func (s *AppService) CreateApp(name, code, description string) (map[string]inter
 		return nil, errors.New("应用代码已存在")
 	}
 
-	now := time.Now()
-	result, err := model.DB.Exec(`
-		INSERT INTO sys_apps (name, code, description, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, name, code, description, 1, now, now)
+	// 开启事务
+	tx, err := model.DB.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	// 插入应用
+	result, err := tx.NamedExec(`
+		INSERT INTO sys_apps (name, code, description, status, created_at, creator_id, updated_at, updated_id)
+		VALUES (:name, :code, :description, :status, NOW(), :creator_id, NOW(), :updated_id)
+	`, app)
 	if err != nil {
 		return nil, err
 	}
@@ -68,144 +97,43 @@ func (s *AppService) CreateApp(name, code, description string) (map[string]inter
 		return nil, err
 	}
 
-	// 返回新创建的应用信息
-	return map[string]interface{}{
-		"id":          uint(id),
-		"name":        name,
-		"code":        code,
-		"description": description,
-		"status":      1,
-		"created_at":  now,
-		"updated_at":  now,
-	}, nil
-}
-
-// AssignAppToUser 为用户分配应用
-func (s *AppService) AssignAppToUser(userID, appID uint, isDefault bool) error {
-	// 检查用户和应用是否存在
-	var userCount, appCount int
-	err := model.DB.Get(&userCount, "SELECT COUNT(*) FROM sys_users WHERE id = ?", userID)
-	if err != nil {
-		return err
-	}
-	if userCount == 0 {
-		return errors.New("用户不存在")
+	// 插入默认菜单
+	menus := []model.ConfigMenu{
+		{AppID: uint(id), ParentID: 0, MenuName: "首页", MenuCode: "home", MenuType: "menu", Path: "/", Icon: "home", Sort: 0, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+		{AppID: uint(id), ParentID: 0, MenuName: "文件夹", MenuCode: "folder", MenuType: "folder", Path: "", Icon: "folder", Sort: 1, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+		{AppID: uint(id), ParentID: 2, MenuName: "系统", MenuCode: "sys", MenuType: "folder", Path: "", Icon: "settings", Sort: 1, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+		{AppID: uint(id), ParentID: 3, MenuName: "维度", MenuCode: "dimension", MenuType: "menu", Path: "/sys/dimension", Icon: "dimension", Sort: 1, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+		{AppID: uint(id), ParentID: 3, MenuName: "表单", MenuCode: "form", MenuType: "menu", Path: "/sys/form", Icon: "form", Sort: 2, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+		{AppID: uint(id), ParentID: 3, MenuName: "菜单", MenuCode: "menu", MenuType: "menu", Path: "/sys/menu", Icon: "menu", Sort: 3, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+		{AppID: uint(id), ParentID: 3, MenuName: "模型", MenuCode: "model", MenuType: "menu", Path: "/sys/model", Icon: "model", Sort: 4, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+		{AppID: uint(id), ParentID: 3, MenuName: "数据表", MenuCode: "table", MenuType: "menu", Path: "/sys/table", Icon: "table", Sort: 5, Status: 1, CreatorID: user_id, UpdaterID: user_id},
 	}
 
-	err = model.DB.Get(&appCount, "SELECT COUNT(*) FROM sys_apps WHERE id = ?", appID)
-	if err != nil {
-		return err
-	}
-	if appCount == 0 {
-		return errors.New("应用不存在")
-	}
-
-	// 如果设置为默认应用，先取消其他默认应用
-	if isDefault {
-		_, err = model.DB.Exec(`
-			UPDATE sys_user_apps SET is_default = 0
-			WHERE user_id = ? AND is_default = 1
-		`, userID)
+	for _, menu := range menus {
+		_, err = tx.NamedExec(`
+            INSERT INTO sys_config_menus (app_id, parent_id, menu_name, menu_code, menu_type, path, icon, sort, status, created_at, creator_id, updated_at, updated_id)
+            VALUES (:app_id, :parent_id, :menu_name, :menu_code, :menu_type, :path, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updated_id)
+        `, menu)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	// 分配应用给用户
-	_, err = model.DB.Exec(`
-		INSERT INTO sys_user_apps (user_id, app_id, is_default, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?)
-		ON DUPLICATE KEY UPDATE is_default = ?, updated_at = ?
-	`, userID, appID, isDefault, time.Now(), time.Now(), isDefault, time.Now())
-
-	return err
-}
-
-// GetUserApps 获取用户的应用列表
-func (s *AppService) GetUserApps(userID uint) ([]map[string]interface{}, error) {
-	var apps []map[string]interface{}
-	query := `
-		SELECT a.*, ua.is_default
-		FROM sys_apps a
-		JOIN sys_user_apps ua ON a.id = ua.app_id
-		WHERE ua.user_id = ? AND a.status = 1
-		ORDER BY ua.is_default DESC, a.created_at DESC
-	`
-	err := model.DB.Select(&apps, query, userID)
-	return apps, err
-}
-
-// GetDefaultApp 获取用户的默认应用
-func (s *AppService) GetDefaultApp(userID uint) (map[string]interface{}, error) {
-	var app map[string]interface{}
-	query := `
-		SELECT a.*
-		FROM sys_apps a
-		JOIN sys_user_apps ua ON a.id = ua.app_id
-		WHERE ua.user_id = ? AND ua.is_default = 1 AND a.status = 1
-		LIMIT 1
-	`
-	err := model.DB.Get(&app, query, userID)
-	return app, err
-}
-
-// CreateAppTemplate 创建应用模板
-func (s *AppService) CreateAppTemplate(name, description, configuration string, price float64, creatorID uint) error {
-	_, err := model.DB.Exec(`
-		INSERT INTO sys_app_templates (name, description, configuration, price, creator_id, status, created_at, updated_at)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, name, description, configuration, price, creatorID, 0, time.Now(), time.Now())
-	return err
-}
-
-// ListAppTemplates 获取应用模板列表
-func (s *AppService) ListAppTemplates(status int) ([]map[string]interface{}, error) {
-	var templates []map[string]interface{}
-	query := `
-		SELECT t.*, u.username as creator_name
-		FROM sys_app_templates t
-		JOIN sys_users u ON t.creator_id = u.id
-		WHERE t.status = ?
-		ORDER BY t.downloads DESC, t.created_at DESC
-	`
-	err := model.DB.Select(&templates, query, status)
-	return templates, err
-}
-
-// CreateAppFromTemplate 从模板创建应用
-func (s *AppService) CreateAppFromTemplate(templateID, userID uint, name, code string) error {
-	// 检查模板是否存在且已上架
-	var template struct {
-		Configuration string
-		Status        int
-	}
-	err := model.DB.Get(&template, "SELECT configuration, status FROM sys_app_templates WHERE id = ?", templateID)
-	if err != nil {
-		return err
-	}
-	if template.Status != 1 {
-		return errors.New("模板未上架")
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return nil, err
 	}
 
-	// 创建应用
-	appInfo, err := s.CreateApp(name, code, "从模板创建")
-	if err != nil {
-		return err
-	}
-
-	// 分配应用给用户
-	err = s.AssignAppToUser(userID, appInfo["id"].(uint), false)
-	if err != nil {
-		return err
-	}
-
-	// 更新模板下载次数
-	_, err = model.DB.Exec("UPDATE sys_app_templates SET downloads = downloads + 1 WHERE id = ?", templateID)
-	return err
-}
-
-// PublishTemplate 发布模板
-func (s *AppService) PublishTemplate(templateID uint) error {
-	_, err := model.DB.Exec("UPDATE sys_app_templates SET status = 1 WHERE id = ?", templateID)
-	return err
+	// 返回新创建的应用信息
+	return &model.App{
+		ID:          uint(id),
+		Name:        app.Name,
+		Code:        app.Code,
+		Description: app.Description,
+		Status:      app.Status,
+		CreatedAt:   time.Now(),
+		CreatorID:   user_id,
+		UpdatedAt:   time.Now(),
+		UpdaterID:   user_id,
+	}, nil
 }
