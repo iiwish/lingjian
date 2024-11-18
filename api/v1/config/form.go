@@ -13,6 +13,9 @@ import (
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        request body model.ConfigForm true "创建表单配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
@@ -40,6 +43,9 @@ func (api *ConfigAPI) CreateForm(c *gin.Context) {
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigForm true "更新表单配置请求参数"
 // @Success      200  {object}  model.ConfigForm
@@ -74,6 +80,9 @@ func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Success      200  {array}   model.ConfigForm
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
@@ -99,6 +108,9 @@ func (api *ConfigAPI) ListForms(c *gin.Context) {
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigForm
 // @Failure      400  {object}  Response
@@ -125,6 +137,9 @@ func (api *ConfigAPI) GetForm(c *gin.Context) {
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response

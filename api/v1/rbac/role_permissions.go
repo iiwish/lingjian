@@ -12,8 +12,10 @@ import (
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        role_id path string true "角色代码"
-// @Param        app_code query string true "应用代码"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
 // @Router       /roles/{role_id}/permissions [get]
@@ -43,6 +45,9 @@ func GetRolePermissions(c *gin.Context) {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        role_id path string true "角色ID"
 // @Param        request body model.PatchRolePerms true "权限修改操作" example:[{"op":"add","value":["权限1ID","权限2ID"]},{"op":"remove","value":["权限3ID","权限4ID"]}]
 // @Success      200  {object}  utils.Response

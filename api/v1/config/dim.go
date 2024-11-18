@@ -13,6 +13,9 @@ import (
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        dimension body model.ConfigDimension true "创建维度配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
@@ -50,6 +53,9 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        dim_id path int true "配置ID"
 // @Param        dimension body model.ConfigDimension true "更新维度配置请求参数"
 // @Success      200  {object}  model.ConfigDimension
@@ -97,6 +103,9 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Success      200  {array}   model.ConfigDimension
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
@@ -118,6 +127,9 @@ func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        dim_id path int true "配置ID"
 // @Success      200  {object}  model.ConfigDimension
 // @Failure      400  {object}  Response
@@ -144,6 +156,9 @@ func (api *ConfigAPI) GetDimension(c *gin.Context) {
 // @Tags         ConfigDimension
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        dim_id path int true "配置ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response

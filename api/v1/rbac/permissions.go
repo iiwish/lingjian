@@ -12,6 +12,9 @@ import (
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
 // @Router       /permissions [get]
@@ -31,6 +34,9 @@ func ListPermissions(c *gin.Context) {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        request body model.Permission true "创建权限请求参数"
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
@@ -63,6 +69,9 @@ func CreatePermission(c *gin.Context) {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        permission_id path int true "权限ID"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
@@ -95,6 +104,9 @@ func UpdatePermission(c *gin.Context) {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        permission_id path int true "权限ID"
 // @Success      200  {object}  utils.Response
 // @Failure      500  {object}  utils.Response

@@ -21,6 +21,8 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Success      200  {object}  utils.Response
 // @Failure      403  {object}  utils.Response
 // @Router       /user/profile [get]

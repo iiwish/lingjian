@@ -38,6 +38,8 @@ type CreateAppRequest struct {
 // @Tags         Application
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Success      200  {object}  utils.Response{data=[]AppResponse}
 // @Failure      500  {object}  utils.Response
@@ -59,6 +61,8 @@ func ListApps(c *gin.Context) {
 // @Tags         Application
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        request body CreateAppRequest true "创建应用请求参数"
 // @Success      200  {object}  utils.Response{data=AppResponse}

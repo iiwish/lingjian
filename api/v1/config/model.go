@@ -14,6 +14,9 @@ import (
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        request body model.ConfigModel true "创建数据模型配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
@@ -41,6 +44,9 @@ func (api *ConfigAPI) CreateModel(c *gin.Context) {
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigModel true "更新数据模型配置请求参数"
 // @Success      200  {object}  model.ConfigModel
@@ -75,6 +81,9 @@ func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Success      200  {array}   model.ConfigModel
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
@@ -100,6 +109,9 @@ func (api *ConfigAPI) ListModels(c *gin.Context) {
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigModel
 // @Failure      400  {object}  Response
@@ -126,6 +138,9 @@ func (api *ConfigAPI) GetModel(c *gin.Context) {
 // @Tags         ConfigModel
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response

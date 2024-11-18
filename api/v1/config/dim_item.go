@@ -13,17 +13,20 @@ import (
 // @Tags         ConfigDimensionItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id         path int                      true  "维度ID"
 // @Param        dimension  body model.ConfigDimensionItem true  "创建维度配置项的请求参数"
 // @Success      201        {object}  Response
 // @Failure      400        {object}  Response
 // @Failure      500        {object}  Response
-// @Router       /config/dimensions/{id}/items [post]
+// @Router       /config/dimensions/{dim_id}/items [post]
 func (api *ConfigAPI) CreateDimensionItem(c *gin.Context) {
 	// 获取id参数
-	dimID := c.Param("id")
+	dimID := c.Param("dim_id")
 	if dimID == "" {
-		c.JSON(http.StatusBadRequest, Response{Error: "id不能为空"})
+		c.JSON(http.StatusBadRequest, Response{Error: "dim_id不能为空"})
 		return
 	}
 
@@ -59,17 +62,20 @@ func (api *ConfigAPI) CreateDimensionItem(c *gin.Context) {
 // @Tags         ConfigDimensionItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id          path int                        true  "维度ID"
 // @Param        dimensions  body []model.ConfigDimensionItem true  "批量创建维度配置项的请求参数"
 // @Success      201         {object}  Response
 // @Failure      400         {object}  Response
 // @Failure      500         {object}  Response
-// @Router       /config/dimensions/{id}/items/batch [post]
+// @Router       /config/dimensions/{dim_id}/items/batch [post]
 func (api *ConfigAPI) BatchCreateDimensionItems(c *gin.Context) {
 	// 获取id参数
-	dimID := c.Param("id")
+	dimID := c.Param("dim_id")
 	if dimID == "" {
-		c.JSON(http.StatusBadRequest, Response{Error: "id不能为空"})
+		c.JSON(http.StatusBadRequest, Response{Error: "dim_id不能为空"})
 		return
 	}
 
@@ -107,6 +113,9 @@ func (api *ConfigAPI) BatchCreateDimensionItems(c *gin.Context) {
 // @Tags         ConfigDimensionItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        dim_id     path int                      true  "维度ID"
 // @Param        id         path int                      true  "配置项ID"
 // @Param        dimension  body model.ConfigDimensionItem true  "更新维度配置项的请求参数"
@@ -160,16 +169,19 @@ func (api *ConfigAPI) UpdateDimensionItem(c *gin.Context) {
 // @Tags         ConfigDimensionItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id  path int true "维度ID"
 // @Success      200 {array}   model.ConfigDimensionItem
 // @Failure      400 {object}  Response
 // @Failure      500 {object}  Response
-// @Router       /config/dimensions/{id}/items [get]
+// @Router       /config/dimensions/{dim_id}/items [get]
 func (api *ConfigAPI) TreeDimensionItems(c *gin.Context) {
 	// 获取id参数
-	id := c.Param("id")
+	id := c.Param("dim_id")
 	if id == "" {
-		c.JSON(http.StatusBadRequest, Response{Error: "id不能为空"})
+		c.JSON(http.StatusBadRequest, Response{Error: "dim_id不能为空"})
 		return
 	}
 
@@ -187,6 +199,9 @@ func (api *ConfigAPI) TreeDimensionItems(c *gin.Context) {
 // @Tags         ConfigDimensionItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        dim_id  path int true "维度ID"
 // @Param        id      path int true "配置项ID"
 // @Success      204     {object}  nil
@@ -221,17 +236,20 @@ func (api *ConfigAPI) DeleteDimensionItem(c *gin.Context) {
 // @Tags         ConfigDimensionItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id   path int    true  "维度ID"
 // @Param        ids  body []uint true  "配置项ID列表"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
-// @Router       /config/dimensions/{id}/items/batch [delete]
+// @Router       /config/dimensions/{dim_id}/items/batch [delete]
 func (api *ConfigAPI) BatchDeleteDimensionItems(c *gin.Context) {
 	// 获取dimID参数
-	dimID := c.Param("id")
+	dimID := c.Param("dim_id")
 	if dimID == "" {
-		c.JSON(http.StatusBadRequest, Response{Error: "id不能为空"})
+		c.JSON(http.StatusBadRequest, Response{Error: "dim_id不能为空"})
 		return
 	}
 

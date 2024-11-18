@@ -13,6 +13,9 @@ import (
 // @Tags         ConfigTableItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "表ID"
 // @Param        request body map[string]interface{} true "创建数据表记录请求参数"
 // @Success      201  {object}  Response
@@ -49,6 +52,9 @@ func (api *ConfigAPI) CreateTableItem(c *gin.Context) {
 // @Tags         ConfigTableItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "表ID"
 // @Param        request body []map[string]interface{} true "批量创建数据表记录请求参数"
 // @Success      201  {object}  Response
@@ -85,6 +91,9 @@ func (api *ConfigAPI) BatchCreateTableItems(c *gin.Context) {
 // @Tags         ConfigTableItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "表ID"
 // @Param        id path int true "记录ID"
 // @Param        request body map[string]interface{} true "更新数据表记录请求参数"
@@ -128,6 +137,9 @@ func (api *ConfigAPI) UpdateTableItem(c *gin.Context) {
 // @Tags         ConfigTableItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "表ID"
 // @Param        id path int true "记录ID"
 // @Success      200  {object}  map[string]interface{}
@@ -163,6 +175,9 @@ func (api *ConfigAPI) GetTableItem(c *gin.Context) {
 // @Tags         ConfigTableItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "表ID"
 // @Param        page query int false "页码"
 // @Param        page_size query int false "每页数量"
@@ -219,6 +234,9 @@ func (api *ConfigAPI) ListTableItems(c *gin.Context) {
 // @Tags         ConfigTableItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "表ID"
 // @Param        id path int true "记录ID"
 // @Success      204  {object}  nil
@@ -254,6 +272,9 @@ func (api *ConfigAPI) DeleteTableItem(c *gin.Context) {
 // @Tags         ConfigTableItem
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "表ID"
 // @Param        request body []uint true "记录ID列表"
 // @Success      204  {object}  nil

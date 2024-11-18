@@ -13,6 +13,9 @@ import (
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        request body model.CreateTableReq true "创建数据表配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
@@ -41,6 +44,9 @@ func (api *ConfigAPI) CreateTable(c *gin.Context) {
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "配置ID"
 // @Param        request body model.ConfigTable true "更新数据表配置请求参数"
 // @Success      200  {object}  model.ConfigTable
@@ -75,7 +81,9 @@ func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
-// @Param        app_id query int true "应用ID"
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Success      200  {array}   model.ConfigTable
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
@@ -101,6 +109,9 @@ func (api *ConfigAPI) ListTables(c *gin.Context) {
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "配置ID"
 // @Success      200  {object}  model.ConfigTable
 // @Failure      400  {object}  Response
@@ -127,6 +138,9 @@ func (api *ConfigAPI) GetTable(c *gin.Context) {
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        table_id path int true "配置ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response

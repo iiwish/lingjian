@@ -14,6 +14,9 @@ import (
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        request body model.ConfigMenu true "创建菜单配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
@@ -40,6 +43,9 @@ func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Param        request body model.ConfigMenu true "更新菜单配置请求参数"
 // @Success      200  {object}  model.ConfigMenu
@@ -74,6 +80,9 @@ func (api *ConfigAPI) UpdateMenu(c *gin.Context) {
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Success      200  {object}  model.ConfigMenu
 // @Failure      400  {object}  Response
@@ -100,6 +109,9 @@ func (api *ConfigAPI) GetMenuByID(c *gin.Context) {
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  Response
@@ -121,6 +133,9 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 // @Tags         ConfigMenu
 // @Accept       json
 // @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
 // @Param        level     query    int     false  "菜单级别"
 // @Param        parent_id query    uint    false  "父菜单ID"
 // @Param        type      query    string  false  "菜单类型，可选值为 'children'、'descendants' , 默认为 'children'"
