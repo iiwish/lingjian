@@ -667,6 +667,11 @@ paths:
       - application/json
       description: 获取所有应用列表
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: 应用ID
         in: header
         name: App-ID
@@ -690,6 +695,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 获取应用列表
       tags:
       - Application
@@ -698,6 +705,11 @@ paths:
       - application/json
       description: 创建新的应用
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
       - description: 应用ID
         in: header
         name: App-ID
@@ -729,6 +741,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 创建应用
       tags:
       - Application
@@ -792,6 +806,17 @@ paths:
       consumes:
       - application/json
       description: 注销用户登录状态
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -947,6 +972,17 @@ paths:
       consumes:
       - application/json
       description: 获取当前登录用户的详细信息，包括角色和权限
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -968,6 +1004,17 @@ paths:
       consumes:
       - application/json
       description: 获取指定应用的维度配置列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -985,6 +1032,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取维度配置列表
       tags:
       - ConfigDimension
@@ -993,6 +1042,16 @@ paths:
       - application/json
       description: 创建新的维度配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建维度配置请求参数
         in: body
         name: dimension
@@ -1014,6 +1073,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 创建维度配置
       tags:
       - ConfigDimension
@@ -1023,6 +1084,16 @@ paths:
       - application/json
       description: 删除指定的维度配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: dim_id
@@ -1041,6 +1112,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 删除维度配置
       tags:
       - ConfigDimension
@@ -1049,6 +1122,16 @@ paths:
       - application/json
       description: 获取指定维度配置的详细信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: dim_id
@@ -1069,6 +1152,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取维度配置详情
       tags:
       - ConfigDimension
@@ -1077,6 +1162,16 @@ paths:
       - application/json
       description: 更新已存在的维度配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: dim_id
@@ -1103,15 +1198,116 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 更新维度配置
       tags:
       - ConfigDimension
+  /config/dimensions/{dim_id}/items:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定维度的配置项树
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 维度ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
+      summary: 获取维度配置项树
+      tags:
+      - ConfigDimensionItem
+    post:
+      consumes:
+      - application/json
+      description: 创建新的维度配置项
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 维度ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 创建维度配置项的请求参数
+        in: body
+        name: dimension
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
+      summary: 创建维度配置项
+      tags:
+      - ConfigDimensionItem
   /config/dimensions/{dim_id}/items/{id}:
     delete:
       consumes:
       - application/json
       description: 删除指定的维度配置项
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 维度ID
         in: path
         name: dim_id
@@ -1135,6 +1331,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 删除维度配置项
       tags:
       - ConfigDimensionItem
@@ -1143,6 +1341,16 @@ paths:
       - application/json
       description: 更新已存在的维度配置项
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 维度ID
         in: path
         name: dim_id
@@ -1174,80 +1382,27 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 更新维度配置项
       tags:
       - ConfigDimensionItem
-  /config/dimensions/{id}/items:
-    get:
-      consumes:
-      - application/json
-      description: 获取指定维度的配置项树
-      parameters:
-      - description: 维度ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      summary: 获取维度配置项树
-      tags:
-      - ConfigDimensionItem
-    post:
-      consumes:
-      - application/json
-      description: 创建新的维度配置项
-      parameters:
-      - description: 维度ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 创建维度配置项的请求参数
-        in: body
-        name: dimension
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      summary: 创建维度配置项
-      tags:
-      - ConfigDimensionItem
-  /config/dimensions/{id}/items/batch:
+  /config/dimensions/{dim_id}/items/batch:
     delete:
       consumes:
       - application/json
       description: 批量删除指定的维度配置项
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 维度ID
         in: path
         name: id
@@ -1274,6 +1429,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 批量删除维度配置项
       tags:
       - ConfigDimensionItem
@@ -1282,6 +1439,16 @@ paths:
       - application/json
       description: 批量创建新的维度配置项
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 维度ID
         in: path
         name: id
@@ -1310,6 +1477,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 批量创建维度配置项
       tags:
       - ConfigDimensionItem
@@ -1318,6 +1487,17 @@ paths:
       consumes:
       - application/json
       description: 获取表单配置列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1335,6 +1515,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取表单配置列表
       tags:
       - ConfigForm
@@ -1343,6 +1525,16 @@ paths:
       - application/json
       description: 创建新的表单配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建表单配置请求参数
         in: body
         name: request
@@ -1364,6 +1556,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 创建表单配置
       tags:
       - ConfigForm
@@ -1373,6 +1567,16 @@ paths:
       - application/json
       description: 删除指定的表单配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1391,6 +1595,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 删除表单配置
       tags:
       - ConfigForm
@@ -1399,6 +1605,16 @@ paths:
       - application/json
       description: 获取指定表单配置的详细信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1419,6 +1635,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取表单配置详情
       tags:
       - ConfigForm
@@ -1427,6 +1645,16 @@ paths:
       - application/json
       description: 更新已存在的表单配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1453,6 +1681,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 更新表单配置
       tags:
       - ConfigForm
@@ -1462,6 +1692,16 @@ paths:
       - application/json
       description: 根据可选的 level、parent_id 和 type 参数获取菜单列表
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 菜单级别
         in: query
         name: level
@@ -1491,6 +1731,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取菜单列表
       tags:
       - ConfigMenu
@@ -1499,6 +1741,16 @@ paths:
       - application/json
       description: 创建新的菜单配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建菜单配置请求参数
         in: body
         name: request
@@ -1520,6 +1772,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 创建菜单配置
       tags:
       - ConfigMenu
@@ -1529,6 +1783,16 @@ paths:
       - application/json
       description: 删除指定的菜单配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1547,6 +1811,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 删除菜单配置
       tags:
       - ConfigMenu
@@ -1555,6 +1821,16 @@ paths:
       - application/json
       description: 获取指定菜单配置的详细信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1575,6 +1851,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取菜单配置详情
       tags:
       - ConfigMenu
@@ -1583,6 +1861,16 @@ paths:
       - application/json
       description: 更新已存在的菜单配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1609,6 +1897,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 更新菜单配置
       tags:
       - ConfigMenu
@@ -1617,6 +1907,17 @@ paths:
       consumes:
       - application/json
       description: 获取指定应用的数据模型配置列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1634,6 +1935,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取数据模型配置列表
       tags:
       - ConfigModel
@@ -1642,6 +1945,16 @@ paths:
       - application/json
       description: 创建新的数据模型配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建数据模型配置请求参数
         in: body
         name: request
@@ -1663,6 +1976,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 创建数据模型配置
       tags:
       - ConfigModel
@@ -1672,6 +1987,16 @@ paths:
       - application/json
       description: 删除指定的数据模型配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1690,6 +2015,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 删除数据模型配置
       tags:
       - ConfigModel
@@ -1698,6 +2025,16 @@ paths:
       - application/json
       description: 获取指定数据模型配置的详细信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1718,6 +2055,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取数据模型配置详情
       tags:
       - ConfigModel
@@ -1726,6 +2065,16 @@ paths:
       - application/json
       description: 更新已存在的数据模型配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: id
@@ -1752,6 +2101,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 更新数据模型配置
       tags:
       - ConfigModel
@@ -1761,11 +2112,16 @@ paths:
       - application/json
       description: 获取指定应用的所有数据表配置
       parameters:
-      - description: 应用ID
-        in: query
-        name: app_id
+      - description: Bearer token
+        in: header
+        name: Authorization
         required: true
-        type: integer
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -1783,6 +2139,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取数据表配置列表
       tags:
       - ConfigTable
@@ -1791,6 +2149,16 @@ paths:
       - application/json
       description: 创建新的数据表配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建数据表配置请求参数
         in: body
         name: request
@@ -1812,6 +2180,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 创建数据表配置
       tags:
       - ConfigTable
@@ -1821,6 +2191,16 @@ paths:
       - application/json
       description: 删除指定的数据表配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: table_id
@@ -1839,6 +2219,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 删除数据表配置
       tags:
       - ConfigTable
@@ -1847,6 +2229,16 @@ paths:
       - application/json
       description: 获取指定数据表配置的详细信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: table_id
@@ -1867,6 +2259,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取数据表配置详情
       tags:
       - ConfigTable
@@ -1875,6 +2269,16 @@ paths:
       - application/json
       description: 更新已存在的数据表配置
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 配置ID
         in: path
         name: table_id
@@ -1901,6 +2305,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 更新数据表配置
       tags:
       - ConfigTable
@@ -1910,6 +2316,16 @@ paths:
       - application/json
       description: 获取指定数据表的记录列表
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 表ID
         in: path
         name: table_id
@@ -1943,6 +2359,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取数据表记录列表
       tags:
       - ConfigTableItem
@@ -1951,6 +2369,16 @@ paths:
       - application/json
       description: 创建新的数据表记录
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 表ID
         in: path
         name: table_id
@@ -1978,6 +2406,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 创建数据表记录
       tags:
       - ConfigTableItem
@@ -1987,6 +2417,16 @@ paths:
       - application/json
       description: 删除指定的数据表记录
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 表ID
         in: path
         name: table_id
@@ -2010,6 +2450,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 删除数据表记录
       tags:
       - ConfigTableItem
@@ -2018,6 +2460,16 @@ paths:
       - application/json
       description: 获取指定数据表记录的详细信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 表ID
         in: path
         name: table_id
@@ -2044,6 +2496,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 获取数据表记录
       tags:
       - ConfigTableItem
@@ -2052,6 +2506,16 @@ paths:
       - application/json
       description: 更新已存在的数据表记录
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 表ID
         in: path
         name: table_id
@@ -2084,6 +2548,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 更新数据表记录
       tags:
       - ConfigTableItem
@@ -2093,6 +2559,16 @@ paths:
       - application/json
       description: 批量删除指定的数据表记录
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 表ID
         in: path
         name: table_id
@@ -2119,6 +2595,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 批量删除数据表记录
       tags:
       - ConfigTableItem
@@ -2127,6 +2605,16 @@ paths:
       - application/json
       description: 批量创建新的数据表记录
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 表ID
         in: path
         name: table_id
@@ -2156,6 +2644,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
       summary: 批量创建数据表记录
       tags:
       - ConfigTableItem
@@ -2164,6 +2654,17 @@ paths:
       consumes:
       - application/json
       description: 获取所有权限列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2175,6 +2676,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 获取权限列表
       tags:
       - RBAC
@@ -2183,6 +2686,16 @@ paths:
       - application/json
       description: 创建新的权限
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建权限请求参数
         in: body
         name: request
@@ -2204,6 +2717,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 创建权限
       tags:
       - RBAC
@@ -2213,6 +2728,16 @@ paths:
       - application/json
       description: 删除指定权限
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 权限ID
         in: path
         name: permission_id
@@ -2229,6 +2754,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 删除权限
       tags:
       - RBAC
@@ -2237,6 +2764,16 @@ paths:
       - application/json
       description: 更新指定权限的信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 权限ID
         in: path
         name: permission_id
@@ -2253,6 +2790,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 更新权限
       tags:
       - RBAC
@@ -2261,6 +2800,17 @@ paths:
       consumes:
       - application/json
       description: 获取所有角色列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2272,6 +2822,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 获取角色列表
       tags:
       - RBAC
@@ -2280,6 +2832,16 @@ paths:
       - application/json
       description: 创建新的角色
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建角色请求参数
         in: body
         name: request
@@ -2301,6 +2863,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 创建角色
       tags:
       - RBAC
@@ -2310,6 +2874,16 @@ paths:
       - application/json
       description: 删除指定角色
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 角色ID
         in: path
         name: role_id
@@ -2326,6 +2900,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 删除角色
       tags:
       - RBAC
@@ -2334,6 +2910,16 @@ paths:
       - application/json
       description: 更新指定角色的信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 角色ID
         in: path
         name: role_id
@@ -2350,6 +2936,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 更新角色
       tags:
       - RBAC
@@ -2359,14 +2947,19 @@ paths:
       - application/json
       description: 获取指定角色的所有权限
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 角色代码
         in: path
         name: role_id
-        required: true
-        type: string
-      - description: 应用代码
-        in: query
-        name: app_code
         required: true
         type: string
       produces:
@@ -2380,6 +2973,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 获取角色权限
       tags:
       - RBAC
@@ -2388,6 +2983,16 @@ paths:
       - application/json
       description: 为指定角色添加或移除权限
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 角色ID
         in: path
         name: role_id
@@ -2416,6 +3021,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 修改角色权限
       tags:
       - RBAC
@@ -2609,6 +3216,17 @@ paths:
       consumes:
       - application/json
       description: 获取当前登录用户的信息
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2630,6 +3248,17 @@ paths:
       consumes:
       - application/json
       description: 获取所有用户列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -2641,6 +3270,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 获取用户列表
       tags:
       - RBAC
@@ -2649,6 +3280,16 @@ paths:
       - application/json
       description: 创建新的用户
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 创建用户请求参数
         in: body
         name: request
@@ -2670,6 +3311,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 创建用户
       tags:
       - RBAC
@@ -2679,6 +3322,16 @@ paths:
       - application/json
       description: 删除指定用户
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 用户ID
         in: path
         name: user_id
@@ -2695,6 +3348,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 删除用户
       tags:
       - RBAC
@@ -2703,6 +3358,16 @@ paths:
       - application/json
       description: 更新指定用户的信息
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 用户ID
         in: path
         name: user_id
@@ -2719,6 +3384,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 更新用户
       tags:
       - RBAC
@@ -2728,6 +3395,16 @@ paths:
       - application/json
       description: 获取指定用户的所有角色
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 用户ID
         in: path
         name: user_id
@@ -2744,6 +3421,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 获取用户角色
       tags:
       - RBAC
@@ -2753,6 +3432,16 @@ paths:
       - application/json
       description: 将指定角色分配给用户
       parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
       - description: 用户ID
         in: path
         name: user_id
@@ -2769,6 +3458,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
       summary: 为用户分配角色
       tags:
       - RBAC

@@ -111,13 +111,7 @@ docs:
 	@echo "Cleaning existing docs..."
 	@rm -rf docs
 	@echo "Generating API documentation..."
-	@if command -v swag >/dev/null; then \
-		swag init -g $(MAIN_SERVER) --parseInternal --parseDependency --parseVendor --parseDepth 1 --instanceName swagger --output ./docs --generatedTime=false; \
-	else \
-		echo "swag is not installed. Installing..."; \
-		go install github.com/swaggo/swag/cmd/swag@latest; \
-		$(shell go env GOPATH)/bin/swag init -g $(MAIN_SERVER) --parseInternal --parseDependency --parseVendor --parseDepth 1 --instanceName swagger --output ./docs --generatedTime=false; \
-	fi
+	@$(shell go env GOPATH)/bin/swag init -g cmd/server/main.go --parseDependency --parseInternal --parseVendor --parseDepth 1 --instanceName swagger --output ./docs --generatedTime=false
 	@echo "API documentation generated."
 	@echo "Available at:"
 	@echo "- Redoc UI: http://localhost:8080/static/redoc.html"
