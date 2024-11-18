@@ -13,7 +13,7 @@ import (
 // @Tags         ConfigForm
 // @Accept       json
 // @Produce      json
-// @Param        request body config.CreateFormRequest true "创建表单配置请求参数"
+// @Param        request body model.ConfigForm true "创建表单配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response

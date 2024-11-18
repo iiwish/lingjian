@@ -108,15 +108,21 @@ init-db:
 
 # 生成API文档
 docs:
+	@echo "Cleaning existing docs..."
+	@rm -rf docs
 	@echo "Generating API documentation..."
 	@if command -v swag >/dev/null; then \
-		swag init -g cmd/server/main.go; \
+		swag init -g $(MAIN_SERVER) --parseInternal --parseDependency --parseVendor --parseDepth 1 --instanceName swagger --output ./docs --generatedTime=false; \
 	else \
 		echo "swag is not installed. Installing..."; \
 		go install github.com/swaggo/swag/cmd/swag@latest; \
-		$(shell go env GOPATH)/bin/swag init -g cmd/server/main.go; \
+		$(shell go env GOPATH)/bin/swag init -g $(MAIN_SERVER) --parseInternal --parseDependency --parseVendor --parseDepth 1 --instanceName swagger --output ./docs --generatedTime=false; \
 	fi
-	@echo "API documentation generated. Visit http://localhost:8081/docs when server is running."
+	@echo "API documentation generated."
+	@echo "Available at:"
+	@echo "- Redoc UI: http://localhost:8080/static/redoc.html"
+	@echo "- Swagger UI: http://localhost:8080/swagger/index.html"
+	@echo "- Raw JSON: http://localhost:8080/swagger/doc.json"
 
 # 依赖管理
 deps:
@@ -155,7 +161,7 @@ help:
 	@echo "  test-unit        - Run unit tests only"
 	@echo "  test-integration - Run integration tests only"
 	@echo "  test-coverage    - Run tests with coverage report"
-	@echo "  test-bench       - Run benchmark tests"
+	@echo "  test-bench      - Run benchmark tests"
 	@echo "  lint             - Run linter"
 	@echo "  run-server       - Build and run server"
 	@echo "  run-worker       - Build and run worker"

@@ -15,7 +15,7 @@ import (
 // @Produce      json
 // @Param        id         path int                      true  "维度ID"
 // @Param        dimension  body model.ConfigDimensionItem true  "创建维度配置项的请求参数"
-// @Success      201        {object}  gin.H{"ID": uint}
+// @Success      201        {object}  Response
 // @Failure      400        {object}  Response
 // @Failure      500        {object}  Response
 // @Router       /config/dimensions/{id}/items [post]
@@ -61,7 +61,7 @@ func (api *ConfigAPI) CreateDimensionItem(c *gin.Context) {
 // @Produce      json
 // @Param        id          path int                        true  "维度ID"
 // @Param        dimensions  body []model.ConfigDimensionItem true  "批量创建维度配置项的请求参数"
-// @Success      201         {object}  gin.H{}
+// @Success      201         {object}  Response
 // @Failure      400         {object}  Response
 // @Failure      500         {object}  Response
 // @Router       /config/dimensions/{id}/items/batch [post]

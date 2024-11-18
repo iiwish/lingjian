@@ -75,10 +75,10 @@ func main() {
 	r.Static("/static", "./static")
 
 	// API文档路由
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.GET("/docs", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/static/redoc.html")
 	})
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// API路由
 	api := r.Group("/api")
@@ -113,7 +113,7 @@ func main() {
 	// 启动服务器
 	port := viper.GetString("server.port")
 	log.Printf("Server is running on http://localhost:%s", port)
-	log.Printf("API文档地址: http://localhost:%s/docs", port)
+	log.Printf("API文档地址: http://localhost:%s/static/redoc.html", port)
 	if err := r.Run(fmt.Sprintf(":%s", port)); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

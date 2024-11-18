@@ -31,7 +31,7 @@ func ListRoles(c *gin.Context) {
 // @Tags         RBAC
 // @Accept       json
 // @Produce      json
-// @Param        request body model.CreateRoleRequest true "创建角色请求参数"
+// @Param        request body model.Role true "创建角色请求参数"
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response

@@ -13,7 +13,7 @@ import (
 // @Tags         ConfigTable
 // @Accept       json
 // @Produce      json
-// @Param        request body config.CreateTableRequest true "创建数据表配置请求参数"
+// @Param        request body model.CreateTableReq true "创建数据表配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response

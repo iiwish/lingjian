@@ -1,0 +1,2781 @@
+basePath: /api/v1
+definitions:
+  api_v1.AppResponse:
+    properties:
+      created_at:
+        example: "2023-01-01 12:00:00"
+        type: string
+      description:
+        example: 这是一个测试应用
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: 测试应用
+        type: string
+      status:
+        example: 1
+        type: integer
+      updated_at:
+        example: "2023-01-01 12:00:00"
+        type: string
+    type: object
+  api_v1.CreateAppRequest:
+    properties:
+      description:
+        example: 这是一个测试应用
+        type: string
+      name:
+        example: 测试应用
+        type: string
+      status:
+        example: 1
+        type: integer
+    required:
+    - name
+    type: object
+  api_v1.CreateElementTriggerRequest:
+    properties:
+      app_id:
+        type: integer
+      content:
+        additionalProperties: true
+        type: object
+      element_id:
+        type: integer
+      element_type:
+        type: string
+      trigger_point:
+        type: string
+      type:
+        type: string
+    required:
+    - app_id
+    - content
+    - element_id
+    - element_type
+    - trigger_point
+    - type
+    type: object
+  api_v1.CreateScheduledTaskRequest:
+    properties:
+      app_id:
+        type: integer
+      content:
+        additionalProperties: true
+        type: object
+      cron:
+        type: string
+      name:
+        type: string
+      retry_times:
+        type: integer
+      timeout:
+        type: integer
+      type:
+        type: string
+    required:
+    - app_id
+    - content
+    - cron
+    - name
+    - type
+    type: object
+  api_v1.UpdateScheduledTaskRequest:
+    properties:
+      content:
+        additionalProperties: true
+        type: object
+      cron:
+        type: string
+      name:
+        type: string
+      retry_times:
+        type: integer
+      timeout:
+        type: integer
+    required:
+    - content
+    - cron
+    - name
+    type: object
+  api_v1_config.Response:
+    description: 通用HTTP响应结构
+    properties:
+      error:
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.Condition:
+    properties:
+      field:
+        description: 字段名
+        type: string
+      operator:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Operator'
+        description: 操作符
+      value:
+        description: 查询值
+    type: object
+  github_com_iiwish_lingjian_internal_model.ConfigDimension:
+    properties:
+      app_id:
+        type: integer
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      description:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      table_name:
+        type: string
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.ConfigDimensionItem:
+    properties:
+      code:
+        description: 编码
+        type: string
+      created_at:
+        description: 创建时间
+        type: string
+      creator_id:
+        description: 创建者ID
+        type: integer
+      id:
+        description: 主键ID
+        type: integer
+      level:
+        description: 层级
+        type: integer
+      name:
+        description: 名称
+        type: string
+      node_id:
+        description: 节点ID
+        type: string
+      parent_id:
+        description: 父节点ID
+        type: integer
+      sort:
+        description: 排序
+        type: integer
+      status:
+        description: 状态
+        type: integer
+      updated_at:
+        description: 更新时间
+        type: string
+      updater_id:
+        description: 更新者ID
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.ConfigForm:
+    properties:
+      app_id:
+        type: integer
+      configuration:
+        type: string
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      description:
+        type: string
+      display_name:
+        type: string
+      form_name:
+        type: string
+      form_type:
+        type: string
+      id:
+        type: integer
+      model_id:
+        type: integer
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.ConfigMenu:
+    properties:
+      app_id:
+        type: integer
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      icon:
+        description: 菜单图标
+        type: string
+      id:
+        type: integer
+      level:
+        description: 菜单层级
+        type: integer
+      menu_code:
+        description: 菜单代码
+        type: string
+      menu_name:
+        description: 菜单名称
+        type: string
+      menu_type:
+        description: 菜单类型
+        type: string
+      node_id:
+        description: 节点ID
+        type: string
+      parent_id:
+        description: 父菜单ID，0表示顶级菜单
+        type: integer
+      path:
+        description: 菜单路径
+        type: string
+      sort:
+        description: 排序号
+        type: integer
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.ConfigModel:
+    properties:
+      app_id:
+        type: integer
+      configuration:
+        type: string
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      description:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+      model_name:
+        type: string
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+      version:
+        description: 版本号
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.ConfigTable:
+    properties:
+      app_id:
+        type: integer
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      description:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      table_name:
+        type: string
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.CreateTableReq:
+    properties:
+      app_id:
+        type: integer
+      description:
+        type: string
+      display_name:
+        type: string
+      fields:
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Field'
+        type: array
+      indexes:
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Index'
+        type: array
+      table_name:
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.Field:
+    properties:
+      auto_increment:
+        type: boolean
+      comment:
+        type: string
+      default:
+        type: string
+      name:
+        type: string
+      not_null:
+        type: boolean
+      primary_key:
+        type: boolean
+      sort:
+        type: integer
+      type:
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.Index:
+    properties:
+      fields:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.Operator:
+    enum:
+    - eq
+    - ne
+    - gt
+    - gte
+    - lt
+    - lte
+    - like
+    - not_like
+    - in
+    - not_in
+    - between
+    - not_between
+    type: string
+    x-enum-comments:
+      OpBetween: 区间查询
+      OpEq: 等于
+      OpGt: 大于
+      OpGte: 大于等于
+      OpIn: IN查询
+      OpLike: 模糊查询
+      OpLt: 小于
+      OpLte: 小于等于
+      OpNe: 不等于
+      OpNotBetween: 不在区间
+      OpNotIn: NOT IN查询
+      OpNotLike: 不包含
+    x-enum-varnames:
+    - OpEq
+    - OpNe
+    - OpGt
+    - OpGte
+    - OpLt
+    - OpLte
+    - OpLike
+    - OpNotLike
+    - OpIn
+    - OpNotIn
+    - OpBetween
+    - OpNotBetween
+  github_com_iiwish_lingjian_internal_model.OrderBy:
+    properties:
+      desc:
+        description: 是否降序
+        type: boolean
+      field:
+        description: 排序字段
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.PatchRolePermDetail:
+    properties:
+      op:
+        enum:
+        - add
+        - remove
+        type: string
+      value:
+        items:
+          type: integer
+        type: array
+    required:
+    - op
+    - value
+    type: object
+  github_com_iiwish_lingjian_internal_model.Permission:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      menu_id:
+        type: integer
+      method:
+        type: string
+      name:
+        type: string
+      path:
+        type: string
+      status:
+        type: integer
+      type:
+        type: string
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.QueryCondition:
+    properties:
+      conditions:
+        description: 条件列表
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Condition'
+        type: array
+      group_by:
+        description: 分组
+        items:
+          type: string
+        type: array
+      order_by:
+        description: 排序
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.OrderBy'
+        type: array
+    type: object
+  github_com_iiwish_lingjian_internal_model.Role:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      parent_id:
+        type: integer
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.User:
+    properties:
+      avatar:
+        type: string
+      created_at:
+        type: string
+      creator_id:
+        type: integer
+      email:
+        type: string
+      id:
+        type: integer
+      nickname:
+        type: string
+      phone:
+        type: string
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        type: string
+      updater_id:
+        type: integer
+      username:
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_service.AuthorizeRequest:
+    properties:
+      approved:
+        description: 是否同意授权
+        type: boolean
+      client_id:
+        description: 客户端ID
+        type: string
+      redirect_uri:
+        description: 重定向URI
+        type: string
+      response_type:
+        description: 响应类型
+        type: string
+      scope:
+        description: 权限范围
+        type: string
+      state:
+        description: 状态
+        type: string
+    required:
+    - client_id
+    - redirect_uri
+    - response_type
+    - scope
+    type: object
+  github_com_iiwish_lingjian_internal_service.CaptchaResponse:
+    properties:
+      captcha_id:
+        description: 验证码ID
+        example: captcha-123
+        type: string
+      captcha_img:
+        description: Base64编码的验证码图片
+        example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_service.LoginRequest:
+    properties:
+      captcha_id:
+        description: 验证码ID
+        example: captcha-123
+        type: string
+      captcha_val:
+        description: 验证码值
+        example: "1234"
+        type: string
+      password:
+        description: 密码
+        example: "123456"
+        type: string
+      username:
+        description: 用户名
+        example: admin
+        type: string
+    required:
+    - captcha_id
+    - captcha_val
+    - password
+    - username
+    type: object
+  github_com_iiwish_lingjian_internal_service.LoginResponse:
+    properties:
+      access_token:
+        description: 访问令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_in:
+        description: 访问令牌过期时间（秒）
+        example: 7200
+        type: integer
+      refresh_token:
+        description: 刷新令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_service.TokenRequest:
+    properties:
+      client_id:
+        description: 客户端ID
+        type: string
+      client_secret:
+        description: 客户端密钥
+        type: string
+      code:
+        description: 授权码
+        type: string
+      grant_type:
+        description: 授权类型
+        type: string
+      redirect_uri:
+        description: 重定向URI
+        type: string
+      refresh_token:
+        description: 刷新令牌
+        type: string
+    required:
+    - client_id
+    - client_secret
+    - grant_type
+    type: object
+  github_com_iiwish_lingjian_internal_service.TokenResponse:
+    properties:
+      access_token:
+        description: 访问令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_in:
+        description: 访问令牌过期时间（秒）
+        example: 7200
+        type: integer
+      refresh_token:
+        description: 刷新令牌
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      token_type:
+        description: 令牌类型
+        example: Bearer
+        type: string
+    type: object
+  github_com_iiwish_lingjian_pkg_utils.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: 灵简服务端API文档
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: 灵简服务端API
+  version: "1.0"
+paths:
+  /apps:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有应用列表
+      parameters:
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/api_v1.AppResponse'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取应用列表
+      tags:
+      - Application
+    post:
+      consumes:
+      - application/json
+      description: 创建新的应用
+      parameters:
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 创建应用请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.CreateAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api_v1.AppResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 创建应用
+      tags:
+      - Application
+  /auth/captcha:
+    get:
+      consumes:
+      - application/json
+      description: 生成图形验证码
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.CaptchaResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取验证码
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 使用用户名和密码登录
+      parameters:
+      - description: 登录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.LoginResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 用户登录
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: 注销用户登录状态
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 用户登出
+      tags:
+      - Auth
+  /auth/oauth/authorize:
+    get:
+      consumes:
+      - application/json
+      description: 获取OAuth2授权页面
+      parameters:
+      - description: 客户端ID
+        in: query
+        name: client_id
+        required: true
+        type: string
+      - description: 重定向URI
+        in: query
+        name: redirect_uri
+        required: true
+        type: string
+      - description: 响应类型(code)
+        in: query
+        name: response_type
+        required: true
+        type: string
+      - description: 权限范围
+        in: query
+        name: scope
+        required: true
+        type: string
+      - description: 状态
+        in: query
+        name: state
+        type: string
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: 授权页面HTML
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: OAuth2授权页面
+      tags:
+      - OAuth2
+    post:
+      consumes:
+      - application/json
+      description: 处理用户的授权确认
+      parameters:
+      - description: 授权请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.AuthorizeRequest'
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: 重定向到客户端
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 确认OAuth2授权
+      tags:
+      - OAuth2
+  /auth/oauth/token:
+    post:
+      consumes:
+      - application/json
+      description: 获取访问令牌
+      parameters:
+      - description: 令牌请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.TokenRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.TokenResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: OAuth2令牌
+      tags:
+      - OAuth2
+  /auth/refresh:
+    post:
+      consumes:
+      - application/json
+      description: 使用刷新令牌获取新的访问令牌
+      parameters:
+      - description: 刷新令牌
+        in: header
+        name: X-Refresh-Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.TokenResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 刷新令牌
+      tags:
+      - Auth
+  /auth/userinfo:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的详细信息，包括角色和权限
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户详细信息
+      tags:
+      - Auth
+  /config/dimensions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的维度配置列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取维度配置列表
+      tags:
+      - ConfigDimension
+    post:
+      consumes:
+      - application/json
+      description: 创建新的维度配置
+      parameters:
+      - description: 创建维度配置请求参数
+        in: body
+        name: dimension
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 创建维度配置
+      tags:
+      - ConfigDimension
+  /config/dimensions/{dim_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的维度配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: dim_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 删除维度配置
+      tags:
+      - ConfigDimension
+    get:
+      consumes:
+      - application/json
+      description: 获取指定维度配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: dim_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取维度配置详情
+      tags:
+      - ConfigDimension
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的维度配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: dim_id
+        required: true
+        type: integer
+      - description: 更新维度配置请求参数
+        in: body
+        name: dimension
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 更新维度配置
+      tags:
+      - ConfigDimension
+  /config/dimensions/{dim_id}/items/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的维度配置项
+      parameters:
+      - description: 维度ID
+        in: path
+        name: dim_id
+        required: true
+        type: integer
+      - description: 配置项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 删除维度配置项
+      tags:
+      - ConfigDimensionItem
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的维度配置项
+      parameters:
+      - description: 维度ID
+        in: path
+        name: dim_id
+        required: true
+        type: integer
+      - description: 配置项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新维度配置项的请求参数
+        in: body
+        name: dimension
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 更新维度配置项
+      tags:
+      - ConfigDimensionItem
+  /config/dimensions/{id}/items:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定维度的配置项树
+      parameters:
+      - description: 维度ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取维度配置项树
+      tags:
+      - ConfigDimensionItem
+    post:
+      consumes:
+      - application/json
+      description: 创建新的维度配置项
+      parameters:
+      - description: 维度ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 创建维度配置项的请求参数
+        in: body
+        name: dimension
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 创建维度配置项
+      tags:
+      - ConfigDimensionItem
+  /config/dimensions/{id}/items/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的维度配置项
+      parameters:
+      - description: 维度ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 配置项ID列表
+        in: body
+        name: ids
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 批量删除维度配置项
+      tags:
+      - ConfigDimensionItem
+    post:
+      consumes:
+      - application/json
+      description: 批量创建新的维度配置项
+      parameters:
+      - description: 维度ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 批量创建维度配置项的请求参数
+        in: body
+        name: dimensions
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 批量创建维度配置项
+      tags:
+      - ConfigDimensionItem
+  /config/forms:
+    get:
+      consumes:
+      - application/json
+      description: 获取表单配置列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigForm'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取表单配置列表
+      tags:
+      - ConfigForm
+    post:
+      consumes:
+      - application/json
+      description: 创建新的表单配置
+      parameters:
+      - description: 创建表单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigForm'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 创建表单配置
+      tags:
+      - ConfigForm
+  /config/forms/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的表单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 删除表单配置
+      tags:
+      - ConfigForm
+    get:
+      consumes:
+      - application/json
+      description: 获取指定表单配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigForm'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取表单配置详情
+      tags:
+      - ConfigForm
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的表单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新表单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigForm'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigForm'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 更新表单配置
+      tags:
+      - ConfigForm
+  /config/menus:
+    get:
+      consumes:
+      - application/json
+      description: 根据可选的 level、parent_id 和 type 参数获取菜单列表
+      parameters:
+      - description: 菜单级别
+        in: query
+        name: level
+        type: integer
+      - description: 父菜单ID
+        in: query
+        name: parent_id
+        type: integer
+      - description: 菜单类型，可选值为 'children'、'descendants' , 默认为 'children'
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取菜单列表
+      tags:
+      - ConfigMenu
+    post:
+      consumes:
+      - application/json
+      description: 创建新的菜单配置
+      parameters:
+      - description: 创建菜单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 创建菜单配置
+      tags:
+      - ConfigMenu
+  /config/menus/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的菜单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 删除菜单配置
+      tags:
+      - ConfigMenu
+    get:
+      consumes:
+      - application/json
+      description: 获取指定菜单配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取菜单配置详情
+      tags:
+      - ConfigMenu
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的菜单配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新菜单配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 更新菜单配置
+      tags:
+      - ConfigMenu
+  /config/models:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的数据模型配置列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigModel'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取数据模型配置列表
+      tags:
+      - ConfigModel
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据模型配置
+      parameters:
+      - description: 创建数据模型配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigModel'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 创建数据模型配置
+      tags:
+      - ConfigModel
+  /config/models/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的数据模型配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 删除数据模型配置
+      tags:
+      - ConfigModel
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据模型配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取数据模型配置详情
+      tags:
+      - ConfigModel
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的数据模型配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新数据模型配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigModel'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 更新数据模型配置
+      tags:
+      - ConfigModel
+  /config/tables:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定应用的所有数据表配置
+      parameters:
+      - description: 应用ID
+        in: query
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigTable'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取数据表配置列表
+      tags:
+      - ConfigTable
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据表配置
+      parameters:
+      - description: 创建数据表配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CreateTableReq'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 创建数据表配置
+      tags:
+      - ConfigTable
+  /config/tables/{table_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的数据表配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 删除数据表配置
+      tags:
+      - ConfigTable
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据表配置的详细信息
+      parameters:
+      - description: 配置ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigTable'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取数据表配置详情
+      tags:
+      - ConfigTable
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的数据表配置
+      parameters:
+      - description: 配置ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 更新数据表配置请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigTable'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigTable'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 更新数据表配置
+      tags:
+      - ConfigTable
+  /config/tables/{table_id}/items:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据表的记录列表
+      parameters:
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 查询条件
+        in: body
+        name: query
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.QueryCondition'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取数据表记录列表
+      tags:
+      - ConfigTableItem
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据表记录
+      parameters:
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 创建数据表记录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 创建数据表记录
+      tags:
+      - ConfigTableItem
+  /config/tables/{table_id}/items/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的数据表记录
+      parameters:
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 记录ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 删除数据表记录
+      tags:
+      - ConfigTableItem
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据表记录的详细信息
+      parameters:
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 记录ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 获取数据表记录
+      tags:
+      - ConfigTableItem
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的数据表记录
+      parameters:
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 记录ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新数据表记录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 更新数据表记录
+      tags:
+      - ConfigTableItem
+  /config/tables/{table_id}/items/batch:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的数据表记录
+      parameters:
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 记录ID列表
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 批量删除数据表记录
+      tags:
+      - ConfigTableItem
+    post:
+      consumes:
+      - application/json
+      description: 批量创建新的数据表记录
+      parameters:
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 批量创建数据表记录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      summary: 批量创建数据表记录
+      tags:
+      - ConfigTableItem
+  /permissions:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有权限列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取权限列表
+      tags:
+      - RBAC
+    post:
+      consumes:
+      - application/json
+      description: 创建新的权限
+      parameters:
+      - description: 创建权限请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Permission'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 创建权限
+      tags:
+      - RBAC
+  /permissions/{permission_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定权限
+      parameters:
+      - description: 权限ID
+        in: path
+        name: permission_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 删除权限
+      tags:
+      - RBAC
+    put:
+      consumes:
+      - application/json
+      description: 更新指定权限的信息
+      parameters:
+      - description: 权限ID
+        in: path
+        name: permission_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 更新权限
+      tags:
+      - RBAC
+  /roles:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有角色列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取角色列表
+      tags:
+      - RBAC
+    post:
+      consumes:
+      - application/json
+      description: 创建新的角色
+      parameters:
+      - description: 创建角色请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Role'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 创建角色
+      tags:
+      - RBAC
+  /roles/{role_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定角色
+      parameters:
+      - description: 角色ID
+        in: path
+        name: role_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 删除角色
+      tags:
+      - RBAC
+    put:
+      consumes:
+      - application/json
+      description: 更新指定角色的信息
+      parameters:
+      - description: 角色ID
+        in: path
+        name: role_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 更新角色
+      tags:
+      - RBAC
+  /roles/{role_id}/permissions:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定角色的所有权限
+      parameters:
+      - description: 角色代码
+        in: path
+        name: role_id
+        required: true
+        type: string
+      - description: 应用代码
+        in: query
+        name: app_code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取角色权限
+      tags:
+      - RBAC
+    patch:
+      consumes:
+      - application/json
+      description: 为指定角色添加或移除权限
+      parameters:
+      - description: 角色ID
+        in: path
+        name: role_id
+        required: true
+        type: string
+      - description: 权限修改操作
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.PatchRolePermDetail'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 修改角色权限
+      tags:
+      - RBAC
+  /tasks/scheduled:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的定时任务
+      parameters:
+      - description: 创建定时任务请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.CreateScheduledTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 创建定时任务
+      tags:
+      - Task
+  /tasks/scheduled/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的定时任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新定时任务请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.UpdateScheduledTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 更新定时任务
+      tags:
+      - Task
+  /tasks/scheduled/{id}/execute:
+    post:
+      consumes:
+      - application/json
+      description: 手动执行定时任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 执行任务
+      tags:
+      - Task
+  /tasks/scheduled/{id}/logs:
+    get:
+      consumes:
+      - application/json
+      description: 获取定时任务的执行日志
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - default: 10
+        description: 每页数量
+        in: query
+        name: limit
+        type: integer
+      - default: 0
+        description: 偏移量
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取任务日志
+      tags:
+      - Task
+  /tasks/scheduled/{id}/toggle:
+    post:
+      consumes:
+      - application/json
+      description: 启用或禁用定时任务
+      parameters:
+      - description: 任务ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 状态码
+        in: query
+        name: status
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 切换任务状态
+      tags:
+      - Task
+  /tasks/triggers:
+    post:
+      consumes:
+      - application/json
+      description: 创建新的元素触发器
+      parameters:
+      - description: 创建元素触发器请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.CreateElementTriggerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 创建元素触发器
+      tags:
+      - Task
+  /user/profile:
+    get:
+      consumes:
+      - application/json
+      description: 获取当前登录用户的信息
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户信息
+      tags:
+      - User
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: 获取所有用户列表
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取用户列表
+      tags:
+      - RBAC
+    post:
+      consumes:
+      - application/json
+      description: 创建新的用户
+      parameters:
+      - description: 创建用户请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 创建用户
+      tags:
+      - RBAC
+  /users/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定用户
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 删除用户
+      tags:
+      - RBAC
+    put:
+      consumes:
+      - application/json
+      description: 更新指定用户的信息
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 更新用户
+      tags:
+      - RBAC
+  /users/{user_id}/roles:
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的所有角色
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 获取用户角色
+      tags:
+      - RBAC
+  /users/{user_id}/roles/:
+    patch:
+      consumes:
+      - application/json
+      description: 将指定角色分配给用户
+      parameters:
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      summary: 为用户分配角色
+      tags:
+      - RBAC
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer" followed by a space and JWT token.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

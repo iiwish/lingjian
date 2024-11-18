@@ -15,7 +15,7 @@ import (
 // @Produce      json
 // @Param        table_id path int true "表ID"
 // @Param        request body map[string]interface{} true "创建数据表记录请求参数"
-// @Success      201  {object}  gin.H{"ID": uint}
+// @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/tables/{table_id}/items [post]
@@ -167,7 +167,7 @@ func (api *ConfigAPI) GetTableItem(c *gin.Context) {
 // @Param        page query int false "页码"
 // @Param        page_size query int false "每页数量"
 // @Param        query body model.QueryCondition false "查询条件"
-// @Success      200  {object}  gin.H{"items": []map[string]interface{}, "total": int}
+// @Success      200  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/tables/{table_id}/items [get]

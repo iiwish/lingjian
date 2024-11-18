@@ -13,16 +13,24 @@ func RegisterAppRoutes(r *gin.RouterGroup) {
 	{
 		app.GET("", ListApps)   // 获取应用列表
 		app.POST("", CreateApp) // 创建应用
-
-		// 模板相关路由
-		// template := app.Group("/templates")
-		// {
-		// 	template.POST("", CreateTemplate)
-		// 	template.GET("", ListTemplates)
-		// 	template.POST("/:template_id/publish", PublishTemplate)
-		// 	template.POST("/:template_id/create", CreateFromTemplate)
-		// }
 	}
+}
+
+// AppResponse 应用响应结构
+type AppResponse struct {
+	ID          uint   `json:"id" example:"1"`
+	Name        string `json:"name" example:"测试应用"`
+	Description string `json:"description" example:"这是一个测试应用"`
+	Status      int    `json:"status" example:"1"`
+	CreatedAt   string `json:"created_at" example:"2023-01-01 12:00:00"`
+	UpdatedAt   string `json:"updated_at" example:"2023-01-01 12:00:00"`
+}
+
+// CreateAppRequest 创建应用请求结构
+type CreateAppRequest struct {
+	Name        string `json:"name" example:"测试应用" binding:"required"`
+	Description string `json:"description" example:"这是一个测试应用"`
+	Status      int    `json:"status" example:"1"`
 }
 
 // @Summary      获取应用列表
@@ -30,11 +38,11 @@ func RegisterAppRoutes(r *gin.RouterGroup) {
 // @Tags         Application
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  utils.Response
+// @Param        App-ID header string true "应用ID"
+// @Success      200  {object}  utils.Response{data=[]AppResponse}
 // @Failure      500  {object}  utils.Response
 // @Router       /apps [get]
 func ListApps(c *gin.Context) {
-
 	userID := c.GetUint("user_id")
 	appService := &service.AppService{}
 	result, err := appService.ListApps(userID)
@@ -51,8 +59,9 @@ func ListApps(c *gin.Context) {
 // @Tags         Application
 // @Accept       json
 // @Produce      json
+// @Param        App-ID header string true "应用ID"
 // @Param        request body CreateAppRequest true "创建应用请求参数"
-// @Success      200  {object}  utils.Response
+// @Success      200  {object}  utils.Response{data=AppResponse}
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
 // @Router       /apps [post]

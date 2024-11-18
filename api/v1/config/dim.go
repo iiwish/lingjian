@@ -14,7 +14,7 @@ import (
 // @Accept       json
 // @Produce      json
 // @Param        dimension body model.ConfigDimension true "创建维度配置请求参数"
-// @Success      201  {object}  gin.H{"ID": uint}
+// @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions [post]
