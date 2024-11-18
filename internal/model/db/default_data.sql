@@ -87,23 +87,23 @@ VALUES
 ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- 创建默认菜单
-INSERT INTO sys_menus (name, path, parent_id, sort_order, icon, status, created_at, updated_at)
-VALUES 
-    -- 系统管理菜单
-    (1, '系统管理', '/system', 0, 1, 'setting', 1, NOW(), NOW()),
-    (2, '用户管理', '/system/users', 1, 1, 'user', 1, NOW(), NOW()),
-    (3, '角色管理', '/system/roles', 1, 2, 'team', 1, NOW(), NOW()),
-    (4, '权限管理', '/system/permissions', 1, 3, 'safety', 1, NOW(), NOW()),
-    (5, '应用管理', '/system/apps', 1, 4, 'appstore', 1, NOW(), NOW()),
+-- INSERT INTO sys_config_menus (name, path, parent_id, sort_order, icon, status, created_at, updated_at)
+-- VALUES 
+--     -- 系统管理菜单
+--     (1, '系统管理', '/system', 0, 1, 'setting', 1, NOW(), NOW()),
+--     (2, '用户管理', '/system/users', 1, 1, 'user', 1, NOW(), NOW()),
+--     (3, '角色管理', '/system/roles', 1, 2, 'team', 1, NOW(), NOW()),
+--     (4, '权限管理', '/system/permissions', 1, 3, 'safety', 1, NOW(), NOW()),
+--     (5, '应用管理', '/system/apps', 1, 4, 'appstore', 1, NOW(), NOW()),
 
-    -- 配置中心菜单
-    (6, '配置中心', '/config', 0, 2, 'tool', 1, NOW(), NOW()),
-    (7, '维度配置', '/config/dimensions', 6, 1, 'apartment', 1, NOW(), NOW()),
-    (8, '表单配置', '/config/forms', 6, 2, 'form', 1, NOW(), NOW()),
-    (9, '菜单配置', '/config/menus', 6, 3, 'menu', 1, NOW(), NOW()),
-    (10, '模型配置', '/config/models', 6, 4, 'database', 1, NOW(), NOW()),
-    (11, '数据表配置', '/config/tables', 6, 5, 'table', 1, NOW(), NOW())
-ON DUPLICATE KEY UPDATE updated_at = NOW();
+--     -- 配置中心菜单
+--     (6, '配置中心', '/config', 0, 2, 'tool', 1, NOW(), NOW()),
+--     (7, '维度配置', '/config/dimensions', 6, 1, 'apartment', 1, NOW(), NOW()),
+--     (8, '表单配置', '/config/forms', 6, 2, 'form', 1, NOW(), NOW()),
+--     (9, '菜单配置', '/config/menus', 6, 3, 'menu', 1, NOW(), NOW()),
+--     (10, '模型配置', '/config/models', 6, 4, 'database', 1, NOW(), NOW()),
+--     (11, '数据表配置', '/config/tables', 6, 5, 'table', 1, NOW(), NOW())
+-- ON DUPLICATE KEY UPDATE updated_at = NOW();
 
 -- 为超级管理员角色分配所有权限
 INSERT INTO sys_role_permissions (role_id, permission_id)
