@@ -74,12 +74,11 @@ func RBACMiddleware() gin.HandlerFunc {
             SELECT DISTINCT p.path, p.method FROM sys_permissions p
             INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
             INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
-            INNER JOIN sys_config_menus m ON p.menu_id = m.id
             WHERE ur.user_id = ?
             AND p.method = ?
             AND p.status = 1
-            AND m.app_id = ?
 		`
+		log.Printf("RBAC: 查询权限 - %v", method)
 
 		err := model.DB.Select(&permissions, query, userId, method)
 		if err != nil {

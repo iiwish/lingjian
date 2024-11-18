@@ -16,6 +16,7 @@ type User struct {
 	CreatorID uint      `db:"creator_id" json:"creator_id"`
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 	UpdaterID uint      `db:"updater_id" json:"updater_id"`
+	DeletedAt time.Time `db:"deleted_at" json:"deleted_at"`
 }
 
 // Role 角色表
@@ -30,6 +31,7 @@ type Role struct {
 	CreatorID   uint      `db:"creator_id" json:"creator_id"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 	UpdaterID   uint      `db:"updater_id" json:"updater_id"`
+	DeletedAt   time.Time `db:"deleted_at" json:"deleted_at"`
 }
 
 // Permission 权限表
@@ -47,6 +49,7 @@ type Permission struct {
 	CreatorID   uint      `db:"creator_id" json:"creator_id"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 	UpdaterID   uint      `db:"updater_id" json:"updater_id"`
+	DeletedAt   time.Time `db:"deleted_at" json:"deleted_at"`
 }
 
 // UserRole 用户角色关联表

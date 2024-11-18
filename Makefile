@@ -1,4 +1,4 @@
-.PHONY: all build clean test lint run help
+.PHONY: all build clean test lint run help docs
 
 # 项目信息
 PROJECT_NAME := lingjian
