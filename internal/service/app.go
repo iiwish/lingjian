@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
@@ -84,36 +85,112 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 
 	// 插入应用
 	result, err := tx.NamedExec(`
-		INSERT INTO sys_apps (name, code, description, status, created_at, creator_id, updated_at, updated_id)
-		VALUES (:name, :code, :description, :status, NOW(), :creator_id, NOW(), :updated_id)
+		INSERT INTO sys_apps (name, code, description, status, created_at, creator_id, updated_at, updater_id)
+		VALUES (:name, :code, :description, :status, NOW(), :creator_id, NOW(), :updater_id)
 	`, app)
 	if err != nil {
 		return nil, err
 	}
 
 	// 获取新创建的应用ID
-	id, err := result.LastInsertId()
+	appID, err := result.LastInsertId()
 	if err != nil {
 		return nil, err
 	}
 
-	// 插入默认菜单
-	menus := []model.ConfigMenu{
-		{AppID: uint(id), ParentID: 0, MenuName: "首页", MenuCode: "home", MenuType: "menu", Path: "/", Icon: "home", Sort: 0, Status: 1, CreatorID: user_id, UpdaterID: user_id},
-		{AppID: uint(id), ParentID: 0, MenuName: "文件夹", MenuCode: "folder", MenuType: "folder", Path: "", Icon: "folder", Sort: 1, Status: 1, CreatorID: user_id, UpdaterID: user_id},
-		{AppID: uint(id), ParentID: 2, MenuName: "系统", MenuCode: "sys", MenuType: "folder", Path: "", Icon: "settings", Sort: 1, Status: 1, CreatorID: user_id, UpdaterID: user_id},
-		{AppID: uint(id), ParentID: 3, MenuName: "维度", MenuCode: "dimension", MenuType: "menu", Path: "/sys/dimension", Icon: "dimension", Sort: 1, Status: 1, CreatorID: user_id, UpdaterID: user_id},
-		{AppID: uint(id), ParentID: 3, MenuName: "表单", MenuCode: "form", MenuType: "menu", Path: "/sys/form", Icon: "form", Sort: 2, Status: 1, CreatorID: user_id, UpdaterID: user_id},
-		{AppID: uint(id), ParentID: 3, MenuName: "菜单", MenuCode: "menu", MenuType: "menu", Path: "/sys/menu", Icon: "menu", Sort: 3, Status: 1, CreatorID: user_id, UpdaterID: user_id},
-		{AppID: uint(id), ParentID: 3, MenuName: "模型", MenuCode: "model", MenuType: "menu", Path: "/sys/model", Icon: "model", Sort: 4, Status: 1, CreatorID: user_id, UpdaterID: user_id},
-		{AppID: uint(id), ParentID: 3, MenuName: "数据表", MenuCode: "table", MenuType: "menu", Path: "/sys/table", Icon: "table", Sort: 5, Status: 1, CreatorID: user_id, UpdaterID: user_id},
+	// 插入 'sys' 菜单
+	sysMenu := &model.ConfigMenu{
+		AppID:     uint(appID),
+		ParentID:  0,
+		NodeID:    "", // 先设置为空，避免唯一索引冲突
+		MenuName:  "系统",
+		MenuCode:  "sys",
+		MenuType:  1,
+		Path:      "/sys",
+		Icon:      "settings",
+		Sort:      1,
+		Status:    1,
+		CreatorID: user_id,
+		UpdaterID: user_id,
 	}
 
-	for _, menu := range menus {
-		_, err = tx.NamedExec(`
-            INSERT INTO sys_config_menus (app_id, parent_id, menu_name, menu_code, menu_type, path, icon, sort, status, created_at, creator_id, updated_at, updated_id)
-            VALUES (:app_id, :parent_id, :menu_name, :menu_code, :menu_type, :path, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updated_id)
+	// 插入 'sys' 菜单
+	menuResult, err := tx.NamedExec(`
+        INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, path, icon, sort, status, created_at, creator_id, updated_at, updater_id)
+        VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :path, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
+    `, sysMenu)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取 'sys' 菜单的 ID
+	sysMenuID, err := menuResult.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	sysMenu.ID = uint(sysMenuID)
+
+	// 更新 'sys' 菜单的 NodeID
+	sysMenu.NodeID = strconv.FormatUint(uint64(sysMenuID), 10)
+	_, err = tx.Exec(`
+        UPDATE sys_config_menus SET node_id = ? WHERE id = ?
+    `, sysMenu.NodeID, sysMenuID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 插入子菜单
+	childMenus := []struct {
+		MenuName string
+		MenuCode string
+		Path     string
+		Icon     string
+		Sort     int
+	}{
+		{"维度", "dimension", "/sys/dimension", "dimension", 1},
+		{"表单", "form", "/sys/form", "form", 2},
+		{"菜单", "menu", "/sys/menu", "menu", 3},
+		{"模型", "model", "/sys/model", "model", 4},
+		{"数据表", "table", "/sys/table", "table", 5},
+	}
+
+	for _, item := range childMenus {
+		menu := &model.ConfigMenu{
+			AppID:     uint(appID),
+			ParentID:  sysMenu.ID,
+			NodeID:    "", // 先设置为空，避免唯一索引冲突
+			MenuName:  item.MenuName,
+			MenuCode:  item.MenuCode,
+			MenuType:  1,
+			Path:      item.Path,
+			Icon:      item.Icon,
+			Sort:      item.Sort,
+			Status:    1,
+			CreatorID: user_id,
+			UpdaterID: user_id,
+		}
+
+		// 插入子菜单
+		menuResult, err := tx.NamedExec(`
+            INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, path, icon, sort, status, created_at, creator_id, updated_at, updater_id)
+            VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :path, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
         `, menu)
+		if err != nil {
+			return nil, err
+		}
+
+		// 获取子菜单的 ID
+		menuID, err := menuResult.LastInsertId()
+		if err != nil {
+			return nil, err
+		}
+		menu.ID = uint(menuID)
+
+		// 更新子菜单的 NodeID
+		menu.NodeID = sysMenu.NodeID + "_" + strconv.FormatUint(uint64(menuID), 10)
+		_, err = tx.Exec(`
+            UPDATE sys_config_menus SET node_id = ? WHERE id = ?
+        `, menu.NodeID, menuID)
 		if err != nil {
 			return nil, err
 		}
@@ -126,7 +203,7 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 
 	// 返回新创建的应用信息
 	return &model.App{
-		ID:          uint(id),
+		ID:          uint(appID),
 		Name:        app.Name,
 		Code:        app.Code,
 		Description: app.Description,

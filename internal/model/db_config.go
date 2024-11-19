@@ -72,7 +72,7 @@ type ConfigMenu struct {
 	ParentID  uint      `db:"parent_id" json:"parent_id"` // 父菜单ID，0表示顶级菜单
 	MenuName  string    `db:"menu_name" json:"menu_name"` // 菜单名称
 	MenuCode  string    `db:"menu_code" json:"menu_code"` // 菜单代码
-	MenuType  string    `db:"menu_type" json:"menu_type"` // 菜单类型
+	MenuType  int       `db:"menu_type" json:"menu_type"` // 菜单类型
 	Level     int       `db:"level" json:"level"`         // 菜单层级
 	Sort      int       `db:"sort" json:"sort"`           // 排序号
 	Icon      string    `db:"icon" json:"icon"`           // 菜单图标
