@@ -196,6 +196,51 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		}
 	}
 
+	// 添加 'sys' 菜单的权限
+	permission := &model.Permission{
+		Name:        "系统菜单",
+		Code:        "app" + strconv.FormatInt(appID, 10) + "_menu",
+		Type:        "menu",
+		Path:        sysMenu.Path,
+		Method:      "",
+		MenuID:      sysMenu.ID,
+		Status:      1,
+		Description: "app" + strconv.FormatInt(appID, 10) + "的系统菜单权限",
+		CreatorID:   user_id,
+		UpdaterID:   user_id,
+	}
+
+	// 插入权限
+	permResult, err := tx.NamedExec(`
+		INSERT INTO sys_permissions (name, code, type, path, method, menu_id, status, description, created_at, creator_id, updated_at, updater_id)
+		VALUES (:name, :code, :type, :path, :method, :menu_id, :status, :description, NOW(), :creator_id, NOW(), :updater_id)
+	`, permission)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取权限ID
+	permID, err := permResult.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+
+	// 为权限分配给角色
+	rolePermission := &model.RolePermission{
+		RoleID:       1, // 默认角色ID
+		PermissionID: uint(permID),
+		CreatorID:    user_id,
+	}
+
+	// 插入角色权限关联
+	_, err = tx.NamedExec(`
+		INSERT INTO sys_role_permissions (role_id, permission_id, created_at, creator_id)
+		VALUES (:role_id, :permission_id, NOW(), :creator_id)
+	`, rolePermission)
+	if err != nil {
+		return nil, err
+	}
+
 	// 提交事务
 	if err := tx.Commit(); err != nil {
 		return nil, err
