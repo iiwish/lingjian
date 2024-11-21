@@ -3665,6 +3665,232 @@ const docTemplate = `{
                 }
             }
         },
+        "/sys_vars": {
+            "get": {
+                "description": "获取所有系统配置项",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SysVars"
+                ],
+                "summary": "获取系统配置",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "object",
+                                            "additionalProperties": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "修改系统配置项",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SysVars"
+                ],
+                "summary": "修改系统配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "系统配置项",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.SysVar"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "新建系统配置项",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SysVars"
+                ],
+                "summary": "新建系统配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "系统配置项",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.SysVar"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/sys_vars/{code}": {
+            "get": {
+                "description": "根据code获取单个系统配置项",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "SysVars"
+                ],
+                "summary": "根据code获取系统配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "系统配置项的code",
+                        "name": "code",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.SysVar"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/tasks/scheduled": {
             "post": {
                 "description": "创建新的定时任务",
@@ -4677,7 +4903,7 @@ const docTemplate = `{
                 },
                 "menu_type": {
                     "description": "菜单类型",
-                    "type": "string"
+                    "type": "integer"
                 },
                 "node_id": {
                     "description": "节点ID",
@@ -4953,6 +5179,9 @@ const docTemplate = `{
                 "creator_id": {
                     "type": "integer"
                 },
+                "deleted_at": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5023,6 +5252,9 @@ const docTemplate = `{
                 "creator_id": {
                     "type": "integer"
                 },
+                "deleted_at": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -5047,6 +5279,51 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_iiwish_lingjian_internal_model.SysVar": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "配置代码",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "creator_id": {
+                    "description": "创建人ID",
+                    "type": "integer"
+                },
+                "description": {
+                    "description": "配置描述",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键ID",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "配置名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态 0:禁用 1:启用",
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "description": "更新时间",
+                    "type": "string"
+                },
+                "updater_id": {
+                    "description": "更新人ID",
+                    "type": "integer"
+                },
+                "value": {
+                    "description": "配置值",
+                    "type": "string"
+                }
+            }
+        },
         "github_com_iiwish_lingjian_internal_model.User": {
             "type": "object",
             "properties": {
@@ -5058,6 +5335,9 @@ const docTemplate = `{
                 },
                 "creator_id": {
                     "type": "integer"
+                },
+                "deleted_at": {
+                    "type": "string"
                 },
                 "email": {
                     "type": "string"
