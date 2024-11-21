@@ -253,7 +253,7 @@ func AuthorizeHandler(c *gin.Context) {
 					<input type="hidden" name="scope" value="` + scope + `">
 					<input type="hidden" name="state" value="` + state + `">
 					<button type="submit" name="approved" value="true">同意授权</button>
-					<button type="submit" name="approved" value="false">���绝授权</button>
+					<button type="submit" name="approved" value="false">拒绝授权</button>
 				</form>
 			</body>
 		</html>

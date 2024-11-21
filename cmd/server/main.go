@@ -89,6 +89,9 @@ func main() {
 			// 注册认证相关路由
 			v1.RegisterAuthRoutes(v1Group)
 
+			// 注册系统配置相关路由
+			v1.RegisterSysVarsRoutes(v1Group)
+
 			// 需要认证的路由
 			authorized := v1Group.Group("/")
 			authorized.Use(middleware.AuthMiddleware())

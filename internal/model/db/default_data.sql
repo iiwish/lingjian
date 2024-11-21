@@ -148,3 +148,9 @@ SELECT u.id, r.id
 FROM sys_users u, sys_roles r
 WHERE u.username = 'admin' AND r.code = 'super_admin'
 ON DUPLICATE KEY UPDATE user_id = user_id;
+
+-- 添加系统配置
+INSERT INTO sys_vars (name, key, value, description, status, created_at, creator_id, updated_at, updater_id)
+VALUES
+  ('系统名称', 'system_name', '灵简低代码平台', '系统的名称', 1, NOW(), 0, NOW(), 0),
+  ('系统名称缩写', 'system_short_name', '灵简', '系统的简称', 1, NOW(), 0, NOW(), 0);
