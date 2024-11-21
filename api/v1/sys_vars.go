@@ -26,7 +26,7 @@ func RegisterSysVarsRoutes(r *gin.RouterGroup) {
 // @Tags         SysVars
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  utils.Response{data=map[string]string}
+// @Success      200  {object}  utils.Response{data=[]model.SysVar}
 // @Failure      500  {object}  utils.Response
 // @Router       /sys_vars [get]
 func GetSysVars(c *gin.Context) {

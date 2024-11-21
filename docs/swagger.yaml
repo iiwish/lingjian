@@ -3080,9 +3080,9 @@ paths:
             - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
             - properties:
                 data:
-                  additionalProperties:
-                    type: string
-                  type: object
+                  items:
+                    $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.SysVar'
+                  type: array
               type: object
         "500":
           description: Internal Server Error

@@ -3690,9 +3690,9 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "type": "object",
-                                            "additionalProperties": {
-                                                "type": "string"
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.SysVar"
                                             }
                                         }
                                     }
