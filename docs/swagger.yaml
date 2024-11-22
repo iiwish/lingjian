@@ -2710,7 +2710,14 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Permission'
+                  type: array
+              type: object
         "500":
           description: Internal Server Error
           schema:

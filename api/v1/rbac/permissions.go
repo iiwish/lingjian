@@ -15,7 +15,7 @@ import (
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
-// @Success      200  {object}  utils.Response
+// @Success      200  {object}  utils.Response{data=[]model.Permission}
 // @Failure      500  {object}  utils.Response
 // @Router       /permissions [get]
 func ListPermissions(c *gin.Context) {
