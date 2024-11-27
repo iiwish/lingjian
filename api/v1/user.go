@@ -2,6 +2,7 @@ package v1
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/pkg/utils"
 )
@@ -10,7 +11,7 @@ import (
 func RegisterUserRoutes(r *gin.RouterGroup) {
 	user := r.Group("/user")
 	{
-		user.GET("/profile", GetUserProfile)
+		user.GET("/profile", middleware.AuthMiddleware(), GetUserProfile)
 	}
 }
 
@@ -27,16 +28,6 @@ func RegisterUserRoutes(r *gin.RouterGroup) {
 // @Failure      403  {object}  utils.Response
 // @Router       /user/profile [get]
 func GetUserProfile(c *gin.Context) {
-	// 检查是否是OAuth2访问
-	if isOAuth, _ := c.Get("is_oauth"); isOAuth.(bool) {
-		clientID, _ := c.Get("client_id")
-		utils.Success(c, gin.H{
-			"client_id": clientID,
-			"type":      "oauth2",
-		})
-		return
-	}
-
 	// JWT用户访问
 	userId := c.GetUint("user_id")
 	if userId == 0 {

@@ -102,6 +102,7 @@ cp config/config.yaml.example config/config.yaml
 
 5. 启动服务
 ```bash
+# 启动前需要先启动redis、rabbitmq、mysql服务
 # 开发模式启动服务器（支持热重载）
 make dev-server
 
