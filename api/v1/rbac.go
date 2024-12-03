@@ -10,6 +10,7 @@ func RegisterRBACRoutes(r *gin.RouterGroup) {
 	// 用户相关路由
 	r.GET("/users", rbac.GetUsers)
 	r.POST("/users", rbac.CreateUser)
+	r.GET("/users/:user_id", rbac.GetUser)
 	r.PUT("/users/:user_id", rbac.UpdateUser)
 	r.DELETE("/users/:user_id", rbac.DeleteUser)
 

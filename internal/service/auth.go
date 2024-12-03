@@ -1,8 +1,6 @@
 package service
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -103,13 +101,6 @@ type TokenResponse struct {
 	TokenType string `json:"token_type" example:"Bearer"`
 }
 
-// hashPassword 密码加密
-func hashPassword(password string) string {
-	hash := sha256.New()
-	hash.Write([]byte(password))
-	return hex.EncodeToString(hash.Sum(nil))
-}
-
 // GenerateCaptcha 生成验证码
 func (s *AuthService) GenerateCaptcha() (*CaptchaResponse, error) {
 	// 配置验证码参数
@@ -144,7 +135,7 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 		return nil, errors.New("用户不存在")
 	}
 
-	if hashPassword(req.Password) != user.Password {
+	if utils.HashPassword(req.Password) != user.Password {
 		return nil, errors.New("密码错误")
 	}
 

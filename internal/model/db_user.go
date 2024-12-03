@@ -8,7 +8,7 @@ type User struct {
 	Username  string    `db:"username" json:"username"`
 	Nickname  string    `db:"nickname" json:"nickname"`
 	Avatar    string    `db:"avatar" json:"avatar"`
-	Password  string    `db:"password" json:"-"`
+	Password  string    `db:"password" json:"password"`
 	Email     string    `db:"email" json:"email"`
 	Phone     string    `db:"phone" json:"phone"`
 	Status    int       `db:"status" json:"status"` // 0:禁用 1:启用

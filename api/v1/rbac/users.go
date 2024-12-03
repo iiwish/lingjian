@@ -25,8 +25,40 @@ func GetUsers(c *gin.Context) {
 		utils.Error(c, 500, err.Error())
 		return
 	}
+	// 清空密码字段
+	for i := range users {
+		users[i].Password = ""
+	}
 
 	utils.Success(c, users)
+}
+
+// @Summary      获取用户信息
+// @Description  获取指定用户的信息
+// @Tags         RBAC
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer
+// @Param        App-ID header string true "应用ID"
+// @Param        user_id path int true "用户ID"
+// @Success      200  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /users/{user_id} [get]
+func GetUser(c *gin.Context) {
+	userID := utils.ParseUint(c.Param("user_id"))
+
+	userService := &rbac.UserService{}
+	user, err := userService.GetUser(userID)
+	if err != nil {
+		utils.Error(c, 500, err.Error())
+		return
+	}
+
+	// 清空密码字段
+	user.Password = ""
+
+	utils.Success(c, user)
 }
 
 // @Summary      创建用户

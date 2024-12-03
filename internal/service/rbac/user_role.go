@@ -16,7 +16,7 @@ func (s *UserRoleService) GetUserRoles(userID uint) ([]map[string]interface{}, e
 	query := `
 		SELECT r.*
 		FROM roles r
-		JOIN user_roles ur ON r.id = ur.role_id
+		JOIN sys_user_roles ur ON r.id = ur.role_id
 		WHERE ur.user_id = ?
 		ORDER BY r.created_at DESC
 	`
@@ -57,7 +57,7 @@ func (s *UserRoleService) AddRoleToUser(operatorID uint, userID uint, roleID []u
 
 		// 检查用户是否已拥有该角色
 		var count int
-		err = tx.QueryRow("SELECT COUNT(*) FROM user_roles WHERE user_id = ? AND role_id = ?", userID, rID).Scan(&count)
+		err = tx.QueryRow("SELECT COUNT(*) FROM sys_user_roles WHERE user_id = ? AND role_id = ?", userID, rID).Scan(&count)
 		if err != nil {
 			return err
 		}
@@ -65,7 +65,7 @@ func (s *UserRoleService) AddRoleToUser(operatorID uint, userID uint, roleID []u
 			continue // 用户已拥有该角色
 		}
 
-		_, err = tx.Exec("INSERT INTO user_roles (user_id, role_id, creator_id, created_at) VALUES (?, ?, ?, ?)", userID, rID, operatorID, time.Now())
+		_, err = tx.Exec("INSERT INTO sys_user_roles (user_id, role_id, creator_id, created_at) VALUES (?, ?, ?, ?)", userID, rID, operatorID, time.Now())
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func (s *UserRoleService) RemoveRolesFromUser(operatorID, userID uint, roleID []
 
 	// 移除角色
 	for _, rID := range roleID {
-		_, err = tx.Exec("DELETE FROM user_roles WHERE user_id = ? AND role_id = ?", userID, rID)
+		_, err = tx.Exec("DELETE FROM sys_user_roles WHERE user_id = ? AND role_id = ?", userID, rID)
 		if err != nil {
 			return err
 		}

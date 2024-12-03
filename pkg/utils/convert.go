@@ -1,6 +1,10 @@
 package utils
 
-import "strconv"
+import (
+	"crypto/sha256"
+	"encoding/hex"
+	"strconv"
+)
 
 // ParseUint 将字符串转换为uint
 func ParseUint(s string) uint {
@@ -18,4 +22,11 @@ func ParseInt(s string) int {
 		return 0
 	}
 	return n
+}
+
+// HashPassword 密码哈希
+func HashPassword(password string) string {
+	hash := sha256.New()
+	hash.Write([]byte(password))
+	return hex.EncodeToString(hash.Sum(nil))
 }
