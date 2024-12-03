@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"log"
-	"path"
+	"regexp"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -11,31 +11,21 @@ import (
 )
 
 // pathMatch 检查请求路径是否匹配权限路径
-func pathMatch(permPath, reqPath string) bool {
-	// 如果权限路径包含通配符
-	if strings.Contains(permPath, "*") {
-		permParts := strings.Split(permPath, "/")
-		reqParts := strings.Split(reqPath, "/")
+func pathMatch(pattern, path string) bool {
+	// 将路径模式转换为正则表达式
+	regexPattern := "^" + regexp.QuoteMeta(pattern) + "$"
+	regexPattern = strings.Replace(regexPattern, `\*`, `.*`, -1)
+	regexPattern = strings.Replace(regexPattern, `/:id`, `/\d+`, -1)
 
-		// 如果路径段数不同，且权限路径最后一段不是通配符，则不匹配
-		if len(permParts) != len(reqParts) && permParts[len(permParts)-1] != "*" {
-			return false
-		}
-
-		// 逐段比较
-		for i := 0; i < len(permParts) && i < len(reqParts); i++ {
-			if permParts[i] == "*" {
-				continue
-			}
-			if permParts[i] != reqParts[i] {
-				return false
-			}
-		}
-		return true
+	// 编译正则表达式
+	regex, err := regexp.Compile(regexPattern)
+	if err != nil {
+		log.Printf("RBAC: 正则表达式编译失败 - %v", err)
+		return false
 	}
 
-	// 不包含通配符时进行精确匹配
-	return path.Clean(permPath) == path.Clean(reqPath)
+	// 检查路径是否匹配
+	return regex.MatchString(path)
 }
 
 // RBACMiddleware RBAC权限控制中间件
