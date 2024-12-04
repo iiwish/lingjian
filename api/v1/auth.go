@@ -32,10 +32,11 @@ func RegisterAuthRoutes(r *gin.RouterGroup) {
 		authRequired := auth.Group("/", middleware.AuthMiddleware())
 		{
 			authRequired.POST("/logout", Logout)
+			authRequired.PUT("/password", ChangePassword)
 			authRequired.GET("/userinfo", GetUserInfo)
 		}
 
-		// OAuth2.0相关路由
+		// OAuth2.0相关路由（这部分没有测试和检查）
 		oauth := auth.Group("/oauth")
 		{
 			oauth.GET("/authorize", AuthorizeHandler)
@@ -148,6 +149,24 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	// 数据校验
+	if req.CaptchaId == "" || req.CaptchaVal == "" {
+		utils.Error(c, 400, "验证码不能为空")
+		return
+	}
+
+	// 用户名格式校验
+	if !utils.IsUsername(req.Username) {
+		utils.Error(c, 400, "用户名格式错误")
+		return
+	}
+
+	// 密码格式校验
+	if !utils.IsPassword(req.Password) {
+		utils.Error(c, 400, "密码格式错误")
+		return
+	}
+
 	resp, err := authService.Login(&req)
 	if err != nil {
 		utils.Error(c, 400, err.Error())
@@ -180,6 +199,45 @@ func RefreshToken(c *gin.Context) {
 	}
 
 	utils.Success(c, resp)
+}
+
+// @Summary      修改密码
+// @Description  修改当前用户的登录密码
+// @Tags         Auth
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
+// @Param	request body service.ChangePasswordRequest true "修改密码请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Router       /auth/password [put]
+func ChangePassword(c *gin.Context) {
+	var req service.ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, 400, "无效的请求参数")
+		return
+	}
+
+	userId := c.GetUint("user_id")
+	if userId == 0 {
+		utils.Error(c, 403, "未授权")
+		return
+	}
+
+	// 密码格式校验
+	if !utils.IsPassword(req.NewPassword) {
+		utils.Error(c, 400, "新密码格式错误")
+		return
+	}
+
+	if err := authService.ChangePassword(userId, &req); err != nil {
+		utils.Error(c, 400, err.Error())
+		return
+	}
+
+	utils.Success(c, nil)
 }
 
 // @Summary      用户登出

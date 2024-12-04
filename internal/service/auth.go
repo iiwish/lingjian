@@ -101,6 +101,14 @@ type TokenResponse struct {
 	TokenType string `json:"token_type" example:"Bearer"`
 }
 
+// ChangePasswordRequest 修改密码请求参数
+type ChangePasswordRequest struct {
+	// 旧密码
+	OldPassword string `json:"old_password" binding:"required" example:"123456"`
+	// 新密码
+	NewPassword string `json:"new_password" binding:"required" example:"1234567"`
+}
+
 // GenerateCaptcha 生成验证码
 func (s *AuthService) GenerateCaptcha() (*CaptchaResponse, error) {
 	// 配置验证码参数
@@ -216,6 +224,27 @@ func (s *AuthService) RefreshToken(refreshToken string) (*LoginResponse, error) 
 		RefreshToken: refreshToken,
 		ExpiresIn:    7200, // 2小时
 	}, nil
+}
+
+// ChangePassword 修改密码
+func (s *AuthService) ChangePassword(userId uint, req *ChangePasswordRequest) error {
+	var user model.User
+	err := model.DB.Get(&user, "SELECT * FROM sys_users WHERE id = ?", userId)
+	if err != nil {
+		return errors.New("用户不存在")
+	}
+
+	if utils.HashPassword(req.OldPassword) != user.Password {
+		return errors.New("旧密码错误")
+	}
+
+	// 更新密码
+	_, err = model.DB.Exec("UPDATE sys_users SET password = ? WHERE id = ?", utils.HashPassword(req.NewPassword), userId)
+	if err != nil {
+		return errors.New("更新密码失败")
+	}
+
+	return nil
 }
 
 // Logout 用户登出

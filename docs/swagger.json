@@ -669,6 +669,65 @@
                 }
             }
         },
+        "/auth/password": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "修改当前用户的登录密码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "修改密码",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "修改密码请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_service.ChangePasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/refresh": {
             "post": {
                 "description": "使用刷新令牌获取新的访问令牌",
@@ -5771,6 +5830,25 @@
                     "description": "Base64编码的验证码图片",
                     "type": "string",
                     "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_service.ChangePasswordRequest": {
+            "type": "object",
+            "required": [
+                "new_password",
+                "old_password"
+            ],
+            "properties": {
+                "new_password": {
+                    "description": "新密码",
+                    "type": "string",
+                    "example": "1234567"
+                },
+                "old_password": {
+                    "description": "旧密码",
+                    "type": "string",
+                    "example": "123456"
                 }
             }
         },

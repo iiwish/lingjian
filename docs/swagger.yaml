@@ -647,6 +647,20 @@ definitions:
         example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
         type: string
     type: object
+  github_com_iiwish_lingjian_internal_service.ChangePasswordRequest:
+    properties:
+      new_password:
+        description: 新密码
+        example: "1234567"
+        type: string
+      old_password:
+        description: 旧密码
+        example: "123456"
+        type: string
+    required:
+    - new_password
+    - old_password
+    type: object
   github_com_iiwish_lingjian_internal_service.LoginRequest:
     properties:
       captcha_id:
@@ -1162,6 +1176,44 @@ paths:
       summary: OAuth2令牌
       tags:
       - OAuth2
+  /auth/password:
+    put:
+      consumes:
+      - application/json
+      description: 修改当前用户的登录密码
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 修改密码请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_service.ChangePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 修改密码
+      tags:
+      - Auth
   /auth/refresh:
     post:
       consumes:
