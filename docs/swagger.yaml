@@ -123,7 +123,7 @@ definitions:
       app_id:
         type: integer
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       description:
@@ -138,7 +138,7 @@ definitions:
       table_name:
         type: string
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
     type: object
@@ -148,8 +148,9 @@ definitions:
         description: 编码
         type: string
       created_at:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
         description: 创建时间
-        type: string
       creator_id:
         description: 创建者ID
         type: integer
@@ -175,8 +176,9 @@ definitions:
         description: 状态
         type: integer
       updated_at:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
         description: 更新时间
-        type: string
       updater_id:
         description: 更新者ID
         type: integer
@@ -188,7 +190,7 @@ definitions:
       configuration:
         type: string
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       description:
@@ -207,7 +209,7 @@ definitions:
         description: 0:禁用 1:启用
         type: integer
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
       version:
@@ -219,7 +221,7 @@ definitions:
       app_id:
         type: integer
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       icon:
@@ -245,17 +247,17 @@ definitions:
       parent_id:
         description: 父菜单ID，0表示顶级菜单
         type: integer
-      path:
-        description: 菜单路径
-        type: string
       sort:
         description: 排序号
+        type: integer
+      source_id:
+        description: 菜单图标
         type: integer
       status:
         description: 0:禁用 1:启用
         type: integer
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
     type: object
@@ -266,7 +268,7 @@ definitions:
       configuration:
         type: string
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       description:
@@ -281,7 +283,7 @@ definitions:
         description: 0:禁用 1:启用
         type: integer
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
       version:
@@ -293,12 +295,14 @@ definitions:
       app_id:
         type: integer
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       description:
         type: string
       display_name:
+        type: string
+      func:
         type: string
       id:
         type: integer
@@ -308,7 +312,7 @@ definitions:
       table_name:
         type: string
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
     type: object
@@ -431,11 +435,11 @@ definitions:
       code:
         type: string
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       deleted_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       description:
         type: string
       id:
@@ -453,7 +457,7 @@ definitions:
       type:
         type: string
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
     type: object
@@ -480,11 +484,11 @@ definitions:
       code:
         type: string
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       deleted_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       description:
         type: string
       id:
@@ -497,7 +501,7 @@ definitions:
         description: 0:禁用 1:启用
         type: integer
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
     type: object
@@ -507,8 +511,9 @@ definitions:
         description: 配置代码
         type: string
       created_at:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
         description: 创建时间
-        type: string
       creator_id:
         description: 创建人ID
         type: integer
@@ -525,8 +530,9 @@ definitions:
         description: 状态 0:禁用 1:启用
         type: integer
       updated_at:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
         description: 更新时间
-        type: string
       updater_id:
         description: 更新人ID
         type: integer
@@ -534,21 +540,63 @@ definitions:
         description: 配置值
         type: string
     type: object
+  github_com_iiwish_lingjian_internal_model.TreeConfigMenu:
+    properties:
+      app_id:
+        type: integer
+      children:
+        description: 子菜单列表
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
+        type: array
+      created_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      creator_id:
+        type: integer
+      icon:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      menu_code:
+        type: string
+      menu_name:
+        type: string
+      menu_type:
+        type: string
+      node_id:
+        type: string
+      parent_id:
+        type: integer
+      path:
+        type: string
+      sort:
+        type: integer
+      status:
+        type: integer
+      updated_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      updater_id:
+        type: integer
+    type: object
   github_com_iiwish_lingjian_internal_model.User:
     properties:
       avatar:
         type: string
       created_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
       deleted_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       email:
         type: string
       id:
         type: integer
       nickname:
+        type: string
+      password:
         type: string
       phone:
         type: string
@@ -556,7 +604,7 @@ definitions:
         description: 0:禁用 1:启用
         type: integer
       updated_at:
-        type: string
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       updater_id:
         type: integer
       username:
@@ -682,6 +730,11 @@ definitions:
         example: Bearer
         type: string
     type: object
+  github_com_iiwish_lingjian_pkg_utils.CustomTime:
+    properties:
+      time.Time:
+        type: string
+    type: object
   github_com_iiwish_lingjian_pkg_utils.Response:
     properties:
       code:
@@ -783,6 +836,139 @@ paths:
       security:
       - Bearer: []
       summary: 创建应用
+      tags:
+      - Application
+  /apps/{app_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的应用
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 应用ID
+        in: path
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 删除应用
+      tags:
+      - Application
+    get:
+      consumes:
+      - application/json
+      description: 获取应用详情
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 应用ID
+        in: path
+        name: app_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api_v1.AppResponse'
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 获取应用详情
+      tags:
+      - Application
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的应用
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 应用ID
+        in: path
+        name: app_id
+        required: true
+        type: integer
+      - description: 更新应用请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api_v1.CreateAppRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/api_v1.AppResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 更新应用
       tags:
       - Application
   /auth/captcha:
@@ -1760,7 +1946,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
             type: array
         "400":
           description: Bad Request
@@ -3539,6 +3725,42 @@ paths:
       security:
       - Bearer: []
       summary: 删除用户
+      tags:
+      - RBAC
+    get:
+      consumes:
+      - application/json
+      description: 获取指定用户的信息
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 用户ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 获取用户信息
       tags:
       - RBAC
     put:

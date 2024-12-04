@@ -39,7 +39,7 @@ func GetUsers(c *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
-// @Param        Authorization header string true "Bearer
+// @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        user_id path int true "用户ID"
 // @Success      200  {object}  utils.Response

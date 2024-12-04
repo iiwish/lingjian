@@ -104,10 +104,10 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		ParentID:  0,
 		NodeID:    "", // 先设置为空，避免唯一索引冲突
 		MenuName:  "系统",
-		MenuCode:  "sys",
+		MenuCode:  "_sys",
 		MenuType:  1,
 		SourceID:  0,
-		Icon:      "settings",
+		Icon:      "folder",
 		Sort:      1,
 		Status:    1,
 		CreatorID: user_id,
@@ -116,8 +116,8 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 
 	// 插入 'sys' 菜单
 	menuResult, err := tx.NamedExec(`
-        INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, path, icon, sort, status, created_at, creator_id, updated_at, updater_id)
-        VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :path, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
+        INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, source_id, icon, sort, status, created_at, creator_id, updated_at, updater_id)
+        VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :source_id, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
     `, sysMenu)
 	if err != nil {
 		return nil, err
@@ -143,15 +143,14 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 	childMenus := []struct {
 		MenuName string
 		MenuCode string
-		SourceID uint
 		Icon     string
 		Sort     int
 	}{
-		{"维度", "dimension", 0, "dimension", 1},
-		{"表单", "form", 0, "form", 2},
-		{"菜单", "menu", 0, "menu", 3},
-		{"模型", "model", 0, "model", 4},
-		{"数据表", "table", 0, "table", 5},
+		{"维度", "dimension", "folder", 1},
+		{"表单", "form", "folder", 2},
+		{"菜单", "menu", "folder", 3},
+		{"模型", "model", "folder", 4},
+		{"数据表", "table", "folder", 5},
 	}
 
 	for _, item := range childMenus {
@@ -162,7 +161,7 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 			MenuName:  item.MenuName,
 			MenuCode:  item.MenuCode,
 			MenuType:  1,
-			SourceID:  item.SourceID,
+			SourceID:  0,
 			Icon:      item.Icon,
 			Sort:      item.Sort,
 			Status:    1,
@@ -172,8 +171,8 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 
 		// 插入子菜单
 		menuResult, err := tx.NamedExec(`
-            INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, path, icon, sort, status, created_at, creator_id, updated_at, updater_id)
-            VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :path, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
+            INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, source_id, icon, sort, status, created_at, creator_id, updated_at, updater_id)
+            VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :source_id, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
         `, menu)
 		if err != nil {
 			return nil, err
@@ -258,4 +257,84 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		UpdatedAt:   utils.NowCustomTime(),
 		UpdaterID:   user_id,
 	}, nil
+}
+
+// GetAppByID 根据 ID 获取应用信息
+func (s *AppService) GetAppByID(id uint, user_id uint) (*model.App, error) {
+	var app model.App
+	err := model.DB.Get(&app, "SELECT * FROM sys_apps WHERE id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+
+	return &app, nil
+}
+
+// UpdateApp 更新应用信息
+func (s *AppService) UpdateApp(app *model.App, user_id uint) (*model.App, error) {
+	app.UpdaterID = user_id
+
+	// 检查应用代码是否已存在
+	var count int
+	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_apps WHERE code = ? AND id != ?", app.Code, app.ID)
+	if err != nil {
+		return nil, err
+	}
+	if count > 0 {
+		return nil, errors.New("应用代码已存在")
+	}
+
+	// 更新应用信息
+	_, err = model.DB.NamedExec(`
+		UPDATE sys_apps SET name = :name, code = :code, description = :description, status = :status, updated_at = NOW(), updater_id = :updater_id
+		WHERE id = :id
+	`, app)
+	if err != nil {
+		return nil, err
+	}
+
+	return app, nil
+}
+
+// DeleteApp 删除应用
+func (s *AppService) DeleteApp(id uint, user_id uint) error {
+	// 开启事务
+	tx, err := model.DB.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// 删除应用
+	_, err = tx.Exec("DELETE FROM sys_apps WHERE id = ?", id)
+	if err != nil {
+		return err
+	}
+
+	// 删除应用下的菜单
+	_, err = tx.Exec("DELETE FROM sys_config_menus WHERE app_id = ?", id)
+	if err != nil {
+		return err
+	}
+
+	// 删除应用下的角色权限关联
+	_, err = tx.Exec("DELETE FROM sys_role_permissions WHERE permission_id IN (SELECT id FROM sys_permissions WHERE code LIKE ?)", "app"+strconv.FormatUint(uint64(id), 10)+"%")
+	if err != nil {
+		return err
+	}
+
+	// 删除应用下的权限
+	_, err = tx.Exec("DELETE FROM sys_permissions WHERE code LIKE ?", "app"+strconv.FormatUint(uint64(id), 10)+"%")
+	if err != nil {
+		return err
+	}
+
+	// todo 考虑是否需要删除数据表
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	return nil
 }
