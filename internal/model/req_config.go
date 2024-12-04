@@ -1,6 +1,6 @@
 package model
 
-import "time"
+import "github.com/iiwish/lingjian/pkg/utils"
 
 // ConfigMenu 返回给前端的菜单树形结构
 type TreeConfigMenu struct {
@@ -16,9 +16,9 @@ type TreeConfigMenu struct {
 	Icon      string            `db:"icon" json:"icon"`
 	Path      string            `db:"path" json:"path"`
 	Status    int               `db:"status" json:"status"`
-	CreatedAt time.Time         `db:"created_at" json:"created_at"`
+	CreatedAt utils.CustomTime  `db:"created_at" json:"created_at"`
 	CreatorID uint              `db:"creator_id" json:"creator_id"`
-	UpdatedAt time.Time         `db:"updated_at" json:"updated_at"`
+	UpdatedAt utils.CustomTime  `db:"updated_at" json:"updated_at"`
 	UpdaterID uint              `db:"updater_id" json:"updater_id"`
 	Children  []*TreeConfigMenu `json:"children"` // 子菜单列表
 }
@@ -92,18 +92,18 @@ type MySQLIndex struct {
 
 // ConfigDimensionItem 维度配置
 type ConfigDimensionItem struct {
-	ID        uint      `db:"id" json:"id"`                 // 主键ID
-	NodeID    string    `db:"node_id" json:"node_id"`       // 节点ID
-	ParentID  uint      `db:"parent_id" json:"parent_id"`   // 父节点ID
-	Name      string    `db:"name" json:"name"`             // 名称
-	Code      string    `db:"code" json:"code"`             // 编码
-	Level     int       `db:"level" json:"level"`           // 层级
-	Sort      int       `db:"sort" json:"sort"`             // 排序
-	Status    int       `db:"status" json:"status"`         // 状态
-	CreatedAt time.Time `db:"created_at" json:"created_at"` // 创建时间
-	CreatorID uint      `db:"creator_id" json:"creator_id"` // 创建者ID
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"` // 更新时间
-	UpdaterID uint      `db:"updater_id" json:"updater_id"` // 更新者ID
+	ID        uint             `db:"id" json:"id"`                 // 主键ID
+	NodeID    string           `db:"node_id" json:"node_id"`       // 节点ID
+	ParentID  uint             `db:"parent_id" json:"parent_id"`   // 父节点ID
+	Name      string           `db:"name" json:"name"`             // 名称
+	Code      string           `db:"code" json:"code"`             // 编码
+	Level     int              `db:"level" json:"level"`           // 层级
+	Sort      int              `db:"sort" json:"sort"`             // 排序
+	Status    int              `db:"status" json:"status"`         // 状态
+	CreatedAt utils.CustomTime `db:"created_at" json:"created_at"` // 创建时间
+	CreatorID uint             `db:"creator_id" json:"creator_id"` // 创建者ID
+	UpdatedAt utils.CustomTime `db:"updated_at" json:"updated_at"` // 更新时间
+	UpdaterID uint             `db:"updater_id" json:"updater_id"` // 更新者ID
 }
 
 // TreeConfigDimensionItem 维度配置树形结构
@@ -116,9 +116,9 @@ type TreeConfigDimensionItem struct {
 	Level     int                        `db:"level" json:"level"`
 	Sort      int                        `db:"sort" json:"sort"`
 	Status    int                        `db:"status" json:"status"`
-	CreatedAt time.Time                  `db:"created_at" json:"created_at"`
+	CreatedAt utils.CustomTime           `db:"created_at" json:"created_at"`
 	CreatorID uint                       `db:"creator_id" json:"creator_id"`
-	UpdatedAt time.Time                  `db:"updated_at" json:"updated_at"`
+	UpdatedAt utils.CustomTime           `db:"updated_at" json:"updated_at"`
 	UpdaterID uint                       `db:"updater_id" json:"updater_id"`
 	Children  []*TreeConfigDimensionItem `json:"children"` // 子维度列表
 }

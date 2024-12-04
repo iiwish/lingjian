@@ -3,9 +3,9 @@ package service
 import (
 	"errors"
 	"strconv"
-	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/pkg/utils"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -253,9 +253,9 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		Code:        app.Code,
 		Description: app.Description,
 		Status:      app.Status,
-		CreatedAt:   time.Now(),
+		CreatedAt:   utils.NowCustomTime(),
 		CreatorID:   user_id,
-		UpdatedAt:   time.Now(),
+		UpdatedAt:   utils.NowCustomTime(),
 		UpdaterID:   user_id,
 	}, nil
 }
