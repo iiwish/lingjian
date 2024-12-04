@@ -30,22 +30,22 @@ func (s *RoleService) CreateRole(operatorID uint, req *model.Role) error {
 	}
 
 	// 检查父角色是否存在
-	var parentID *uint
-	if req.ParentID != 0 {
-		var parent struct {
-			ID uint `db:"id"`
-		}
-		err = model.DB.Get(&parent, "SELECT id FROM sys_roles WHERE id = ?", req.ParentID)
-		if err != nil {
-			return errors.New("父角色不存在")
-		}
-		parentID = &parent.ID
-	}
+	// var parentID *uint
+	// if req.ParentID != 0 {
+	// 	var parent struct {
+	// 		ID uint `db:"id"`
+	// 	}
+	// 	err = model.DB.Get(&parent, "SELECT id FROM sys_roles WHERE id = ?", req.ParentID)
+	// 	if err != nil {
+	// 		return errors.New("父角色不存在")
+	// 	}
+	// 	parentID = &parent.ID
+	// }
 
 	// 创建角色
 	_, err = model.DB.Exec(
 		"INSERT INTO sys_roles (name, code, parent_id, description, status, created_at, creator_id, updated_at, updater_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-		req.Name, req.Code, parentID, req.Description, 1, time.Now(), operatorID, time.Now(), operatorID,
+		req.Name, req.Code, req.ParentID, req.Description, 1, time.Now(), operatorID, time.Now(), operatorID,
 	)
 
 	return err
@@ -111,13 +111,13 @@ func (s *RoleService) DeleteRole(operatorID uint, roleID uint) error {
 	defer tx.Rollback()
 
 	// 删除角色的权限关联
-	_, err = tx.Exec("DELETE FROM role_permissions WHERE role_id = ?", roleID)
+	_, err = tx.Exec("DELETE FROM sys_role_permissions WHERE role_id = ?", roleID)
 	if err != nil {
 		return err
 	}
 
 	// 删除用户与角色的关联
-	_, err = tx.Exec("DELETE FROM user_roles WHERE role_id = ?", roleID)
+	_, err = tx.Exec("DELETE FROM sys_user_roles WHERE role_id = ?", roleID)
 	if err != nil {
 		return err
 	}
@@ -128,5 +128,6 @@ func (s *RoleService) DeleteRole(operatorID uint, roleID uint) error {
 		return err
 	}
 
+	// 提交事务
 	return tx.Commit()
 }

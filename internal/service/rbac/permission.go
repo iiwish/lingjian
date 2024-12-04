@@ -100,7 +100,7 @@ func (s *PermissionService) DeletePermission(operatorID uint, permissionID uint)
 	defer tx.Rollback()
 
 	// 删除角色权限关联
-	_, err = tx.Exec("DELETE FROM role_permissions WHERE permission_id = ?", permissionID)
+	_, err = tx.Exec("DELETE FROM sys_role_permissions WHERE permission_id = ?", permissionID)
 	if err != nil {
 		return err
 	}
