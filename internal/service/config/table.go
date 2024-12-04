@@ -39,9 +39,9 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 	// 插入数据表配置
 	result, err := tx.NamedExec(`
         INSERT INTO sys_config_tables (
-            app_id, table_name, display_name, description, status, created_at, creator_id, updated_at, updater_id
+            app_id, table_name, display_name, description, func, status, created_at, creator_id, updated_at, updater_id
         ) VALUES (
-            :app_id, :table_name, :display_name, :description, :status, NOW(), :creator_id, NOW(), :creator_id
+            :app_id, :table_name, :display_name, :description, :func, :status, NOW(), :creator_id, NOW(), :creator_id
         )
     `, table)
 	if err != nil {
@@ -140,6 +140,7 @@ func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint) err
 			table_name = :table_name,
 			display_name = :display_name,
 			description = :description,
+			func = :func,
 			status = :status,
 			updater_id = :updater_id,
 			updated_at = NOW()

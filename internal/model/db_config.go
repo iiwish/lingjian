@@ -9,6 +9,7 @@ type ConfigTable struct {
 	TableName   string           `db:"table_name" json:"table_name"`
 	DisplayName string           `db:"display_name" json:"display_name"`
 	Description string           `db:"description" json:"description"`
+	Func        string           `db:"func" json:"func"`
 	Status      int              `db:"status" json:"status"` // 0:禁用 1:启用
 	CreatedAt   utils.CustomTime `db:"created_at" json:"created_at"`
 	CreatorID   uint             `db:"creator_id" json:"creator_id"`
@@ -76,7 +77,7 @@ type ConfigMenu struct {
 	Level     int              `db:"level" json:"level"`         // 菜单层级
 	Sort      int              `db:"sort" json:"sort"`           // 排序号
 	Icon      string           `db:"icon" json:"icon"`           // 菜单图标
-	Path      string           `db:"path" json:"path"`           // 菜单路径
+	SourceID  uint             `db:"source_id" json:"source_id"` // 菜单图标
 	Status    int              `db:"status" json:"status"`       // 0:禁用 1:启用
 	CreatedAt utils.CustomTime `db:"created_at" json:"created_at"`
 	CreatorID uint             `db:"creator_id" json:"creator_id"`

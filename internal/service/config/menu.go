@@ -31,9 +31,9 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, 
 	// 插入菜单配置
 	result, err := tx.NamedExec(`
 		INSERT INTO sys_config_menus (
-			app_id, parent_id, node_id, menu_name, menu_code, menu_type, level, sort, icon, path, status, created_at, creator_id, updated_at, updater_id
+			app_id, parent_id, node_id, menu_name, menu_code, menu_type, level, sort, icon, source_id, status, created_at, creator_id, updated_at, updater_id
 		) VALUES (
-			:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :level, :sort, :icon, :path, :status, NOW(), :creator_id, NOW(), :creator_id
+			:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :level, :sort, :icon, :source_id, :status, NOW(), :creator_id, NOW(), :creator_id
 		)
 	`, menu)
 	if err != nil {
@@ -78,7 +78,7 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 			level = :level,
 			sort = :sort,
 			icon = :icon,
-			path = :path,
+			source_id = :source_id,
 			updated_at = NOW(),
 			updater_id = :updater_id
 		WHERE id = :id

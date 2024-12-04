@@ -106,7 +106,7 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		MenuName:  "系统",
 		MenuCode:  "sys",
 		MenuType:  1,
-		Path:      "/sys",
+		SourceID:  0,
 		Icon:      "settings",
 		Sort:      1,
 		Status:    1,
@@ -143,15 +143,15 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 	childMenus := []struct {
 		MenuName string
 		MenuCode string
-		Path     string
+		SourceID uint
 		Icon     string
 		Sort     int
 	}{
-		{"维度", "dimension", "/sys/dimension", "dimension", 1},
-		{"表单", "form", "/sys/form", "form", 2},
-		{"菜单", "menu", "/sys/menu", "menu", 3},
-		{"模型", "model", "/sys/model", "model", 4},
-		{"数据表", "table", "/sys/table", "table", 5},
+		{"维度", "dimension", 0, "dimension", 1},
+		{"表单", "form", 0, "form", 2},
+		{"菜单", "menu", 0, "menu", 3},
+		{"模型", "model", 0, "model", 4},
+		{"数据表", "table", 0, "table", 5},
 	}
 
 	for _, item := range childMenus {
@@ -162,7 +162,7 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 			MenuName:  item.MenuName,
 			MenuCode:  item.MenuCode,
 			MenuType:  1,
-			Path:      item.Path,
+			SourceID:  item.SourceID,
 			Icon:      item.Icon,
 			Sort:      item.Sort,
 			Status:    1,
@@ -201,7 +201,7 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		Name:        "系统菜单",
 		Code:        "app" + strconv.FormatInt(appID, 10) + "_menu",
 		Type:        "menu",
-		Path:        sysMenu.Path,
+		Path:        "",
 		Method:      "",
 		MenuID:      sysMenu.ID,
 		Status:      1,
