@@ -101,7 +101,7 @@ func (api *ConfigAPI) GetMenuByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, menu)
+	utils.Success(c, menu)
 }
 
 // @Summary      删除菜单配置
@@ -125,7 +125,7 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	utils.Success(c, nil)
 }
 
 // @Summary      获取菜单列表
@@ -139,7 +139,7 @@ func (api *ConfigAPI) DeleteMenu(c *gin.Context) {
 // @Param        level     query    int     false  "菜单级别"
 // @Param        parent_id query    uint    false  "父菜单ID"
 // @Param        type      query    string  false  "菜单类型，可选值为 'children'、'descendants' , 默认为 'children'"
-// @Success      200  {object}  []model.TreeConfigMenu
+// @Success      200  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/menus [get]
@@ -201,5 +201,6 @@ func (api *ConfigAPI) GetMenus(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, menus)
+	// c.JSON(http.StatusOK, menus)
+	utils.Success(c, gin.H{"items": menus})
 }

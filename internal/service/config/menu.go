@@ -257,6 +257,23 @@ func (s *MenuService) GetMenus(appID uint, userID uint, level *int, parentID *ui
 		}
 	}
 
+	// 递归设置Path字段
+	var setPath func(menu *model.TreeConfigMenu, parentPath string)
+	setPath = func(menu *model.TreeConfigMenu, parentPath string) {
+		if parentPath == "" {
+			menu.Path = menu.MenuCode
+		} else {
+			menu.Path = parentPath + "/" + menu.MenuCode
+		}
+		for _, child := range menu.Children {
+			setPath(child, menu.Path)
+		}
+	}
+
+	for _, menu := range treeMenus {
+		setPath(menu, "")
+	}
+
 	// 对树形结构进行排序
 	sort.Slice(treeMenus, func(i, j int) bool {
 		return treeMenus[i].Sort < treeMenus[j].Sort

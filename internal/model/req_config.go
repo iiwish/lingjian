@@ -14,6 +14,7 @@ type TreeConfigMenu struct {
 	Level     int               `db:"level" json:"level"`
 	Sort      int               `db:"sort" json:"sort"`
 	Icon      string            `db:"icon" json:"icon"`
+	Path      string            `json:"path"`
 	SourceID  string            `db:"source_id" json:"source_id"`
 	Status    int               `db:"status" json:"status"`
 	CreatedAt utils.CustomTime  `db:"created_at" json:"created_at"`
