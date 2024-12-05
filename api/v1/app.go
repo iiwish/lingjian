@@ -1,6 +1,8 @@
 package v1
 
 import (
+	"log"
+
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/iiwish/lingjian/internal/service"
@@ -11,11 +13,11 @@ import (
 func RegisterAppRoutes(r *gin.RouterGroup) {
 	app := r.Group("/apps")
 	{
-		app.GET("", ListApps)       // 获取应用列表
-		app.GET("/:app_id", nil)    // 获取应用详情
-		app.POST("", CreateApp)     // 创建应用
-		app.PUT("/:app_id", nil)    // 更新应用
-		app.DELETE("/:app_id", nil) // 删除应用
+		app.GET("", ListApps)             // 获取应用列表
+		app.GET("/:app_id", GetApp)       // 获取应用详情
+		app.POST("", CreateApp)           // 创建应用
+		app.PUT("/:app_id", UpdateApp)    // 更新应用
+		app.DELETE("/:app_id", DeleteApp) // 删除应用
 	}
 }
 
@@ -137,6 +139,7 @@ func CreateApp(c *gin.Context) {
 // @Failure      500  {object}  utils.Response
 // @Router       /apps/{app_id} [put]
 func UpdateApp(c *gin.Context) {
+	log.Printf("UpdateApp: %v", c)
 	appID := utils.ParseUint(c.Param("app_id"))
 	if appID == 0 {
 		utils.Error(c, 400, "无效的 app_id 参数")
@@ -153,14 +156,16 @@ func UpdateApp(c *gin.Context) {
 	// 获取当前用户ID
 	userID := c.GetUint("user_id")
 
+	log.Printf("UpdateApp: appID=%d, userID=%d, req=%+v", appID, userID, req)
+
 	appService := &service.AppService{}
-	result, err := appService.UpdateApp(&req, userID)
+	err := appService.UpdateApp(&req, userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
 
-	utils.Success(c, result)
+	utils.Success(c, nil)
 }
 
 // @Summary      删除应用

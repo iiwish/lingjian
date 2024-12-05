@@ -3669,6 +3669,41 @@ paths:
       summary: 获取用户信息
       tags:
       - User
+    put:
+      consumes:
+      - application/json
+      description: 更新当前登录用户的信息
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 更新用户信息
+      tags:
+      - User
   /users:
     get:
       consumes:

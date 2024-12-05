@@ -271,17 +271,17 @@ func (s *AppService) GetAppByID(id uint, user_id uint) (*model.App, error) {
 }
 
 // UpdateApp 更新应用信息
-func (s *AppService) UpdateApp(app *model.App, user_id uint) (*model.App, error) {
+func (s *AppService) UpdateApp(app *model.App, user_id uint) error {
 	app.UpdaterID = user_id
 
 	// 检查应用代码是否已存在
 	var count int
 	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_apps WHERE code = ? AND id != ?", app.Code, app.ID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if count > 0 {
-		return nil, errors.New("应用代码已存在")
+		return errors.New("应用代码已存在")
 	}
 
 	// 更新应用信息
@@ -290,10 +290,10 @@ func (s *AppService) UpdateApp(app *model.App, user_id uint) (*model.App, error)
 		WHERE id = :id
 	`, app)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return app, nil
+	return nil
 }
 
 // DeleteApp 删除应用
