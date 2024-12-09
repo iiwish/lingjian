@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS sys_config_menus (
     parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父节点ID',
     menu_name VARCHAR(64) NOT NULL DEFAULT '' COMMENT '菜单名称',
     menu_code VARCHAR(64) NOT NULL DEFAULT '' COMMENT '菜单编码',
-    menu_type TINYINT NOT NULL DEFAULT 1 COMMENT '菜单类型：1目录 2table 3dimension 4model 5form',
+    menu_type TINYINT NOT NULL DEFAULT 1 COMMENT '菜单类型：1目录 2table 3dimension 4menu 5model 6form',
     level INT NOT NULL DEFAULT 1 COMMENT '层级',
     sort INT NOT NULL DEFAULT 0 COMMENT '排序',
     icon VARCHAR(64) NOT NULL DEFAULT '' COMMENT '图标',

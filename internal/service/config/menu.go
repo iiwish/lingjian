@@ -265,6 +265,10 @@ func (s *MenuService) GetMenus(appID uint, userID uint, level *int, parentID *ui
 		} else {
 			menu.Path = parentPath + "/" + menu.MenuCode
 		}
+		// 对子节点进行排序
+		sort.Slice(menu.Children, func(i, j int) bool {
+			return menu.Children[i].Sort < menu.Children[j].Sort
+		})
 		for _, child := range menu.Children {
 			setPath(child, menu.Path)
 		}
@@ -278,11 +282,6 @@ func (s *MenuService) GetMenus(appID uint, userID uint, level *int, parentID *ui
 	sort.Slice(treeMenus, func(i, j int) bool {
 		return treeMenus[i].Sort < treeMenus[j].Sort
 	})
-	for _, menu := range treeMenus {
-		sort.Slice(menu.Children, func(i, j int) bool {
-			return menu.Children[i].Sort < menu.Children[j].Sort
-		})
-	}
 
 	// 如果parentID不为nil，只返回对应的子树
 	if parentID != nil {
