@@ -38,7 +38,7 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		// 维度主体配置
 		config.POST("/dimensions/", api.CreateDimension)
 		config.PUT("/dimensions/:dim_id", api.UpdateDimension)
-		config.GET("/dimensions", api.ListDimensions)
+		// config.GET("/dimensions", api.ListDimensions)
 		config.GET("/dimensions/:dim_id", api.GetDimension)
 		config.DELETE("/dimensions/:dim_id", api.DeleteDimension)
 
@@ -54,7 +54,7 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		// 表单配置
 		config.POST("/forms", api.CreateForm)
 		config.PUT("/forms/:id", api.UpdateForm)
-		config.GET("/forms", api.ListForms)
+		// config.GET("/forms", api.ListForms)
 		config.GET("/forms/:id", api.GetForm)
 		config.DELETE("/forms/:id", api.DeleteForm)
 
@@ -68,14 +68,14 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		// 数据模型配置
 		config.POST("/models", api.CreateModel)
 		config.PUT("/models/:id", api.UpdateModel)
-		config.GET("/models", api.ListModels)
+		// config.GET("/models", api.ListModels)
 		config.GET("/models/:id", api.GetModel)
 		config.DELETE("/models/:id", api.DeleteModel)
 
 		// 数据表主体配置
 		config.POST("/tables", api.CreateTable)
 		config.PUT("/tables/:table_id", api.UpdateTable)
-		config.GET("/tables", api.ListTables)
+		// config.GET("/tables", api.ListTables)
 		config.GET("/tables/:table_id", api.GetTable)
 		config.DELETE("/tables/:table_id", api.DeleteTable)
 

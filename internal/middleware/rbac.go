@@ -16,6 +16,8 @@ func pathMatch(pattern, path string) bool {
 	regexPattern := "^" + regexp.QuoteMeta(pattern) + "$"
 	regexPattern = strings.Replace(regexPattern, `\*`, `.*`, -1)
 	regexPattern = strings.Replace(regexPattern, `/:id`, `/\d+`, -1)
+	regexPattern = strings.Replace(regexPattern, `/:dim_id`, `/\d+`, -1)
+	regexPattern = strings.Replace(regexPattern, `/:table_id`, `/\d+`, -1)
 
 	// 编译正则表达式
 	regex, err := regexp.Compile(regexPattern)
