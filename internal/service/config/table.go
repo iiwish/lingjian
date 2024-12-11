@@ -161,7 +161,14 @@ func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint) err
 // GetTable 获取数据表配置
 func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 	var table model.ConfigTable
-	err := s.db.Get(&table, "SELECT * FROM sys_config_tables WHERE id = ?", id)
+	query := `
+        SELECT 
+            id, app_id, table_name, display_name, description, 
+            IFNULL(func, '') AS func, status, created_at, creator_id, updated_at, updater_id 
+        FROM sys_config_tables 
+        WHERE id = ?
+    `
+	err := s.db.Get(&table, query, id)
 	if err != nil {
 		return nil, fmt.Errorf("get table failed: %v", err)
 	}
@@ -171,10 +178,23 @@ func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 	tableInfo.TableName = table.TableName
 	tableInfo.DisplayName = table.DisplayName
 	tableInfo.Description = table.Description
+	tableInfo.Func = table.Func
 
 	// 根据数据表名称获取字段信息
 	var fields []model.MySQLField
-	err = s.db.Select(&fields, "SHOW FULL FIELDS FROM "+table.TableName)
+	query = "SELECT " +
+		"`COLUMN_NAME` AS `Field`, " +
+		"`COLUMN_TYPE` AS `Type`, " +
+		"IFNULL(`COLLATION_NAME`, '') AS `Collation`, " +
+		"`IS_NULLABLE` AS `Null`, " +
+		"`COLUMN_KEY` AS `Key`, " +
+		"IFNULL(`COLUMN_DEFAULT`, '') AS `Default`, " +
+		"`EXTRA` AS `Extra`, " +
+		"`PRIVILEGES` AS `Privileges`, " +
+		"IFNULL(`COLUMN_COMMENT`, '') AS `Comment` " +
+		"FROM `information_schema`.`columns` " +
+		"WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = ?"
+	err = s.db.Select(&fields, query, table.TableName)
 	if err != nil {
 		return nil, fmt.Errorf("get fields failed: %v", err)
 	}

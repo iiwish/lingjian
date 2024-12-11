@@ -1,6 +1,10 @@
 package model
 
-import "github.com/iiwish/lingjian/pkg/utils"
+import (
+	"database/sql"
+
+	"github.com/iiwish/lingjian/pkg/utils"
+)
 
 // ConfigMenu 返回给前端的菜单树形结构
 type TreeConfigMenu struct {
@@ -49,6 +53,7 @@ type CreateTableReq struct {
 	TableName   string  `json:"table_name"`
 	DisplayName string  `json:"display_name"`
 	Description string  `json:"description"`
+	Func        string  `json:"func"`
 	Fields      []Field `json:"fields"`
 	Indexes     []Index `json:"indexes"`
 }
@@ -76,19 +81,21 @@ type MySQLField struct {
 
 // MySQLIndex 表示从 MySQL 获取的索引信息
 type MySQLIndex struct {
-	Table        string `db:"Table"`
-	NonUnique    int    `db:"Non_unique"`
-	KeyName      string `db:"Key_name"`
-	SeqInIndex   int    `db:"Seq_in_index"`
-	ColumnName   string `db:"Column_name"`
-	Collation    string `db:"Collation"`
-	Cardinality  int    `db:"Cardinality"`
-	SubPart      int    `db:"Sub_part"`
-	Packed       string `db:"Packed"`
-	Null         string `db:"Null"`
-	IndexType    string `db:"Index_type"`
-	Comment      string `db:"Comment"`
-	IndexComment string `db:"Index_comment"`
+	Table        string         `db:"Table"`
+	NonUnique    int            `db:"Non_unique"`
+	KeyName      string         `db:"Key_name"`
+	SeqInIndex   int            `db:"Seq_in_index"`
+	ColumnName   string         `db:"Column_name"`
+	Collation    sql.NullString `db:"Collation"`
+	Cardinality  sql.NullInt64  `db:"Cardinality"`
+	SubPart      sql.NullInt64  `db:"Sub_part"`
+	Packed       sql.NullString `db:"Packed"`
+	Null         sql.NullString `db:"Null"`
+	IndexType    string         `db:"Index_type"`
+	Comment      sql.NullString `db:"Comment"`
+	IndexComment sql.NullString `db:"Index_comment"`
+	Visible      sql.NullString `db:"Visible"`
+	Expression   sql.NullString `db:"Expression"`
 }
 
 // ConfigDimensionItem 维度配置
