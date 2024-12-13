@@ -42,15 +42,6 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/dimensions/:dim_id", api.GetDimension)
 		config.DELETE("/dimensions/:dim_id", api.DeleteDimension)
 
-		// 维度明细配置
-		config.POST("/dimensions/:dim_id/items", api.CreateDimensionItem)
-		config.POST("/dimensions/:dim_id/items/batch", api.BatchCreateDimensionItems)
-		config.PUT("/dimensions/:dim_id/items/:id", api.UpdateDimensionItem)
-		config.GET("/dimensions/:dim_id/items", api.TreeDimensionItems)
-		config.DELETE("/dimensions/:dim_id/items/:id", api.DeleteDimensionItem)
-		config.DELETE("/dimensions/:dim_id/items/batch", api.BatchDeleteDimensionItems)
-		// config.GET("/dimensions/:id/items/search", api.SearchDimensionItems)
-
 		// 表单配置
 		config.POST("/forms", api.CreateForm)
 		config.PUT("/forms/:id", api.UpdateForm)
@@ -73,19 +64,10 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.DELETE("/models/:id", api.DeleteModel)
 
 		// 数据表主体配置
+		config.GET("/tables/:table_id", api.GetTable)
 		config.POST("/tables", api.CreateTable)
 		config.PUT("/tables/:table_id", api.UpdateTable)
 		// config.GET("/tables", api.ListTables)
-		config.GET("/tables/:table_id", api.GetTable)
 		config.DELETE("/tables/:table_id", api.DeleteTable)
-
-		// 数据表明细配置
-		config.POST("/tables/:table_id/items", api.CreateTableItem)
-		config.POST("/tables/:table_id/items/batch", api.BatchCreateTableItems)
-		config.PUT("/tables/:table_id/items/:id", api.UpdateTableItem)
-		config.GET("/tables/:table_id/items/:id", api.GetTableItem)
-		config.GET("/tables/:table_id/items", api.ListTableItems)
-		config.DELETE("/tables/:table_id/items/:id", api.DeleteTableItem)
-		config.DELETE("/tables/:table_id/items/batch", api.BatchDeleteTableItems)
 	}
 }

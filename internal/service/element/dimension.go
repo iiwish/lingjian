@@ -1,10 +1,21 @@
-package config
+package element
 
 import (
 	"fmt"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/jmoiron/sqlx"
 )
+
+// DimensionService 维度配置服务
+type DimensionService struct {
+	db *sqlx.DB
+}
+
+// NewDimensionService 创建维度配置服务实例
+func NewDimensionService(db *sqlx.DB) *DimensionService {
+	return &DimensionService{db: db}
+}
 
 // CreateDimensionItem 创建维度明细配置
 func (s *DimensionService) CreateDimensionItem(dimension *model.ConfigDimensionItem, creatorID uint, dim_id uint) (uint, error) {

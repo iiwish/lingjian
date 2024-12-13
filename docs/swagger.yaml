@@ -154,6 +154,9 @@ definitions:
       creator_id:
         description: 创建者ID
         type: integer
+      dimension_id:
+        description: 维度ID
+        type: integer
       id:
         description: 主键ID
         type: integer
@@ -328,6 +331,8 @@ definitions:
         items:
           $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Field'
         type: array
+      func:
+        type: string
       indexes:
         items:
           $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Index'
@@ -540,45 +545,68 @@ definitions:
         description: 配置值
         type: string
     type: object
-  github_com_iiwish_lingjian_internal_model.TreeConfigMenu:
+  github_com_iiwish_lingjian_internal_model.TreeConfigDimensionItem:
     properties:
-      app_id:
-        type: integer
       children:
-        description: 子菜单列表
+        description: 子维度列表
         items:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigDimensionItem'
         type: array
-      created_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-      creator_id:
-        type: integer
-      icon:
+      code:
+        description: 编码
         type: string
+      created_at:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+        description: 创建时间
+      creator_id:
+        description: 创建者ID
+        type: integer
+      dimension_id:
+        description: 维度ID
+        type: integer
       id:
+        description: 主键ID
         type: integer
       level:
+        description: 层级
         type: integer
-      menu_code:
-        type: string
-      menu_name:
-        type: string
-      menu_type:
+      name:
+        description: 名称
         type: string
       node_id:
+        description: 节点ID
         type: string
       parent_id:
+        description: 父节点ID
         type: integer
-      path:
-        type: string
       sort:
+        description: 排序
         type: integer
       status:
+        description: 状态
         type: integer
       updated_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+        description: 更新时间
       updater_id:
+        description: 更新者ID
         type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.UpdateTableItemsRequest:
+    properties:
+      items:
+        description: 要更新的数据表记录
+        items:
+          additionalProperties: true
+          type: object
+        type: array
+      primary_key_columns:
+        description: 主键列名列表
+        items:
+          type: string
+        type: array
     type: object
   github_com_iiwish_lingjian_internal_model.User:
     properties:
@@ -1480,285 +1508,6 @@ paths:
       summary: 更新维度配置
       tags:
       - ConfigDimension
-  /config/dimensions/{dim_id}/items:
-    get:
-      consumes:
-      - application/json
-      description: 获取指定维度的配置项树
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 维度ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 获取维度配置项树
-      tags:
-      - ConfigDimensionItem
-    post:
-      consumes:
-      - application/json
-      description: 创建新的维度配置项
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 维度ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 创建维度配置项的请求参数
-        in: body
-        name: dimension
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 创建维度配置项
-      tags:
-      - ConfigDimensionItem
-  /config/dimensions/{dim_id}/items/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: 删除指定的维度配置项
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 维度ID
-        in: path
-        name: dim_id
-        required: true
-        type: integer
-      - description: 配置项ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 删除维度配置项
-      tags:
-      - ConfigDimensionItem
-    put:
-      consumes:
-      - application/json
-      description: 更新已存在的维度配置项
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 维度ID
-        in: path
-        name: dim_id
-        required: true
-        type: integer
-      - description: 配置项ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 更新维度配置项的请求参数
-        in: body
-        name: dimension
-        required: true
-        schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 更新维度配置项
-      tags:
-      - ConfigDimensionItem
-  /config/dimensions/{dim_id}/items/batch:
-    delete:
-      consumes:
-      - application/json
-      description: 批量删除指定的维度配置项
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 维度ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 配置项ID列表
-        in: body
-        name: ids
-        required: true
-        schema:
-          items:
-            type: integer
-          type: array
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 批量删除维度配置项
-      tags:
-      - ConfigDimensionItem
-    post:
-      consumes:
-      - application/json
-      description: 批量创建新的维度配置项
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 维度ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 批量创建维度配置项的请求参数
-        in: body
-        name: dimensions
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
-          type: array
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 批量创建维度配置项
-      tags:
-      - ConfigDimensionItem
   /config/forms:
     get:
       consumes:
@@ -1997,9 +1746,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
-            type: array
+            $ref: '#/definitions/api_v1_config.Response'
         "400":
           description: Bad Request
           schema:
@@ -2587,11 +2334,11 @@ paths:
       summary: 更新数据表配置
       tags:
       - ConfigTable
-  /config/tables/{table_id}/items:
+  /dimensions/{dim_id}:
     get:
       consumes:
       - application/json
-      description: 获取指定数据表的记录列表
+      description: 获取指定维度的配置项树
       parameters:
       - description: Bearer token
         in: header
@@ -2603,48 +2350,37 @@ paths:
         name: App-ID
         required: true
         type: string
-      - description: 表ID
+      - description: 维度ID
         in: path
-        name: table_id
+        name: id
         required: true
         type: integer
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页数量
-        in: query
-        name: page_size
-        type: integer
-      - description: 查询条件
-        in: body
-        name: query
-        schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.QueryCondition'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigDimensionItem'
+            type: array
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 获取数据表记录列表
+      summary: 获取维度配置项树
       tags:
-      - ConfigTableItem
+      - DimensionItem
     post:
       consumes:
       - application/json
-      description: 创建新的数据表记录
+      description: 创建新的维度配置项
       parameters:
       - description: Bearer token
         in: header
@@ -2656,43 +2392,42 @@ paths:
         name: App-ID
         required: true
         type: string
-      - description: 表ID
+      - description: 维度ID
         in: path
-        name: table_id
+        name: id
         required: true
         type: integer
-      - description: 创建数据表记录请求参数
+      - description: 创建维度配置项的请求参数
         in: body
-        name: request
+        name: dimension
         required: true
         schema:
-          additionalProperties: true
-          type: object
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 创建数据表记录
+      summary: 创建维度配置项
       tags:
-      - ConfigTableItem
-  /config/tables/{table_id}/items/{id}:
+      - DimensionItem
+  /dimensions/{dim_id}/{id}:
     delete:
       consumes:
       - application/json
-      description: 删除指定的数据表记录
+      description: 删除指定的维度配置项
       parameters:
       - description: Bearer token
         in: header
@@ -2704,12 +2439,12 @@ paths:
         name: App-ID
         required: true
         type: string
-      - description: 表ID
+      - description: 维度ID
         in: path
-        name: table_id
+        name: dim_id
         required: true
         type: integer
-      - description: 记录ID
+      - description: 配置项ID
         in: path
         name: id
         required: true
@@ -2722,66 +2457,20 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 删除数据表记录
+      summary: 删除维度配置项
       tags:
-      - ConfigTableItem
-    get:
-      consumes:
-      - application/json
-      description: 获取指定数据表记录的详细信息
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 表ID
-        in: path
-        name: table_id
-        required: true
-        type: integer
-      - description: 记录ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 获取数据表记录
-      tags:
-      - ConfigTableItem
+      - DimensionItem
     put:
       consumes:
       - application/json
-      description: 更新已存在的数据表记录
+      description: 更新已存在的维度配置项
       parameters:
       - description: Bearer token
         in: header
@@ -2793,48 +2482,47 @@ paths:
         name: App-ID
         required: true
         type: string
-      - description: 表ID
+      - description: 维度ID
         in: path
-        name: table_id
+        name: dim_id
         required: true
         type: integer
-      - description: 记录ID
+      - description: 配置项ID
         in: path
         name: id
         required: true
         type: integer
-      - description: 更新数据表记录请求参数
+      - description: 更新维度配置项的请求参数
         in: body
-        name: request
+        name: dimension
         required: true
         schema:
-          additionalProperties: true
-          type: object
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 更新数据表记录
+      summary: 更新维度配置项
       tags:
-      - ConfigTableItem
-  /config/tables/{table_id}/items/batch:
+      - DimensionItem
+  /dimensions/{dim_id}/batch:
     delete:
       consumes:
       - application/json
-      description: 批量删除指定的数据表记录
+      description: 批量删除指定的维度配置项
       parameters:
       - description: Bearer token
         in: header
@@ -2846,14 +2534,14 @@ paths:
         name: App-ID
         required: true
         type: string
-      - description: 表ID
+      - description: 维度ID
         in: path
-        name: table_id
+        name: id
         required: true
         type: integer
-      - description: 记录ID列表
+      - description: 配置项ID列表
         in: body
-        name: request
+        name: ids
         required: true
         schema:
           items:
@@ -2867,20 +2555,20 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 批量删除数据表记录
+      summary: 批量删除维度配置项
       tags:
-      - ConfigTableItem
+      - DimensionItem
     post:
       consumes:
       - application/json
-      description: 批量创建新的数据表记录
+      description: 批量创建新的维度配置项
       parameters:
       - description: Bearer token
         in: header
@@ -2892,19 +2580,18 @@ paths:
         name: App-ID
         required: true
         type: string
-      - description: 表ID
+      - description: 维度ID
         in: path
-        name: table_id
+        name: id
         required: true
         type: integer
-      - description: 批量创建数据表记录请求参数
+      - description: 批量创建维度配置项的请求参数
         in: body
-        name: request
+        name: dimensions
         required: true
         schema:
           items:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
           type: array
       produces:
       - application/json
@@ -2912,20 +2599,20 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 批量创建数据表记录
+      summary: 批量创建维度配置项
       tags:
-      - ConfigTableItem
+      - DimensionItem
   /permissions:
     get:
       consumes:
@@ -3452,6 +3139,207 @@ paths:
       summary: 根据code获取系统配置
       tags:
       - SysVars
+  /table/{table_id}:
+    delete:
+      consumes:
+      - application/json
+      description: 批量删除指定的数据表记录
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 记录删除请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 批量删除数据表记录
+      tags:
+      - Table
+    get:
+      consumes:
+      - application/json
+      description: 获取指定数据表的记录列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 查询条件
+        in: body
+        name: query
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.QueryCondition'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 获取数据表记录列表
+      tags:
+      - Table
+    post:
+      consumes:
+      - application/json
+      description: 创建新的数据表记录
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 创建数据表记录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            additionalProperties: true
+            type: object
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 创建数据表记录
+      tags:
+      - Table
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的数据表记录
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 记录ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新数据表记录请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.UpdateTableItemsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 更新数据表记录
+      tags:
+      - Table
   /tasks/scheduled:
     post:
       consumes:

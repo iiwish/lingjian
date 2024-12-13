@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	v1 "github.com/iiwish/lingjian/api/v1"
 	"github.com/iiwish/lingjian/api/v1/config"
+	"github.com/iiwish/lingjian/api/v1/element"
 	_ "github.com/iiwish/lingjian/docs"
 	"github.com/iiwish/lingjian/internal/middleware"
 	"github.com/iiwish/lingjian/internal/model"
@@ -109,6 +110,8 @@ func main() {
 					v1.RegisterAppRoutes(rbacProtected)
 					// 注册配置相关路由
 					config.RegisterConfigRoutes(rbacProtected)
+					// 注册元素相关路由
+					element.RegisterElementRoutes(rbacProtected)
 					// 注册任务相关路由
 					v1.RegisterTaskRoutes(rbacProtected)
 				}
