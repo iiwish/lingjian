@@ -50,8 +50,11 @@ func (api *ElementAPI) GetTableItems(c *gin.Context) {
 	// 获取查询条件
 	var query model.QueryCondition
 	if err := c.ShouldBindJSON(&query); err != nil {
-		utils.Error(c, http.StatusBadRequest, err.Error())
-		return
+		query = model.QueryCondition{
+			Conditions: []model.Condition{},
+			OrderBy:    []model.OrderBy{},
+			GroupBy:    []string{},
+		} // 使用默认值
 	}
 
 	// 获取记录列表

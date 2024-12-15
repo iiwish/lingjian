@@ -186,6 +186,7 @@ func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 		"`COLUMN_NAME` AS `Field`, " +
 		"`COLUMN_TYPE` AS `Type`, " +
 		"IFNULL(`COLLATION_NAME`, '') AS `Collation`, " +
+		"ORDINAL_POSITION AS `Sort`, " +
 		"`IS_NULLABLE` AS `Null`, " +
 		"`COLUMN_KEY` AS `Key`, " +
 		"IFNULL(`COLUMN_DEFAULT`, '') AS `Default`, " +
@@ -204,6 +205,7 @@ func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 		f.Name = field.Field
 		f.Comment = field.Comment
 		f.Type = field.Type
+		f.Sort = field.Sort
 		f.PrimaryKey = field.Key == "PRI"
 		f.AutoIncrement = field.Extra == "auto_increment"
 		f.NotNull = field.Null == "NO"

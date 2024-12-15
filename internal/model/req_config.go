@@ -71,6 +71,7 @@ type MySQLField struct {
 	Field      string `db:"Field"`
 	Type       string `db:"Type"`
 	Collation  string `db:"Collation"`
+	Sort       int    `db:"Sort"`
 	Null       string `db:"Null"`
 	Key        string `db:"Key"`
 	Default    string `db:"Default"`

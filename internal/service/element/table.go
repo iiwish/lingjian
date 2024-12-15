@@ -45,13 +45,36 @@ func (s *TableService) GetTableItems(tableID uint, page int, pageSize int, query
 	baseQuery += " LIMIT ? OFFSET ?"
 	args = append(args, pageSize, offset)
 
+	// 打印SQL
+	fmt.Println(baseQuery, args)
 	// 查询记录
-	var results []map[string]interface{}
-	err = s.db.Select(&results, baseQuery, args...)
+	rows, err := s.db.Queryx(baseQuery, args...)
 	if err != nil {
 		return nil, 0, fmt.Errorf("list table items failed: %v", err)
 	}
+	defer rows.Close()
 
+	// 解析结果
+	var results []map[string]interface{}
+	for rows.Next() {
+		row := make(map[string]interface{})
+		err = rows.MapScan(row)
+		if err != nil {
+			return nil, 0, fmt.Errorf("list table items failed: %v", err)
+		}
+
+		// 将时间字段转换为指定格式
+		for key, value := range row {
+			if t, ok := value.(time.Time); ok {
+				row[key] = utils.CustomTime{Time: t}.Format("2006-01-02 15:04:05")
+			}
+		}
+
+		results = append(results, row)
+	}
+
+	// 将结果中的字节数组转换为字符串
+	results = utils.ConvertBytesToString(results).([]map[string]interface{})
 	return results, total, nil
 }
 
