@@ -47,6 +47,7 @@ func GetUserProfile(c *gin.Context) {
 	utils.Success(c, gin.H{
 		"id":       user.ID,
 		"username": user.Username,
+		"nickname": user.Nickname,
 		"email":    user.Email,
 		"phone":    user.Phone,
 		"status":   user.Status,
