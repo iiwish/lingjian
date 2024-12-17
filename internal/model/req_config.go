@@ -30,14 +30,42 @@ type TreeConfigMenu struct {
 
 // 字段信息
 type Field struct {
-	Name          string `json:"name"`
-	Comment       string `json:"comment"`
-	Type          string `json:"type"`
-	Sort          int    `json:"sort"`
-	PrimaryKey    bool   `json:"primary_key,omitempty"`
-	AutoIncrement bool   `json:"auto_increment,omitempty"`
-	NotNull       bool   `json:"not_null,omitempty"`
-	Default       string `json:"default,omitempty"`
+	Name          string `json:"name" db:"name"`
+	Comment       string `json:"comment" db:"comment"`
+	Type          string `json:"type" db:"type"`
+	Sort          int    `json:"sort" db:"sort"`
+	PrimaryKey    bool   `json:"primary_key,omitempty" db:"primary_key"`
+	AutoIncrement bool   `json:"auto_increment,omitempty" db:"auto_increment"`
+	NotNull       bool   `json:"not_null,omitempty" db:"not_null"`
+	Default       string `json:"default,omitempty" db:"default"`
+
+	DataType         string `json:"data_type,omitempty" db:"data_type"`
+	CharacterMax     int    `json:"character_max,omitempty" db:"character_max"`
+	NumericPrecision int    `json:"numeric_precision,omitempty" db:"numeric_precision"`
+	NumericScale     int    `json:"numeric_scale,omitempty" db:"numeric_scale"`
+}
+
+// FieldUpdateType 表示字段更新类型
+type UpdateTypeString string
+
+const (
+	UpdateTypeAdd    UpdateTypeString = "add"
+	UpdateTypeDrop   UpdateTypeString = "drop"
+	UpdateTypeModify UpdateTypeString = "modify"
+)
+
+// FieldUpdate 表示字段更新信息
+type FieldUpdate struct {
+	UpdateType   UpdateTypeString // 更新类型：add, drop, modify
+	OldFieldName string           // 旧字段名（用于修改字段时）
+	Field        Field            // 新字段信息
+}
+
+// IndexUpdate 表示索引更新信息
+type IndexUpdate struct {
+	UpdateType   UpdateTypeString // 更新类型：add, drop, modify
+	OldIndexName string           // 旧索引名（用于修改索引时）
+	Index        Index            // 新索引信息
 }
 
 // 索引信息
@@ -49,7 +77,7 @@ type Index struct {
 
 // CreateTableReq 创建表请求
 type CreateTableReq struct {
-	AppID       uint    `json:"app_id"`
+	ID          uint    `json:"id"`
 	TableName   string  `json:"table_name"`
 	DisplayName string  `json:"display_name"`
 	Description string  `json:"description"`
@@ -67,18 +95,18 @@ type UpdateTableReq struct {
 }
 
 // MySQLField 表示从 MySQL 获取的字段信息
-type MySQLField struct {
-	Field      string `db:"Field"`
-	Type       string `db:"Type"`
-	Collation  string `db:"Collation"`
-	Sort       int    `db:"Sort"`
-	Null       string `db:"Null"`
-	Key        string `db:"Key"`
-	Default    string `db:"Default"`
-	Extra      string `db:"Extra"`
-	Privileges string `db:"Privileges"`
-	Comment    string `db:"Comment"`
-}
+// type MySQLField struct {
+// 	Field      string `db:"Field"`
+// 	Type       string `db:"Type"`
+// 	Collation  string `db:"Collation"`
+// 	Sort       int    `db:"Sort"`
+// 	Null       string `db:"Null"`
+// 	Key        string `db:"Key"`
+// 	Default    string `db:"Default"`
+// 	Extra      string `db:"Extra"`
+// 	Privileges string `db:"Privileges"`
+// 	Comment    string `db:"Comment"`
+// }
 
 // MySQLIndex 表示从 MySQL 获取的索引信息
 type MySQLIndex struct {

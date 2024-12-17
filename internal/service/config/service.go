@@ -26,24 +26,32 @@ func NewConfigService(db *sqlx.DB) *ConfigService {
 }
 
 // 表配置相关方法
-func (s *ConfigService) CreateTable(table *model.CreateTableReq, creatorID uint) (uint, error) {
-	return s.tableService.CreateTable(table, creatorID)
-}
-
-func (s *ConfigService) UpdateTable(table *model.ConfigTable, updaterID uint) error {
-	return s.tableService.UpdateTable(table, updaterID)
-}
-
 func (s *ConfigService) GetTable(id uint) (*model.CreateTableReq, error) {
 	return s.tableService.GetTable(id)
 }
 
-func (s *ConfigService) DeleteTable(id uint) error {
-	return s.tableService.DeleteTable(id)
+func (s *ConfigService) CreateTable(table *model.CreateTableReq, creatorID uint, appID uint) (uint, error) {
+	return s.tableService.CreateTable(table, creatorID, appID)
 }
 
-func (s *ConfigService) ListTables(appID uint) ([]model.ConfigTable, error) {
-	return s.tableService.ListTables(appID)
+func (s *ConfigService) UpdateTable(table *model.ConfigTable, updaterID uint, appID uint) error {
+	return s.tableService.UpdateTable(table, updaterID, appID)
+}
+
+func (s *ConfigService) UpdateTableFields(table_id uint, table_field []model.FieldUpdate, updaterID uint, appID uint) error {
+	return s.tableService.UpdateTableFields(table_id, table_field, updaterID, appID)
+}
+
+func (s *ConfigService) UpdateTableIndexes(table_id uint, table_index []model.IndexUpdate, updaterID uint, appID uint) error {
+	return s.tableService.UpdateTableIndexes(table_id, table_index, updaterID, appID)
+}
+
+func (s *ConfigService) UpdateTableFunc(table *model.CreateTableReq, updaterID uint, appID uint) error {
+	return s.tableService.UpdateTableFunc(table, updaterID, appID)
+}
+
+func (s *ConfigService) DeleteTable(id uint) error {
+	return s.tableService.DeleteTable(id)
 }
 
 // 维度配置相关方法

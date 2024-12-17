@@ -19,9 +19,9 @@ func NewTableService(db *sqlx.DB) *TableService {
 }
 
 // CreateTable 创建数据表配置
-func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID uint) (uint, error) {
+func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID uint, appID uint) (uint, error) {
 	var table model.ConfigTable
-	table.AppID = tableinfo.AppID
+	table.AppID = appID
 	table.TableName = tableinfo.TableName
 	table.DisplayName = tableinfo.DisplayName
 	table.Description = tableinfo.Description
@@ -98,7 +98,7 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 }
 
 // UpdateTable 更新数据表配置
-func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint) error {
+func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint, appID uint) error {
 	table.UpdaterID = updaterID
 
 	// 开启事务
@@ -140,7 +140,6 @@ func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint) err
 			table_name = :table_name,
 			display_name = :display_name,
 			description = :description,
-			func = :func,
 			status = :status,
 			updater_id = :updater_id,
 			updated_at = NOW()
@@ -148,6 +147,144 @@ func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint) err
 	`, table)
 	if err != nil {
 		return fmt.Errorf("update sys_config_tables failed: %v", err)
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction failed: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateTableFields 更新数据表字段
+func (s *TableService) UpdateTableFields(tableID uint, fieldUpdates []model.FieldUpdate, updaterID uint, appID uint) error {
+	// 开启事务
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transaction failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	// 获取数据表名称
+	var tableName string
+	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_tables WHERE id = ?", tableID)
+	if err != nil {
+		return fmt.Errorf("get table name failed: %v", err)
+	}
+
+	for _, update := range fieldUpdates {
+		switch update.UpdateType {
+		case model.UpdateTypeAdd:
+			// 添加字段
+			fieldSQL := buildFieldSQL(update.Field)
+			_, err = tx.Exec("ALTER TABLE " + tableName + " ADD COLUMN " + fieldSQL)
+			if err != nil {
+				return fmt.Errorf("add column failed: %v", err)
+			}
+		case model.UpdateTypeDrop:
+			// 删除字段
+			_, err = tx.Exec("ALTER TABLE " + tableName + " DROP COLUMN " + update.OldFieldName)
+			if err != nil {
+				return fmt.Errorf("drop column failed: %v", err)
+			}
+		case model.UpdateTypeModify:
+			// 修改字段
+			fieldSQL := buildFieldSQL(update.Field)
+			_, err = tx.Exec("ALTER TABLE " + tableName + " MODIFY COLUMN " + fieldSQL)
+			if err != nil {
+				return fmt.Errorf("modify column failed: %v", err)
+			}
+		}
+	}
+
+	// 更新数据表修改时间和修改人
+	_, err = tx.Exec("UPDATE sys_config_tables SET updated_at = NOW(), updater_id = ? WHERE id = ?", updaterID, tableID)
+	if err != nil {
+		return fmt.Errorf("update table failed: %v", err)
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction failed: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateTableIndexes 更新数据表索引
+func (s *TableService) UpdateTableIndexes(tableID uint, indexUpdates []model.IndexUpdate, updaterID uint, appID uint) error {
+	// 开启事务
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transaction failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	// 获取数据表名称
+	var tableName string
+	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_tables WHERE id = ?", tableID)
+	if err != nil {
+		return fmt.Errorf("get table name failed: %v", err)
+	}
+
+	for _, update := range indexUpdates {
+		switch update.UpdateType {
+		case model.UpdateTypeAdd:
+			// 添加索引
+			indexSQL := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", update.Index.Name, tableName, strings.Join(update.Index.Fields, ", "))
+			_, err = tx.Exec(indexSQL)
+			if err != nil {
+				return fmt.Errorf("add index failed: %v", err)
+			}
+		case model.UpdateTypeDrop:
+			// 删除索引
+			_, err = tx.Exec("DROP INDEX " + update.OldIndexName + " ON " + tableName)
+			if err != nil {
+				return fmt.Errorf("drop index failed: %v", err)
+			}
+		case model.UpdateTypeModify:
+			// 修改索引
+			_, err = tx.Exec("DROP INDEX " + update.OldIndexName + " ON " + tableName)
+			if err != nil {
+				return fmt.Errorf("drop index failed: %v", err)
+			}
+
+			indexSQL := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", update.Index.Name, tableName, strings.Join(update.Index.Fields, ", "))
+			_, err = tx.Exec(indexSQL)
+			if err != nil {
+				return fmt.Errorf("add index failed: %v", err)
+			}
+		}
+	}
+
+	// 更新数据表修改时间和修改人
+	_, err = tx.Exec("UPDATE sys_config_tables SET updated_at = NOW(), updater_id = ? WHERE id = ?", updaterID, tableID)
+	if err != nil {
+		return fmt.Errorf("update table failed: %v", err)
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction failed: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateTableFunc 更新数据表功能
+func (s *TableService) UpdateTableFunc(table *model.CreateTableReq, updaterID uint, appID uint) error {
+	// 开启事务
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transaction failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	// 更新数据表功能
+	_, err = tx.Exec("UPDATE sys_config_tables SET func = ?, updater_id = ?, updated_at = NOW() WHERE id = ?", table.Func, updaterID, table.ID)
+	if err != nil {
+		return fmt.Errorf("update table func failed: %v", err)
 	}
 
 	// 提交事务
@@ -174,25 +311,26 @@ func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 	}
 
 	var tableInfo model.CreateTableReq
-	tableInfo.AppID = table.AppID
 	tableInfo.TableName = table.TableName
 	tableInfo.DisplayName = table.DisplayName
 	tableInfo.Description = table.Description
 	tableInfo.Func = table.Func
 
 	// 根据数据表名称获取字段信息
-	var fields []model.MySQLField
+	var fields []model.Field
 	query = "SELECT " +
-		"`COLUMN_NAME` AS `Field`, " +
-		"`COLUMN_TYPE` AS `Type`, " +
-		"IFNULL(`COLLATION_NAME`, '') AS `Collation`, " +
-		"ORDINAL_POSITION AS `Sort`, " +
-		"`IS_NULLABLE` AS `Null`, " +
-		"`COLUMN_KEY` AS `Key`, " +
-		"IFNULL(`COLUMN_DEFAULT`, '') AS `Default`, " +
-		"`EXTRA` AS `Extra`, " +
-		"`PRIVILEGES` AS `Privileges`, " +
-		"IFNULL(`COLUMN_COMMENT`, '') AS `Comment` " +
+		"`COLUMN_NAME` AS `name`, " +
+		"IFNULL(`COLUMN_COMMENT`, '') AS `comment`, " +
+		"`COLUMN_TYPE` AS `type`, " +
+		"ORDINAL_POSITION AS `sort`, " +
+		"(`COLUMN_KEY` = 'PRI') AS `primary_key`, " +
+		"(`EXTRA` = 'auto_increment') AS `auto_increment`, " +
+		"(`IS_NULLABLE` = 'NO') AS `not_null`, " +
+		"IFNULL(`COLUMN_DEFAULT`, '') AS `default`, " +
+		"`DATA_TYPE` AS `data_type`, " +
+		"IFNULL(`CHARACTER_MAXIMUM_LENGTH`, 0) AS `character_max`, " +
+		"IFNULL(`NUMERIC_PRECISION`, 0) AS `numeric_precision`, " +
+		"IFNULL(`NUMERIC_SCALE`, 0) AS `numeric_scale` " +
 		"FROM `information_schema`.`columns` " +
 		"WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = ?"
 	err = s.db.Select(&fields, query, table.TableName)
@@ -200,18 +338,7 @@ func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 		return nil, fmt.Errorf("get fields failed: %v", err)
 	}
 
-	for _, field := range fields {
-		var f model.Field
-		f.Name = field.Field
-		f.Comment = field.Comment
-		f.Type = field.Type
-		f.Sort = field.Sort
-		f.PrimaryKey = field.Key == "PRI"
-		f.AutoIncrement = field.Extra == "auto_increment"
-		f.NotNull = field.Null == "NO"
-		f.Default = field.Default
-		tableInfo.Fields = append(tableInfo.Fields, f)
-	}
+	tableInfo.Fields = append(tableInfo.Fields, fields...)
 
 	// 根据数据表名称获取索引信息
 	var indexes []model.MySQLIndex
@@ -276,12 +403,30 @@ func (s *TableService) DeleteTable(id uint) error {
 	return nil
 }
 
-// ListTables 获取数据表配置列表
-func (s *TableService) ListTables(appID uint) ([]model.ConfigTable, error) {
-	var tables []model.ConfigTable
-	err := s.db.Select(&tables, "SELECT * FROM sys_config_tables WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
-	if err != nil {
-		return nil, fmt.Errorf("list tables failed: %v", err)
+// buildFieldSQL 构建字段的 SQL 语句
+func buildFieldSQL(field model.Field) string {
+	fieldSQL := fmt.Sprintf("%s %s", field.Name, field.Type)
+	if field.NotNull {
+		fieldSQL += " NOT NULL"
 	}
-	return tables, nil
+	if field.AutoIncrement {
+		fieldSQL += " AUTO_INCREMENT"
+	}
+	if field.Default != "" {
+		fieldSQL += fmt.Sprintf(" DEFAULT '%s'", field.Default)
+	}
+	if field.Comment != "" {
+		fieldSQL += fmt.Sprintf(" COMMENT '%s'", field.Comment)
+	}
+	if field.CharacterMax > 0 {
+		fieldSQL += fmt.Sprintf("(%d)", field.CharacterMax)
+	}
+	if field.NumericPrecision > 0 {
+		fieldSQL += fmt.Sprintf("(%d", field.NumericPrecision)
+		if field.NumericScale > 0 {
+			fieldSQL += fmt.Sprintf(",%d", field.NumericScale)
+		}
+		fieldSQL += ")"
+	}
+	return fieldSQL
 }

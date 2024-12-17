@@ -2102,63 +2102,6 @@ const docTemplate = `{
             }
         },
         "/config/tables": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取指定应用的所有数据表配置",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ConfigTable"
-                ],
-                "summary": "获取数据表配置列表",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigTable"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    }
-                }
-            },
             "post": {
                 "security": [
                     {
@@ -2291,7 +2234,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "更新已存在的数据表配置",
+                "description": "更新指定数据表的基本信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -2301,7 +2244,7 @@ const docTemplate = `{
                 "tags": [
                     "ConfigTable"
                 ],
-                "summary": "更新数据表配置",
+                "summary": "更新数据表基本信息",
                 "parameters": [
                     {
                         "type": "string",
@@ -2335,11 +2278,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigTable"
-                        }
+                    "204": {
+                        "description": "No Content"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -2393,6 +2333,219 @@ const docTemplate = `{
                         "name": "table_id",
                         "in": "path",
                         "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/tables/{table_id}/fields": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新指定数据表的字段信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ConfigTable"
+                ],
+                "summary": "更新数据表字段信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "配置ID",
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新数据表字段请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.FieldUpdate"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/tables/{table_id}/func": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新指定数据表的 func 字段",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ConfigTable"
+                ],
+                "summary": "更新 func 字段",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "配置ID",
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新数据表配置请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CreateTableReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/tables/{table_id}/indexes": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新指定数据表的索引信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ConfigTable"
+                ],
+                "summary": "更新索引信息",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "配置ID",
+                        "name": "table_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新数据表索引请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.IndexUpdate"
+                            }
+                        }
                     }
                 ],
                 "responses": {
@@ -2479,13 +2632,13 @@ const docTemplate = `{
                     }
                 }
             },
-            "post": {
+            "put": {
                 "security": [
                     {
                         "Bearer": []
                     }
                 ],
-                "description": "创建新的维度配置项",
+                "description": "更新已存在的维度配置项",
                 "consumes": [
                     "application/json"
                 ],
@@ -2495,7 +2648,7 @@ const docTemplate = `{
                 "tags": [
                     "DimensionItem"
                 ],
-                "summary": "创建维度配置项",
+                "summary": "更新维度配置项",
                 "parameters": [
                     {
                         "type": "string",
@@ -2514,12 +2667,19 @@ const docTemplate = `{
                     {
                         "type": "integer",
                         "description": "维度ID",
+                        "name": "dim_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "配置项ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "创建维度配置项的请求参数",
+                        "description": "更新维度配置项的请求参数",
                         "name": "dimension",
                         "in": "body",
                         "required": true,
@@ -2529,10 +2689,10 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem"
                         }
                     },
                     "400": {
@@ -2548,9 +2708,7 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/dimensions/{dim_id}/batch": {
+            },
             "post": {
                 "security": [
                     {
@@ -2674,150 +2832,6 @@ const docTemplate = `{
                                 "type": "integer"
                             }
                         }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/dimensions/{dim_id}/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新已存在的维度配置项",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "DimensionItem"
-                ],
-                "summary": "更新维度配置项",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "维度ID",
-                        "name": "dim_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "配置项ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新维度配置项的请求参数",
-                        "name": "dimension",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "删除指定的维度配置项",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "DimensionItem"
-                ],
-                "summary": "删除维度配置项",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "维度ID",
-                        "name": "dim_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "配置项ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
                     }
                 ],
                 "responses": {
@@ -5213,9 +5227,6 @@ const docTemplate = `{
         "github_com_iiwish_lingjian_internal_model.CreateTableReq": {
             "type": "object",
             "properties": {
-                "app_id": {
-                    "type": "integer"
-                },
                 "description": {
                     "type": "string"
                 },
@@ -5230,6 +5241,9 @@ const docTemplate = `{
                 },
                 "func": {
                     "type": "string"
+                },
+                "id": {
+                    "type": "integer"
                 },
                 "indexes": {
                     "type": "array",
@@ -5248,7 +5262,13 @@ const docTemplate = `{
                 "auto_increment": {
                     "type": "boolean"
                 },
+                "character_max": {
+                    "type": "integer"
+                },
                 "comment": {
+                    "type": "string"
+                },
+                "data_type": {
                     "type": "string"
                 },
                 "default": {
@@ -5260,6 +5280,12 @@ const docTemplate = `{
                 "not_null": {
                     "type": "boolean"
                 },
+                "numeric_precision": {
+                    "type": "integer"
+                },
+                "numeric_scale": {
+                    "type": "integer"
+                },
                 "primary_key": {
                     "type": "boolean"
                 },
@@ -5268,6 +5294,31 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.FieldUpdate": {
+            "type": "object",
+            "properties": {
+                "field": {
+                    "description": "新字段信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.Field"
+                        }
+                    ]
+                },
+                "oldFieldName": {
+                    "description": "旧字段名（用于修改字段时）",
+                    "type": "string"
+                },
+                "updateType": {
+                    "description": "更新类型：add, drop, modify",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.UpdateTypeString"
+                        }
+                    ]
                 }
             }
         },
@@ -5285,6 +5336,31 @@ const docTemplate = `{
                 },
                 "type": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.IndexUpdate": {
+            "type": "object",
+            "properties": {
+                "index": {
+                    "description": "新索引信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.Index"
+                        }
+                    ]
+                },
+                "oldIndexName": {
+                    "description": "旧索引名（用于修改索引时）",
+                    "type": "string"
+                },
+                "updateType": {
+                    "description": "更新类型：add, drop, modify",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.UpdateTypeString"
+                        }
+                    ]
                 }
             }
         },
@@ -5624,6 +5700,19 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "github_com_iiwish_lingjian_internal_model.UpdateTypeString": {
+            "type": "string",
+            "enum": [
+                "add",
+                "drop",
+                "modify"
+            ],
+            "x-enum-varnames": [
+                "UpdateTypeAdd",
+                "UpdateTypeDrop",
+                "UpdateTypeModify"
+            ]
         },
         "github_com_iiwish_lingjian_internal_model.User": {
             "type": "object",
