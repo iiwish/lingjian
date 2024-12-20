@@ -60,7 +60,7 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
     `, table.TableName)
 
 	for _, field := range tableinfo.Fields {
-		fieldSQL := fmt.Sprintf("%s %s", field.Name, field.Type)
+		fieldSQL := fmt.Sprintf("%s %s", field.Name, field.ColumnType)
 		if field.NotNull {
 			fieldSQL += " NOT NULL"
 		}
@@ -321,16 +321,12 @@ func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 	query = "SELECT " +
 		"`COLUMN_NAME` AS `name`, " +
 		"IFNULL(`COLUMN_COMMENT`, '') AS `comment`, " +
-		"`COLUMN_TYPE` AS `type`, " +
+		"`COLUMN_TYPE` AS `column_type`, " +
 		"ORDINAL_POSITION AS `sort`, " +
 		"(`COLUMN_KEY` = 'PRI') AS `primary_key`, " +
 		"(`EXTRA` = 'auto_increment') AS `auto_increment`, " +
 		"(`IS_NULLABLE` = 'NO') AS `not_null`, " +
-		"IFNULL(`COLUMN_DEFAULT`, '') AS `default`, " +
-		"`DATA_TYPE` AS `data_type`, " +
-		"IFNULL(`CHARACTER_MAXIMUM_LENGTH`, 0) AS `character_max`, " +
-		"IFNULL(`NUMERIC_PRECISION`, 0) AS `numeric_precision`, " +
-		"IFNULL(`NUMERIC_SCALE`, 0) AS `numeric_scale` " +
+		"IFNULL(`COLUMN_DEFAULT`, '') AS `default`" +
 		"FROM `information_schema`.`columns` " +
 		"WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = ?"
 	err = s.db.Select(&fields, query, table.TableName)
@@ -405,7 +401,7 @@ func (s *TableService) DeleteTable(id uint) error {
 
 // buildFieldSQL 构建字段的 SQL 语句
 func buildFieldSQL(field model.Field) string {
-	fieldSQL := fmt.Sprintf("%s %s", field.Name, field.Type)
+	fieldSQL := fmt.Sprintf("%s %s", field.Name, field.ColumnType)
 	if field.NotNull {
 		fieldSQL += " NOT NULL"
 	}
@@ -417,16 +413,6 @@ func buildFieldSQL(field model.Field) string {
 	}
 	if field.Comment != "" {
 		fieldSQL += fmt.Sprintf(" COMMENT '%s'", field.Comment)
-	}
-	if field.CharacterMax > 0 {
-		fieldSQL += fmt.Sprintf("(%d)", field.CharacterMax)
-	}
-	if field.NumericPrecision > 0 {
-		fieldSQL += fmt.Sprintf("(%d", field.NumericPrecision)
-		if field.NumericScale > 0 {
-			fieldSQL += fmt.Sprintf(",%d", field.NumericScale)
-		}
-		fieldSQL += ")"
 	}
 	return fieldSQL
 }

@@ -32,17 +32,12 @@ type TreeConfigMenu struct {
 type Field struct {
 	Name          string `json:"name" db:"name"`
 	Comment       string `json:"comment" db:"comment"`
-	Type          string `json:"type" db:"type"`
+	ColumnType    string `json:"column_type" db:"column_type"`
 	Sort          int    `json:"sort" db:"sort"`
 	PrimaryKey    bool   `json:"primary_key,omitempty" db:"primary_key"`
 	AutoIncrement bool   `json:"auto_increment,omitempty" db:"auto_increment"`
 	NotNull       bool   `json:"not_null,omitempty" db:"not_null"`
 	Default       string `json:"default,omitempty" db:"default"`
-
-	DataType         string `json:"data_type,omitempty" db:"data_type"`
-	CharacterMax     int    `json:"character_max,omitempty" db:"character_max"`
-	NumericPrecision int    `json:"numeric_precision,omitempty" db:"numeric_precision"`
-	NumericScale     int    `json:"numeric_scale,omitempty" db:"numeric_scale"`
 }
 
 // FieldUpdateType 表示字段更新类型
