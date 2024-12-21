@@ -4909,23 +4909,21 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_iiwish_lingjian_internal_model.Condition": {
+        "github_com_iiwish_lingjian_internal_model.ConditionGroup": {
             "type": "object",
             "properties": {
-                "field": {
-                    "description": "字段名",
-                    "type": "string"
+                "conditions": {
+                    "description": "可以是Condition或ConditionGroup",
+                    "type": "array",
+                    "items": {}
                 },
-                "operator": {
-                    "description": "操作符",
+                "logic": {
+                    "description": "逻辑运算符",
                     "allOf": [
                         {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.Operator"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.LogicOperator"
                         }
                     ]
-                },
-                "value": {
-                    "description": "查询值"
                 }
             }
         },
@@ -5262,13 +5260,10 @@ const docTemplate = `{
                 "auto_increment": {
                     "type": "boolean"
                 },
-                "character_max": {
-                    "type": "integer"
-                },
-                "comment": {
+                "column_type": {
                     "type": "string"
                 },
-                "data_type": {
+                "comment": {
                     "type": "string"
                 },
                 "default": {
@@ -5280,20 +5275,11 @@ const docTemplate = `{
                 "not_null": {
                     "type": "boolean"
                 },
-                "numeric_precision": {
-                    "type": "integer"
-                },
-                "numeric_scale": {
-                    "type": "integer"
-                },
                 "primary_key": {
                     "type": "boolean"
                 },
                 "sort": {
                     "type": "integer"
-                },
-                "type": {
-                    "type": "string"
                 }
             }
         },
@@ -5364,49 +5350,15 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_iiwish_lingjian_internal_model.Operator": {
+        "github_com_iiwish_lingjian_internal_model.LogicOperator": {
             "type": "string",
             "enum": [
-                "eq",
-                "ne",
-                "gt",
-                "gte",
-                "lt",
-                "lte",
-                "like",
-                "not_like",
-                "in",
-                "not_in",
-                "between",
-                "not_between"
+                "AND",
+                "OR"
             ],
-            "x-enum-comments": {
-                "OpBetween": "区间查询",
-                "OpEq": "等于",
-                "OpGt": "大于",
-                "OpGte": "大于等于",
-                "OpIn": "IN查询",
-                "OpLike": "模糊查询",
-                "OpLt": "小于",
-                "OpLte": "小于等于",
-                "OpNe": "不等于",
-                "OpNotBetween": "不在区间",
-                "OpNotIn": "NOT IN查询",
-                "OpNotLike": "不包含"
-            },
             "x-enum-varnames": [
-                "OpEq",
-                "OpNe",
-                "OpGt",
-                "OpGte",
-                "OpLt",
-                "OpLte",
-                "OpLike",
-                "OpNotLike",
-                "OpIn",
-                "OpNotIn",
-                "OpBetween",
-                "OpNotBetween"
+                "LogicAnd",
+                "LogicOr"
             ]
         },
         "github_com_iiwish_lingjian_internal_model.OrderBy": {
@@ -5494,13 +5446,6 @@ const docTemplate = `{
         "github_com_iiwish_lingjian_internal_model.QueryCondition": {
             "type": "object",
             "properties": {
-                "conditions": {
-                    "description": "条件列表",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.Condition"
-                    }
-                },
                 "group_by": {
                     "description": "分组",
                     "type": "array",
@@ -5514,6 +5459,14 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.OrderBy"
                     }
+                },
+                "root": {
+                    "description": "根条件组",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConditionGroup"
+                        }
+                    ]
                 }
             }
         },

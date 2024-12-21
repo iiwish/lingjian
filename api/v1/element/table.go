@@ -51,9 +51,12 @@ func (api *ElementAPI) GetTableItems(c *gin.Context) {
 	var query model.QueryCondition
 	if err := c.ShouldBindJSON(&query); err != nil {
 		query = model.QueryCondition{
-			Conditions: []model.Condition{},
-			OrderBy:    []model.OrderBy{},
-			GroupBy:    []string{},
+			Root: model.ConditionGroup{
+				Logic:      model.LogicAnd,
+				Conditions: []interface{}{},
+			},
+			OrderBy: []model.OrderBy{},
+			GroupBy: []string{},
 		} // 使用默认值
 	}
 

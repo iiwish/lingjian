@@ -106,17 +106,16 @@ definitions:
       error:
         type: string
     type: object
-  github_com_iiwish_lingjian_internal_model.Condition:
+  github_com_iiwish_lingjian_internal_model.ConditionGroup:
     properties:
-      field:
-        description: 字段名
-        type: string
-      operator:
+      conditions:
+        description: 可以是Condition或ConditionGroup
+        items: {}
+        type: array
+      logic:
         allOf:
-        - $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Operator'
-        description: 操作符
-      value:
-        description: 查询值
+        - $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.LogicOperator'
+        description: 逻辑运算符
     type: object
   github_com_iiwish_lingjian_internal_model.ConfigDimension:
     properties:
@@ -344,11 +343,9 @@ definitions:
     properties:
       auto_increment:
         type: boolean
-      character_max:
-        type: integer
-      comment:
+      column_type:
         type: string
-      data_type:
+      comment:
         type: string
       default:
         type: string
@@ -356,16 +353,10 @@ definitions:
         type: string
       not_null:
         type: boolean
-      numeric_precision:
-        type: integer
-      numeric_scale:
-        type: integer
       primary_key:
         type: boolean
       sort:
         type: integer
-      type:
-        type: string
     type: object
   github_com_iiwish_lingjian_internal_model.FieldUpdate:
     properties:
@@ -406,47 +397,14 @@ definitions:
         - $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.UpdateTypeString'
         description: 更新类型：add, drop, modify
     type: object
-  github_com_iiwish_lingjian_internal_model.Operator:
+  github_com_iiwish_lingjian_internal_model.LogicOperator:
     enum:
-    - eq
-    - ne
-    - gt
-    - gte
-    - lt
-    - lte
-    - like
-    - not_like
-    - in
-    - not_in
-    - between
-    - not_between
+    - AND
+    - OR
     type: string
-    x-enum-comments:
-      OpBetween: 区间查询
-      OpEq: 等于
-      OpGt: 大于
-      OpGte: 大于等于
-      OpIn: IN查询
-      OpLike: 模糊查询
-      OpLt: 小于
-      OpLte: 小于等于
-      OpNe: 不等于
-      OpNotBetween: 不在区间
-      OpNotIn: NOT IN查询
-      OpNotLike: 不包含
     x-enum-varnames:
-    - OpEq
-    - OpNe
-    - OpGt
-    - OpGte
-    - OpLt
-    - OpLte
-    - OpLike
-    - OpNotLike
-    - OpIn
-    - OpNotIn
-    - OpBetween
-    - OpNotBetween
+    - LogicAnd
+    - LogicOr
   github_com_iiwish_lingjian_internal_model.OrderBy:
     properties:
       desc:
@@ -504,11 +462,6 @@ definitions:
     type: object
   github_com_iiwish_lingjian_internal_model.QueryCondition:
     properties:
-      conditions:
-        description: 条件列表
-        items:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Condition'
-        type: array
       group_by:
         description: 分组
         items:
@@ -519,6 +472,10 @@ definitions:
         items:
           $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.OrderBy'
         type: array
+      root:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConditionGroup'
+        description: 根条件组
     type: object
   github_com_iiwish_lingjian_internal_model.Role:
     properties:

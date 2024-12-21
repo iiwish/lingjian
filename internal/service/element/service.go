@@ -21,7 +21,6 @@ func NewElementService(db *sqlx.DB) *ElementService {
 	}
 }
 
-// 表记录相关方法
 func (s *ElementService) GetTableItems(tableID uint, page int, pageSize int, query *model.QueryCondition) ([]map[string]interface{}, int, error) {
 	return s.tableService.GetTableItems(tableID, page, pageSize, query)
 }

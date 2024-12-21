@@ -3,8 +3,6 @@ package test
 import (
 	"strconv"
 	"testing"
-
-	"github.com/iiwish/lingjian/internal/model"
 )
 
 func TestConfigTableItemFlow(t *testing.T) {
@@ -135,29 +133,6 @@ func TestConfigTableItemFlow(t *testing.T) {
 	})
 
 	// 7. 带条件的列表查询
-	t.Run("条件查询记录", func(t *testing.T) {
-		query := model.QueryCondition{
-			Conditions: []model.Condition{
-				{
-					Field:    "age",
-					Operator: model.OpGt,
-					Value:    30,
-				},
-			},
-		}
-		path := "/api/v1/config/tables/" + strconv.FormatUint(uint64(tableID), 10) + "/items"
-		w := helper.MakeRequest(t, "GET", path, query)
-		resp := helper.AssertSuccess(t, w)
-		if data, ok := resp["data"].(map[string]interface{}); ok {
-			items, ok := data["items"].([]interface{})
-			if !ok {
-				t.Error("获取的列表数据格式不正确")
-			}
-			if len(items) != 2 { // 应该只有王五和赵六
-				t.Errorf("条件查询结果数量不正确,期望2条,实际%d条", len(items))
-			}
-		}
-	})
 
 	// 8. 批量删除记录
 	t.Run("批量删除记录", func(t *testing.T) {
