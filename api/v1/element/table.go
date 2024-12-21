@@ -1,6 +1,7 @@
 package element
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -23,7 +24,7 @@ import (
 // @Success      200  {object}  utils.Response
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /table/{table_id} [get]
+// @Router       /table/{table_id}/query [post]
 func (api *ElementAPI) GetTableItems(c *gin.Context) {
 	// 获取表ID
 	tableID := utils.ParseUint(c.Param("table_id"))
@@ -59,6 +60,8 @@ func (api *ElementAPI) GetTableItems(c *gin.Context) {
 			GroupBy: []string{},
 		} // 使用默认值
 	}
+	// 打印查询条件
+	fmt.Println(query)
 
 	// 获取记录列表
 	items, total, err := api.elementService.GetTableItems(tableID, page, pageSize, &query)
@@ -71,6 +74,75 @@ func (api *ElementAPI) GetTableItems(c *gin.Context) {
 		"total":    total,
 		"page":     page,
 		"pageSize": pageSize,
+		"items":    items,
+	}
+
+	utils.Success(c, data)
+}
+
+// @Summary      查询数据表记录QueryTableItems
+// @Description  查询指定数据表的记录列表
+// @Tags         Table
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer Token"
+// @Param        App-ID header string true "应用ID"
+// @Param        table_id path int true "表ID"
+// @Param        page query int false "页码"
+// @Param        page_size query int false "每页数量"
+// @Param        query body model.QueryCondition true "查询条件"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /table/{table_id}/query [post]
+func (api *ElementAPI) QueryTableItems(c *gin.Context) {
+	// 获取表ID
+	tableID := utils.ParseUint(c.Param("table_id"))
+	if tableID == 0 {
+		utils.Error(c, http.StatusBadRequest, "invalid table_id")
+		return
+	}
+
+	// 获取分页参数
+	page := utils.ParseInt(c.Query("page"))
+	if page <= 0 {
+		page = 1
+	}
+
+	// 获取每页数量
+	pageSize := utils.ParseInt(c.Query("page_size"))
+	if pageSize <= 0 {
+		pageSize = 10
+	}
+	if pageSize > 1000 {
+		pageSize = 1000
+	}
+
+	// 获取查询条件
+	var query struct {
+		Page     int                  `json:"page"`
+		PageSize int                  `json:"page_size"`
+		Query    model.QueryCondition `json:"query"`
+	}
+	if err := c.ShouldBindJSON(&query); err != nil {
+		utils.Error(c, http.StatusBadRequest, "invalid query parameters")
+		return
+	}
+	// 打印查询条件
+	fmt.Println(query)
+
+	// 获取记录列表
+	items, total, err := api.elementService.GetTableItems(tableID, query.Page, query.PageSize, &query.Query)
+	if err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	data := map[string]interface{}{
+		"total":    total,
+		"page":     query.Page,
+		"pageSize": query.PageSize,
 		"items":    items,
 	}
 

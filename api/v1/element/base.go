@@ -35,7 +35,8 @@ func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	// config.GET("/dimension/:id/items/search", api.SearchDimensionItems)
 
 	// 数据表明细配置
-	router.GET("/table/:table_id", api.GetTableItems)
+	router.POST("/table/:table_id/query", api.QueryTableItems)
+	// router.GET("/table/:table_id", api.GetTableItems)
 	router.POST("/table/:table_id", api.CreateTableItems)
 	router.PUT("/table/:table_id", api.UpdateTableItems)
 	router.DELETE("/table/:table_id", api.DeleteTableItems)

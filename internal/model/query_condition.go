@@ -99,6 +99,16 @@ func buildWhereClause(group *ConditionGroup) (string, []interface{}) {
 			condition, arg := buildWhereClause(&v)
 			conditions = append(conditions, "("+condition+")")
 			args = append(args, arg...)
+		case map[string]interface{}:
+			// 将map转换为Condition结构体
+			c := Condition{
+				Field:    v["field"].(string),
+				Operator: Operator(v["operator"].(string)),
+				Value:    v["value"],
+			}
+			condition, arg := buildCondition(c)
+			conditions = append(conditions, condition)
+			args = append(args, arg...)
 		}
 	}
 
