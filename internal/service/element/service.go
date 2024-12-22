@@ -58,6 +58,6 @@ func (s *ElementService) BatchDeleteDimensionItems(operatorID uint, dimID uint, 
 	return s.dimensionService.BatchDeleteDimensionItems(operatorID, dimID, itemIDs)
 }
 
-func (s *ElementService) TreeDimensionItems(itemID uint) ([]*model.TreeConfigDimensionItem, error) {
-	return s.dimensionService.TreeDimensionItems(itemID)
+func (s *ElementService) TreeDimensionItems(itemID uint, nodeID uint, query_type string, query_level uint) ([]*model.TreeConfigDimensionItem, error) {
+	return s.dimensionService.TreeDimensionItems(itemID, nodeID, query_type, query_level)
 }

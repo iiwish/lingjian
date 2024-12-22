@@ -135,7 +135,7 @@ func (s *DimensionService) UpdateDimensionItem(dimension *model.ConfigDimensionI
 }
 
 // TreeDimensionItems 获取维度明细配置树形结构
-func (s *DimensionService) TreeDimensionItems(dim_id uint) ([]*model.TreeConfigDimensionItem, error) {
+func (s *DimensionService) TreeDimensionItems(dim_id uint, node_id uint, query_type string, query_level uint) ([]*model.TreeConfigDimensionItem, error) {
 	// 从配置表读取维度配置
 	var tableName string
 	err := s.db.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)

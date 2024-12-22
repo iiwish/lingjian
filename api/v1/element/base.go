@@ -32,7 +32,6 @@ func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	router.POST("/dimension/:dim_id", api.CreateDimensionItems)
 	router.PUT("/dimension/:dim_id", api.UpdateDimensionItems)
 	router.DELETE("/dimension/:dim_id", api.DeleteDimensionItems)
-	// config.GET("/dimension/:id/items/search", api.SearchDimensionItems)
 
 	// 数据表明细配置
 	router.POST("/table/:table_id/query", api.QueryTableItems)
