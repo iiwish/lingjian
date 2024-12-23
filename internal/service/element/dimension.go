@@ -52,6 +52,14 @@ func (s *DimensionService) CreateDimensionItem(dimension *model.ConfigDimensionI
 		return 0, fmt.Errorf("get last insert id failed: %v", err)
 	}
 
+	// 更新node_id为node_id拼接下划线和id
+	_, err = tx.Exec(fmt.Sprintf(`
+		UPDATE %s SET node_id = CONCAT(node_id, '_', ?) WHERE id = ?
+	`, table_name), id)
+	if err != nil {
+		return 0, fmt.Errorf("update node_id failed: %v", err)
+	}
+
 	// 提交事务
 	if err := tx.Commit(); err != nil {
 		return 0, fmt.Errorf("commit transaction failed: %v", err)
@@ -82,12 +90,26 @@ func (s *DimensionService) BatchCreateDimensionItems(dimensionItems []*model.Con
 		dimension.CreatorID = creatorID
 		dimension.UpdaterID = creatorID
 
-		_, err := tx.NamedExec(fmt.Sprintf(`
+		result, err := tx.NamedExec(fmt.Sprintf(`
 			INSERT INTO %s (node_id, parent_id, name, code, description, level, sort, status, created_at, creator_id, updated_at, updater_id)
 			VALUES (:node_id, :parent_id, :name, :code, :description, :level, :sort, :status, Now(), :creator_id, Now(), :updater_id)
 		`, table_name), dimension)
 		if err != nil {
 			return fmt.Errorf("insert sys_config_dimensions failed: %v", err)
+		}
+
+		// 获取插入的ID
+		id, err := result.LastInsertId()
+		if err != nil {
+			return fmt.Errorf("get last insert id failed: %v", err)
+		}
+
+		// 更新node_id为node_id拼接下划线和id
+		_, err = tx.Exec(fmt.Sprintf(`
+			UPDATE %s SET node_id = CONCAT(node_id, '_', ?) WHERE id = ?
+		`, table_name), id)
+		if err != nil {
+			return fmt.Errorf("update node_id failed: %v", err)
 		}
 	}
 
@@ -134,7 +156,7 @@ func (s *DimensionService) UpdateDimensionItem(dimension *model.ConfigDimensionI
 	return nil
 }
 
-// TreeDimensionItems 获取维度明细配置树形结构
+// TreeDimensionItems 获取维度明细配置树形结构 todo: 优化
 func (s *DimensionService) TreeDimensionItems(dim_id uint, node_id uint, query_type string, query_level uint) ([]*model.TreeConfigDimensionItem, error) {
 	// 从配置表读取维度配置
 	var tableName string
