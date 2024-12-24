@@ -21,16 +21,6 @@ func RegisterAppRoutes(r *gin.RouterGroup) {
 	}
 }
 
-// AppResponse 应用响应结构
-type AppResponse struct {
-	ID          uint   `json:"id" example:"1"`
-	Name        string `json:"name" example:"测试应用"`
-	Description string `json:"description" example:"这是一个测试应用"`
-	Status      int    `json:"status" example:"1"`
-	CreatedAt   string `json:"created_at" example:"2023-01-01 12:00:00"`
-	UpdatedAt   string `json:"updated_at" example:"2023-01-01 12:00:00"`
-}
-
 // CreateAppRequest 创建应用请求结构
 type CreateAppRequest struct {
 	Name        string `json:"name" example:"测试应用" binding:"required"`
@@ -46,7 +36,7 @@ type CreateAppRequest struct {
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
-// @Success      200  {object}  utils.Response{data=[]AppResponse}
+// @Success      200  {object}  utils.Response{data=map[string]interface{}}
 // @Failure      500  {object}  utils.Response
 // @Router       /apps [get]
 func ListApps(c *gin.Context) {
@@ -70,7 +60,7 @@ func ListApps(c *gin.Context) {
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        app_id path int true "应用ID"
-// @Success      200  {object}  utils.Response{data=AppResponse}
+// @Success      200  {object}  utils.Response{data=model.App}
 // @Failure      500  {object}  utils.Response
 // @Router       /apps/{app_id} [get]
 func GetApp(c *gin.Context) {
@@ -100,7 +90,7 @@ func GetApp(c *gin.Context) {
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        request body CreateAppRequest true "创建应用请求参数"
-// @Success      200  {object}  utils.Response{data=AppResponse}
+// @Success      200  {object}  utils.Response{data=model.App}
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
 // @Router       /apps [post]
@@ -134,7 +124,7 @@ func CreateApp(c *gin.Context) {
 // @Param        App-ID header string true "应用ID"
 // @Param        app_id path int true "应用ID"
 // @Param        request body CreateAppRequest true "更新应用请求参数"
-// @Success      200  {object}  utils.Response{data=AppResponse}
+// @Success      200  {object}  utils.Response{data=model.App}
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
 // @Router       /apps/{app_id} [put]

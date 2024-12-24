@@ -1,26 +1,5 @@
 basePath: /api/v1
 definitions:
-  api_v1.AppResponse:
-    properties:
-      created_at:
-        example: "2023-01-01 12:00:00"
-        type: string
-      description:
-        example: 这是一个测试应用
-        type: string
-      id:
-        example: 1
-        type: integer
-      name:
-        example: 测试应用
-        type: string
-      status:
-        example: 1
-        type: integer
-      updated_at:
-        example: "2023-01-01 12:00:00"
-        type: string
-    type: object
   api_v1.CreateAppRequest:
     properties:
       description:
@@ -105,6 +84,28 @@ definitions:
     properties:
       error:
         type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.App:
+    properties:
+      code:
+        type: string
+      created_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      creator_id:
+        type: integer
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      status:
+        description: 0:禁用 1:启用
+        type: integer
+      updated_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      updater_id:
+        type: integer
     type: object
   github_com_iiwish_lingjian_internal_model.ConditionGroup:
     properties:
@@ -824,9 +825,8 @@ paths:
             - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
             - properties:
                 data:
-                  items:
-                    $ref: '#/definitions/api_v1.AppResponse'
-                  type: array
+                  additionalProperties: true
+                  type: object
               type: object
         "500":
           description: Internal Server Error
@@ -868,7 +868,7 @@ paths:
             - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/api_v1.AppResponse'
+                  $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.App'
               type: object
         "400":
           description: Bad Request
@@ -954,7 +954,7 @@ paths:
             - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/api_v1.AppResponse'
+                  $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.App'
               type: object
         "500":
           description: Internal Server Error
@@ -1001,7 +1001,7 @@ paths:
             - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/api_v1.AppResponse'
+                  $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.App'
               type: object
         "400":
           description: Bad Request
@@ -2501,8 +2501,20 @@ paths:
         type: string
       - description: 维度ID
         in: path
-        name: id
+        name: dim_id
         required: true
+        type: integer
+      - description: 节点ID，不指定则返回整个维度配置项树
+        in: query
+        name: id
+        type: integer
+      - description: 菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'
+        in: query
+        name: type
+        type: string
+      - description: 树的层级，可选值为 0、1、2、3， 默认为 0不指定层级
+        in: query
+        name: level
         type: integer
       produces:
       - application/json
@@ -3199,59 +3211,6 @@ paths:
       summary: 批量删除数据表记录
       tags:
       - Table
-    get:
-      consumes:
-      - application/json
-      description: 获取指定数据表的记录列表
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 表ID
-        in: path
-        name: table_id
-        required: true
-        type: integer
-      - description: 页码
-        in: query
-        name: page
-        type: integer
-      - description: 每页数量
-        in: query
-        name: page_size
-        type: integer
-      - description: 查询条件
-        in: body
-        name: query
-        schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.QueryCondition'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
-      security:
-      - Bearer: []
-      summary: 获取数据表记录列表
-      tags:
-      - Table
     post:
       consumes:
       - application/json
@@ -3350,6 +3309,61 @@ paths:
       security:
       - Bearer: []
       summary: 更新数据表记录
+      tags:
+      - Table
+  /table/{table_id}/query:
+    post:
+      consumes:
+      - application/json
+      description: 查询指定数据表的记录列表
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 表ID
+        in: path
+        name: table_id
+        required: true
+        type: integer
+      - description: 页码
+        in: query
+        name: page
+        type: integer
+      - description: 每页数量
+        in: query
+        name: page_size
+        type: integer
+      - description: 查询条件
+        in: body
+        name: query
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.QueryCondition'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 查询数据表记录QueryTableItems
       tags:
       - Table
   /tasks/scheduled:
