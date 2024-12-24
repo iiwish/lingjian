@@ -588,6 +588,48 @@ definitions:
         description: 更新者ID
         type: integer
     type: object
+  github_com_iiwish_lingjian_internal_model.TreeConfigMenu:
+    properties:
+      app_id:
+        type: integer
+      children:
+        description: 子菜单列表
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
+        type: array
+      created_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      creator_id:
+        type: integer
+      icon:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      menu_code:
+        type: string
+      menu_name:
+        type: string
+      menu_type:
+        type: string
+      node_id:
+        type: string
+      parent_id:
+        type: integer
+      path:
+        type: string
+      sort:
+        type: integer
+      source_id:
+        type: string
+      status:
+        type: integer
+      updated_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      updater_id:
+        type: integer
+    type: object
   github_com_iiwish_lingjian_internal_model.UpdateTableItemsRequest:
     properties:
       items:
@@ -1749,7 +1791,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api_v1_config.Response'
+            items:
+              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
+            type: array
         "400":
           description: Bad Request
           schema:

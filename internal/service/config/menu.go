@@ -30,6 +30,7 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, 
 	defer tx.Rollback()
 
 	menu.Status = 1
+	menu.SourceID = 0
 
 	// 插入菜单配置
 	result, err := tx.NamedExec(`
@@ -49,6 +50,85 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, 
 		return 0, fmt.Errorf("get last insert id failed: %v", err)
 	}
 	menu.ID = uint(id)
+
+	// 补充node_id、level、sort字段
+	if menu.ParentID == 0 {
+		menu.NodeID = strconv.Itoa(int(menu.ID))
+		menu.Level = 1
+		menu.Sort = 1
+	} else {
+		parentMenu, err := s.GetMenuByID(menu.ParentID)
+		if err != nil {
+			return 0, fmt.Errorf("get parent menu failed: %v", err)
+		}
+		menu.NodeID = parentMenu.NodeID + "_" + strconv.Itoa(int(menu.ID))
+		menu.Level = parentMenu.Level + 1
+		// 获取同级菜单的最大排序值
+		var maxSort int
+		err = tx.Get(&maxSort, `
+			SELECT MAX(sort) FROM sys_config_menus
+			WHERE parent_id = ? AND level = ?
+		`, menu.ParentID, menu.Level)
+		if err != nil {
+			return 0, fmt.Errorf("get max sort failed: %v", err)
+		}
+		menu.Sort = maxSort + 1
+
+	}
+	// 更新菜单配置
+	_, err = tx.NamedExec(`
+		UPDATE sys_config_menus SET
+			node_id = :node_id,
+			level = :level,
+			sort = :sort	
+		WHERE id = :id
+	`, menu)
+	if err != nil {
+		return 0, fmt.Errorf("update sys_config_menus failed: %v", err)
+	}
+
+	// 如果父节点不是0，但是元素类型是4，那么需要增加一个父节点是0的元素
+	if menu.MenuType == 4 && menu.ParentID != 0 {
+		tempMenu := &model.ConfigMenu{
+			AppID:     menu.AppID,
+			ParentID:  0,
+			MenuName:  menu.MenuName,
+			MenuCode:  menu.MenuCode,
+			MenuType:  1,
+			Level:     1,
+			Sort:      1,
+			Icon:      "folder",
+			SourceID:  0,
+			Status:    1,
+			CreatorID: creatorID,
+			UpdaterID: creatorID,
+		}
+		result, err := tx.NamedExec(`
+				INSERT INTO sys_config_menus (
+					app_id, parent_id, node_id, menu_name, menu_code, menu_type, level, sort, icon, source_id, status, created_at, creator_id, updated_at, updater_id
+				) VALUES (
+					:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :level, :sort, :icon, :source_id, :status, NOW(), :creator_id, NOW(), :creator_id
+				)
+			`, tempMenu)
+		if err != nil {
+			return 0, fmt.Errorf("insert sys_config_menus failed: %v", err)
+		}
+		// 获取插入的ID
+		id, err := result.LastInsertId()
+		if err != nil {
+			return 0, fmt.Errorf("get last insert id failed: %v", err)
+		}
+		tempMenu.ID = uint(id)
+		tempMenu.NodeID = strconv.Itoa(int(tempMenu.ID))
+		_, err = tx.NamedExec(`
+				UPDATE sys_config_menus SET
+					node_id = :node_id
+				WHERE id = :id
+			`, tempMenu)
+		if err != nil {
+			return 0, fmt.Errorf("update sys_config_menus failed: %v", err)
+		}
+	}
 
 	// 提交事务
 	if err := tx.Commit(); err != nil {
@@ -117,10 +197,40 @@ func (s *MenuService) DeleteMenu(id uint) error {
 	}
 	defer tx.Rollback()
 
+	// 获取菜单配置
+	menu, err := s.GetMenuByID(id)
+	if err != nil {
+		return fmt.Errorf("get menu failed: %v", err)
+	}
+
 	// 删除菜单配置
 	_, err = tx.Exec("DELETE FROM sys_config_menus WHERE id = ?", id)
 	if err != nil {
 		return fmt.Errorf("delete menu failed: %v", err)
+	}
+
+	// 删除菜单对应的元素
+	tableMap := map[int]string{
+		1: "sys_config_menus",
+		2: "sys_config_tables",
+		3: "sys_config_dimensions",
+		4: "sys_config_menus",
+		5: "sys_config_models",
+		6: "sys_config_forms",
+	}
+
+	if table, ok := tableMap[menu.MenuType]; ok {
+		var query string
+		if menu.MenuType == 1 || menu.MenuType == 4 {
+			query = "DELETE FROM " + table + " WHERE node_id LIKE ?"
+			_, err = tx.Exec(query, menu.NodeID+"_%")
+		} else {
+			query = "DELETE FROM " + table + " WHERE id = ?"
+			_, err = tx.Exec(query, menu.SourceID)
+		}
+		if err != nil {
+			return fmt.Errorf("delete failed: %v", err)
+		}
 	}
 
 	// 提交事务
