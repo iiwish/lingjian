@@ -67,9 +67,6 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/tables/:table_id", api.GetTable)
 		config.POST("/tables", api.CreateTable)
 		config.PUT("/tables/:table_id", api.UpdateTable)
-		config.PUT("/tables/:table_id/fields", api.UpdateTableFields)
-		config.PUT("/tables/:table_id/indexes", api.UpdateTableIndexes)
-		config.PUT("/tables/:table_id/func", api.UpdateTableFunc)
 		config.DELETE("/tables/:table_id", api.DeleteTable)
 	}
 }

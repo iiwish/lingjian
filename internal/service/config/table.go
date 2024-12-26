@@ -19,6 +19,7 @@ func NewTableService(db *sqlx.DB) *TableService {
 }
 
 // CreateTable 创建数据表配置
+// Todo
 func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID uint, appID uint) (uint, error) {
 	var table model.ConfigTable
 	table.AppID = appID
@@ -97,10 +98,8 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 	return uint(id), nil
 }
 
-// UpdateTable 更新数据表配置
-func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint, appID uint) error {
-	table.UpdaterID = updaterID
-
+// UpdateTable 统一的更新数据表配置方法
+func (s *TableService) UpdateTable(tableID uint, req *model.TableUpdateReq, updaterID uint, appID uint) error {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -108,18 +107,18 @@ func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint, app
 	}
 	defer tx.Rollback()
 
-	// 获取数据表名称
-	var tableName string
-	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_tables WHERE id = ?", table.ID)
+	// 获取原数据表名称
+	var oldTableName string
+	err = tx.Get(&oldTableName, "SELECT table_name FROM sys_config_tables WHERE id = ?", tableID)
 	if err != nil {
 		return fmt.Errorf("get table name failed: %v", err)
 	}
 
-	// 对比数据表名称是否有变化
-	if tableName != table.TableName {
+	// 1. 更新基本信息
+	if req.TableName != "" && req.TableName != oldTableName {
 		// 检查新表名是否已存在
 		var count int
-		err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", table.TableName)
+		err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", req.TableName)
 		if err != nil {
 			return fmt.Errorf("check table name failed: %v", err)
 		}
@@ -128,163 +127,106 @@ func (s *TableService) UpdateTable(table *model.ConfigTable, updaterID uint, app
 		}
 
 		// 修改数据表名称
-		_, err = tx.Exec("RENAME TABLE " + tableName + " TO " + table.TableName)
+		_, err = tx.Exec("RENAME TABLE " + oldTableName + " TO " + req.TableName)
 		if err != nil {
 			return fmt.Errorf("rename table failed: %v", err)
 		}
+
+		// 更新数据表配置
+		_, err = tx.Exec("UPDATE sys_config_tables SET table_name = ? WHERE id = ?", req.TableName, tableID)
+		if err != nil {
+			return fmt.Errorf("update sys_config_tables failed: %v", err)
+		}
 	}
 
+	baseSQL := `UPDATE sys_config_tables SET 
+        display_name = ?, description = ?, updater_id = ?, updated_at = NOW(), `
+	args := []interface{}{req.DisplayName, req.Description, updaterID}
+
+	if req.Func != "" {
+		baseSQL += `func = ? `
+		args = append(args, req.Func)
+	} else {
+		baseSQL += `func = NULL `
+	}
+	baseSQL += `WHERE id = ?`
+	args = append(args, tableID)
+
 	// 更新数据表配置
-	_, err = tx.NamedExec(`
-		UPDATE sys_config_tables SET 
-			table_name = :table_name,
-			display_name = :display_name,
-			description = :description,
-			status = :status,
-			updater_id = :updater_id,
-			updated_at = NOW()
-		WHERE id = :id
-	`, table)
+	_, err = tx.Exec(baseSQL, args...)
 	if err != nil {
 		return fmt.Errorf("update sys_config_tables failed: %v", err)
 	}
 
-	// 提交事务
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction failed: %v", err)
-	}
+	// 2. 更新字段信息
+	if len(req.Fields) > 0 {
+		tableName := req.TableName
+		if tableName == "" {
+			tableName = oldTableName
+		}
 
-	return nil
-}
-
-// UpdateTableFields 更新数据表字段
-func (s *TableService) UpdateTableFields(tableID uint, fieldUpdates []model.FieldUpdate, updaterID uint, appID uint) error {
-	// 开启事务
-	tx, err := s.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transaction failed: %v", err)
-	}
-	defer tx.Rollback()
-
-	// 获取数据表名称
-	var tableName string
-	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_tables WHERE id = ?", tableID)
-	if err != nil {
-		return fmt.Errorf("get table name failed: %v", err)
-	}
-
-	for _, update := range fieldUpdates {
-		switch update.UpdateType {
-		case model.UpdateTypeAdd:
-			// 添加字段
-			fieldSQL := buildFieldSQL(update.Field)
-			_, err = tx.Exec("ALTER TABLE " + tableName + " ADD COLUMN " + fieldSQL)
-			if err != nil {
-				return fmt.Errorf("add column failed: %v", err)
-			}
-		case model.UpdateTypeDrop:
-			// 删除字段
-			_, err = tx.Exec("ALTER TABLE " + tableName + " DROP COLUMN " + update.OldFieldName)
-			if err != nil {
-				return fmt.Errorf("drop column failed: %v", err)
-			}
-		case model.UpdateTypeModify:
-			// 修改字段
-			fieldSQL := buildFieldSQL(update.Field)
-			_, err = tx.Exec("ALTER TABLE " + tableName + " MODIFY COLUMN " + fieldSQL)
-			if err != nil {
-				return fmt.Errorf("modify column failed: %v", err)
+		for _, update := range req.Fields {
+			switch update.UpdateType {
+			case model.UpdateTypeAdd:
+				// 添加字段
+				fieldSQL := buildFieldSQL(update.Field)
+				_, err = tx.Exec("ALTER TABLE " + tableName + " ADD COLUMN " + fieldSQL)
+				if err != nil {
+					return fmt.Errorf("add column failed: %v", err)
+				}
+			case model.UpdateTypeDrop:
+				// 删除字段
+				_, err = tx.Exec("ALTER TABLE " + tableName + " DROP COLUMN " + update.OldFieldName)
+				if err != nil {
+					return fmt.Errorf("drop column failed: %v", err)
+				}
+			case model.UpdateTypeModify:
+				// 修改字段
+				fieldSQL := buildFieldSQL(update.Field)
+				_, err = tx.Exec("ALTER TABLE " + tableName + " MODIFY COLUMN " + fieldSQL)
+				if err != nil {
+					return fmt.Errorf("modify column failed: %v", err)
+				}
 			}
 		}
 	}
 
-	// 更新数据表修改时间和修改人
-	_, err = tx.Exec("UPDATE sys_config_tables SET updated_at = NOW(), updater_id = ? WHERE id = ?", updaterID, tableID)
-	if err != nil {
-		return fmt.Errorf("update table failed: %v", err)
-	}
+	// 3. 更新索引信息
+	if len(req.Indexes) > 0 {
+		tableName := req.TableName
+		if tableName == "" {
+			tableName = oldTableName
+		}
 
-	// 提交事务
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction failed: %v", err)
-	}
+		for _, update := range req.Indexes {
+			switch update.UpdateType {
+			case model.UpdateTypeAdd:
+				// 添加索引
+				indexSQL := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", update.Index.Name, tableName, strings.Join(update.Index.Fields, ", "))
+				_, err = tx.Exec(indexSQL)
+				if err != nil {
+					return fmt.Errorf("add index failed: %v", err)
+				}
+			case model.UpdateTypeDrop:
+				// 删除索引
+				_, err = tx.Exec("DROP INDEX " + update.OldIndexName + " ON " + tableName)
+				if err != nil {
+					return fmt.Errorf("drop index failed: %v", err)
+				}
+			case model.UpdateTypeModify:
+				// 修改索引
+				_, err = tx.Exec("DROP INDEX " + update.OldIndexName + " ON " + tableName)
+				if err != nil {
+					return fmt.Errorf("drop index failed: %v", err)
+				}
 
-	return nil
-}
-
-// UpdateTableIndexes 更新数据表索引
-func (s *TableService) UpdateTableIndexes(tableID uint, indexUpdates []model.IndexUpdate, updaterID uint, appID uint) error {
-	// 开启事务
-	tx, err := s.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transaction failed: %v", err)
-	}
-	defer tx.Rollback()
-
-	// 获取数据表名称
-	var tableName string
-	err = tx.Get(&tableName, "SELECT table_name FROM sys_config_tables WHERE id = ?", tableID)
-	if err != nil {
-		return fmt.Errorf("get table name failed: %v", err)
-	}
-
-	for _, update := range indexUpdates {
-		switch update.UpdateType {
-		case model.UpdateTypeAdd:
-			// 添加索引
-			indexSQL := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", update.Index.Name, tableName, strings.Join(update.Index.Fields, ", "))
-			_, err = tx.Exec(indexSQL)
-			if err != nil {
-				return fmt.Errorf("add index failed: %v", err)
-			}
-		case model.UpdateTypeDrop:
-			// 删除索引
-			_, err = tx.Exec("DROP INDEX " + update.OldIndexName + " ON " + tableName)
-			if err != nil {
-				return fmt.Errorf("drop index failed: %v", err)
-			}
-		case model.UpdateTypeModify:
-			// 修改索引
-			_, err = tx.Exec("DROP INDEX " + update.OldIndexName + " ON " + tableName)
-			if err != nil {
-				return fmt.Errorf("drop index failed: %v", err)
-			}
-
-			indexSQL := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", update.Index.Name, tableName, strings.Join(update.Index.Fields, ", "))
-			_, err = tx.Exec(indexSQL)
-			if err != nil {
-				return fmt.Errorf("add index failed: %v", err)
+				indexSQL := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", update.Index.Name, tableName, strings.Join(update.Index.Fields, ", "))
+				_, err = tx.Exec(indexSQL)
+				if err != nil {
+					return fmt.Errorf("add index failed: %v", err)
+				}
 			}
 		}
-	}
-
-	// 更新数据表修改时间和修改人
-	_, err = tx.Exec("UPDATE sys_config_tables SET updated_at = NOW(), updater_id = ? WHERE id = ?", updaterID, tableID)
-	if err != nil {
-		return fmt.Errorf("update table failed: %v", err)
-	}
-
-	// 提交事务
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction failed: %v", err)
-	}
-
-	return nil
-}
-
-// UpdateTableFunc 更新数据表功能
-func (s *TableService) UpdateTableFunc(table *model.CreateTableReq, updaterID uint, appID uint) error {
-	// 开启事务
-	tx, err := s.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("begin transaction failed: %v", err)
-	}
-	defer tx.Rollback()
-
-	// 更新数据表功能
-	_, err = tx.Exec("UPDATE sys_config_tables SET func = ?, updater_id = ?, updated_at = NOW() WHERE id = ?", table.Func, updaterID, table.ID)
-	if err != nil {
-		return fmt.Errorf("update table func failed: %v", err)
 	}
 
 	// 提交事务
@@ -301,7 +243,7 @@ func (s *TableService) GetTable(id uint) (*model.CreateTableReq, error) {
 	query := `
         SELECT 
             id, app_id, table_name, display_name, description, 
-            IFNULL(func, '') AS func, status, created_at, creator_id, updated_at, updater_id 
+            IFNULL(func, "") AS func, status, created_at, creator_id, updated_at, updater_id 
         FROM sys_config_tables 
         WHERE id = ?
     `

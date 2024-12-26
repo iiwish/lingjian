@@ -2146,8 +2146,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/api_v1_config.Response"
                         }
@@ -2235,7 +2235,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "更新指定数据表的基本信息",
+                "description": "更新指定数据表的配置信息,包括基本信息、字段信息、索引信息和功能信息",
                 "consumes": [
                     "application/json"
                 ],
@@ -2245,7 +2245,7 @@ const docTemplate = `{
                 "tags": [
                     "ConfigTable"
                 ],
-                "summary": "更新数据表基本信息",
+                "summary": "更新数据表配置",
                 "parameters": [
                     {
                         "type": "string",
@@ -2274,7 +2274,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigTable"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.TableUpdateReq"
                         }
                     }
                 ],
@@ -2334,219 +2334,6 @@ const docTemplate = `{
                         "name": "table_id",
                         "in": "path",
                         "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/config/tables/{table_id}/fields": {
-            "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新指定数据表的字段信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ConfigTable"
-                ],
-                "summary": "更新数据表字段信息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "配置ID",
-                        "name": "table_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新数据表字段请求参数",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.FieldUpdate"
-                            }
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/config/tables/{table_id}/func": {
-            "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新指定数据表的 func 字段",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ConfigTable"
-                ],
-                "summary": "更新 func 字段",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "配置ID",
-                        "name": "table_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新数据表配置请求参数",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CreateTableReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/config/tables/{table_id}/indexes": {
-            "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新指定数据表的索引信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ConfigTable"
-                ],
-                "summary": "更新索引信息",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "配置ID",
-                        "name": "table_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "更新数据表索引请求参数",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.IndexUpdate"
-                            }
-                        }
                     }
                 ],
                 "responses": {
@@ -5584,6 +5371,41 @@ const docTemplate = `{
                 },
                 "value": {
                     "description": "配置值",
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.TableUpdateReq": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "display_name": {
+                    "description": "显示名称",
+                    "type": "string"
+                },
+                "fields": {
+                    "description": "字段更新",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.FieldUpdate"
+                    }
+                },
+                "func": {
+                    "description": "功能",
+                    "type": "string"
+                },
+                "indexes": {
+                    "description": "索引更新",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.IndexUpdate"
+                    }
+                },
+                "table_name": {
+                    "description": "表名",
                     "type": "string"
                 }
             }

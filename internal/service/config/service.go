@@ -34,20 +34,8 @@ func (s *ConfigService) CreateTable(table *model.CreateTableReq, creatorID uint,
 	return s.tableService.CreateTable(table, creatorID, appID)
 }
 
-func (s *ConfigService) UpdateTable(table *model.ConfigTable, updaterID uint, appID uint) error {
-	return s.tableService.UpdateTable(table, updaterID, appID)
-}
-
-func (s *ConfigService) UpdateTableFields(table_id uint, table_field []model.FieldUpdate, updaterID uint, appID uint) error {
-	return s.tableService.UpdateTableFields(table_id, table_field, updaterID, appID)
-}
-
-func (s *ConfigService) UpdateTableIndexes(table_id uint, table_index []model.IndexUpdate, updaterID uint, appID uint) error {
-	return s.tableService.UpdateTableIndexes(table_id, table_index, updaterID, appID)
-}
-
-func (s *ConfigService) UpdateTableFunc(table *model.CreateTableReq, updaterID uint, appID uint) error {
-	return s.tableService.UpdateTableFunc(table, updaterID, appID)
+func (s *ConfigService) UpdateTable(tableID uint, req *model.TableUpdateReq, updaterID uint, appID uint) error {
+	return s.tableService.UpdateTable(tableID, req, updaterID, appID)
 }
 
 func (s *ConfigService) DeleteTable(id uint) error {

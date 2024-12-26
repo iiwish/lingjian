@@ -56,11 +56,19 @@ type FieldUpdate struct {
 	Field        Field            // 新字段信息
 }
 
+type FieldUpdateReq struct {
+	Fields []FieldUpdate `json:"fields"`
+}
+
 // IndexUpdate 表示索引更新信息
 type IndexUpdate struct {
 	UpdateType   UpdateTypeString // 更新类型：add, drop, modify
 	OldIndexName string           // 旧索引名（用于修改索引时）
 	Index        Index            // 新索引信息
+}
+
+type IndexUpdateReq struct {
+	Indexes []IndexUpdate `json:"indexes"`
 }
 
 // 索引信息
@@ -87,6 +95,16 @@ type UpdateTableReq struct {
 	TableName   string `json:"table_name"`
 	DisplayName string `json:"display_name"`
 	Description string `json:"description"`
+}
+
+// TableUpdateReq 统一的表更新请求
+type TableUpdateReq struct {
+	TableName   string        `json:"table_name"`   // 表名
+	DisplayName string        `json:"display_name"` // 显示名称
+	Description string        `json:"description"`  // 描述
+	Func        string        `json:"func"`         // 功能
+	Fields      []FieldUpdate `json:"fields"`       // 字段更新
+	Indexes     []IndexUpdate `json:"indexes"`      // 索引更新
 }
 
 // MySQLField 表示从 MySQL 获取的字段信息
