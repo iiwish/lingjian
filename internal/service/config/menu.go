@@ -152,7 +152,6 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 	// 更新菜单配置
 	_, err = tx.NamedExec(`
 		UPDATE sys_config_menus SET 
-			app_id = :app_id, 
 			parent_id = :parent_id, 
 			node_id = :node_id, 
 			menu_name = :menu_name, 

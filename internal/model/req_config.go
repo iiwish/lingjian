@@ -14,12 +14,12 @@ type TreeConfigMenu struct {
 	ParentID  uint              `db:"parent_id" json:"parent_id"`
 	MenuName  string            `db:"menu_name" json:"menu_name"`
 	MenuCode  string            `db:"menu_code" json:"menu_code"`
-	MenuType  string            `db:"menu_type" json:"menu_type"`
+	MenuType  int               `db:"menu_type" json:"menu_type"`
 	Level     int               `db:"level" json:"level"`
 	Sort      int               `db:"sort" json:"sort"`
 	Icon      string            `db:"icon" json:"icon"`
 	Path      string            `json:"path"`
-	SourceID  string            `db:"source_id" json:"source_id"`
+	SourceID  uint              `db:"source_id" json:"source_id"`
 	Status    int               `db:"status" json:"status"`
 	CreatedAt utils.CustomTime  `db:"created_at" json:"created_at"`
 	CreatorID uint              `db:"creator_id" json:"creator_id"`
