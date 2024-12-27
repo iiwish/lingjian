@@ -10,16 +10,31 @@ import (
 
 // TableService 数据表配置服务
 type TableService struct {
-	db *sqlx.DB
+	db          *sqlx.DB
+	menuService *MenuService
 }
 
 // NewTableService 创建数据表配置服务实例
 func NewTableService(db *sqlx.DB) *TableService {
-	return &TableService{db: db}
+	return &TableService{
+		db:          db,
+		menuService: NewMenuService(db),
+	}
+}
+
+// 添加辅助函数判断是否为数值类型
+func isNumericType(columnType string) bool {
+	numericTypes := []string{"int", "tinyint", "smallint", "mediumint", "bigint", "float", "double", "decimal"}
+	columnType = strings.ToLower(columnType)
+	for _, t := range numericTypes {
+		if strings.HasPrefix(columnType, t) {
+			return true
+		}
+	}
+	return false
 }
 
 // CreateTable 创建数据表配置
-// Todo
 func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID uint, appID uint) (uint, error) {
 	var table model.ConfigTable
 	table.AppID = appID
@@ -29,6 +44,12 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 	table.Status = 1
 	table.CreatorID = creatorID
 	table.UpdaterID = creatorID
+	// 如果没有配置函数，则默认为空对象
+	if tableinfo.Func == "" {
+		table.Func = `{"hide_cols": [], "query_cols": [], "queryCondition": {"root": {"logic": "AND", "conditions": []}}}`
+	} else {
+		table.Func = tableinfo.Func
+	}
 
 	// 开启事务
 	tx, err := s.db.Beginx()
@@ -60,6 +81,7 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
         CREATE TABLE %s (
     `, table.TableName)
 
+	firstField := true
 	for _, field := range tableinfo.Fields {
 		fieldSQL := fmt.Sprintf("%s %s", field.Name, field.ColumnType)
 		if field.NotNull {
@@ -69,12 +91,24 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 			fieldSQL += " AUTO_INCREMENT"
 		}
 		if field.Default != "" {
-			fieldSQL += fmt.Sprintf(" DEFAULT '%s'", field.Default)
+			if isNumericType(field.ColumnType) {
+				fieldSQL += fmt.Sprintf(" DEFAULT %s", field.Default) // 数值类型不加引号
+			} else {
+				fieldSQL += fmt.Sprintf(" DEFAULT '%s'", field.Default) // 非数值类型加引号
+			}
 		}
 		if field.Comment != "" {
 			fieldSQL += fmt.Sprintf(" COMMENT '%s'", field.Comment)
 		}
-		createTableSQL += ", " + fieldSQL
+		if field.PrimaryKey {
+			fieldSQL += " PRIMARY KEY"
+		}
+		if firstField {
+			createTableSQL += fieldSQL
+			firstField = false
+		} else {
+			createTableSQL += ", " + fieldSQL
+		}
 	}
 
 	for _, index := range tableinfo.Indexes {
@@ -93,6 +127,25 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 	// 提交事务
 	if err := tx.Commit(); err != nil {
 		return 0, fmt.Errorf("commit transaction failed: %v", err)
+	}
+
+	fmt.Printf("table id: %d\n", id)
+	// 创建对应的menu
+	menu := &model.ConfigMenu{
+		AppID:     appID,
+		ParentID:  tableinfo.ParentID,
+		MenuName:  table.DisplayName,
+		MenuCode:  table.TableName,
+		MenuType:  2, // 表示table类型
+		Icon:      "table",
+		SourceID:  uint(id),
+		CreatorID: creatorID,
+		UpdaterID: creatorID,
+	}
+
+	_, err = s.menuService.CreateMenu(menu, creatorID)
+	if err != nil {
+		return 0, fmt.Errorf("create menu failed: %v", err)
 	}
 
 	return uint(id), nil

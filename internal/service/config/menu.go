@@ -30,7 +30,7 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, 
 	defer tx.Rollback()
 
 	menu.Status = 1
-	menu.SourceID = 0
+	// menu.SourceID = 0
 
 	// 插入菜单配置
 	result, err := tx.NamedExec(`
@@ -217,6 +217,19 @@ func (s *MenuService) DeleteMenu(id uint) error {
 		4: "sys_config_menus",
 		5: "sys_config_models",
 		6: "sys_config_forms",
+	}
+
+	if menu.MenuType == 2 || menu.MenuType == 3 {
+		// 查询tablename
+		var tableName string
+		err = tx.Get(&tableName, "SELECT table_name FROM "+tableMap[menu.MenuType]+" WHERE id = ?", menu.SourceID)
+		if err != nil {
+			return fmt.Errorf("get table name failed: %v", err)
+		}
+		_, err = tx.Exec("DROP TABLE IF EXISTS " + tableName)
+		if err != nil {
+			return fmt.Errorf("drop table failed: %v", err)
+		}
 	}
 
 	if table, ok := tableMap[menu.MenuType]; ok {

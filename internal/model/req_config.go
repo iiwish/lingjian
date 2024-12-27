@@ -87,6 +87,7 @@ type CreateTableReq struct {
 	Func        string  `json:"func"`
 	Fields      []Field `json:"fields"`
 	Indexes     []Index `json:"indexes"`
+	ParentID    uint    `json:"parent_id"`
 }
 
 // UpdateTableReq 更新表请求

@@ -58,8 +58,8 @@ func (api *ConfigAPI) CreateTable(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
-	appID := uint(c.GetInt64("app_id"))
+	userID := c.GetUint("user_id")
+	appID := c.GetUint("app_id")
 	id, err := api.configService.CreateTable(&req, userID, appID)
 
 	if err != nil {
@@ -67,7 +67,7 @@ func (api *ConfigAPI) CreateTable(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, gin.H{"ID": id})
+	utils.Success(c, gin.H{"id": id})
 }
 
 // @Summary      更新数据表配置

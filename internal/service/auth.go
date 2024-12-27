@@ -112,7 +112,7 @@ type ChangePasswordRequest struct {
 // GenerateCaptcha 生成验证码
 func (s *AuthService) GenerateCaptcha() (*CaptchaResponse, error) {
 	// 配置验证码参数
-	driver := base64Captcha.NewDriverDigit(40, 120, 4, 0.7, 80)
+	driver := base64Captcha.NewDriverDigit(40, 120, 4, 0.3, 50)
 	c := base64Captcha.NewCaptcha(driver, s.store)
 
 	// 生成验证码
