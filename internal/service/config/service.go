@@ -43,8 +43,8 @@ func (s *ConfigService) DeleteTable(id uint) error {
 }
 
 // 维度配置相关方法
-func (s *ConfigService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) (uint, error) {
-	return s.dimensionService.CreateDimension(dimension, creatorID)
+func (s *ConfigService) CreateDimension(dimension *model.CreateDimReq, creatorID uint, appID uint) (uint, error) {
+	return s.dimensionService.CreateDimension(dimension, creatorID, appID)
 }
 
 func (s *ConfigService) UpdateDimension(dimension *model.ConfigDimension, updaterID uint) error {
@@ -57,10 +57,6 @@ func (s *ConfigService) GetDimension(id uint) (*model.ConfigDimension, error) {
 
 func (s *ConfigService) DeleteDimension(id uint) error {
 	return s.dimensionService.DeleteDimension(id)
-}
-
-func (s *ConfigService) ListDimensions(appID uint) ([]model.ConfigDimension, error) {
-	return s.dimensionService.ListDimensions(appID)
 }
 
 // 数据模型配置相关方法

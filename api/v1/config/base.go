@@ -36,10 +36,9 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 	config := router.Group("/config")
 	{
 		// 维度主体配置
-		config.POST("/dimensions/", api.CreateDimension)
+		config.POST("/dimensions", api.CreateDimension)
 		config.PUT("/dimensions/:dim_id", api.UpdateDimension)
-		// config.GET("/dimensions", api.ListDimensions)
-		config.GET("/dimensions/:dim_id", api.GetDimension)
+		config.GET("/dimensions/:dim_id", api.GetDimensionByID)
 		config.DELETE("/dimensions/:dim_id", api.DeleteDimension)
 
 		// 表单配置

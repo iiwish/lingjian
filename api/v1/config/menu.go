@@ -201,6 +201,5 @@ func (api *ConfigAPI) GetMenus(c *gin.Context) {
 		return
 	}
 
-	// c.JSON(http.StatusOK, menus)
 	utils.Success(c, gin.H{"items": menus})
 }

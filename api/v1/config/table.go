@@ -1,7 +1,6 @@
 package config
 
 import (
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -134,5 +133,5 @@ func (api *ConfigAPI) DeleteTable(c *gin.Context) {
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	utils.Success(c, nil)
 }

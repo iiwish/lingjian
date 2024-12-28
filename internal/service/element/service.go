@@ -21,6 +21,7 @@ func NewElementService(db *sqlx.DB) *ElementService {
 	}
 }
 
+// Table
 func (s *ElementService) GetTableItems(tableID uint, page int, pageSize int, query *model.QueryCondition) ([]map[string]interface{}, int, error) {
 	return s.tableService.GetTableItems(tableID, page, pageSize, query)
 }
@@ -37,27 +38,23 @@ func (s *ElementService) DeleteTableItems(operatorID uint, tableID uint, reqItem
 	return s.tableService.DeleteTableItems(operatorID, tableID, reqItems)
 }
 
-// 维度明细配置相关方法
-func (s *ElementService) CreateDimensionItem(item *model.ConfigDimensionItem, creatorID uint, dimID uint) (uint, error) {
-	return s.dimensionService.CreateDimensionItem(item, creatorID, dimID)
+// Dimension
+func (s *ElementService) CreateDimensionItems(items []*model.DimensionItem, creatorID uint, dimID uint) error {
+	return s.dimensionService.CreateDimensionItems(items, creatorID, dimID)
 }
 
-func (s *ElementService) BatchCreateDimensionItems(items []*model.ConfigDimensionItem, creatorID uint, dimID uint) error {
-	return s.dimensionService.BatchCreateDimensionItems(items, creatorID, dimID)
+func (s *ElementService) UpdateDimensionItems(item []*model.DimensionItem, updaterID uint, dimID uint) error {
+	return s.dimensionService.UpdateDimensionItems(item, updaterID, dimID)
 }
 
-func (s *ElementService) UpdateDimensionItem(item *model.ConfigDimensionItem, updaterID uint, dimID uint) error {
-	return s.dimensionService.UpdateDimensionItem(item, updaterID, dimID)
+func (s *ElementService) DeleteDimensionItems(operatorID uint, dimID uint, itemIDs []uint) error {
+	return s.dimensionService.DeleteDimensionItems(operatorID, dimID, itemIDs)
 }
 
-func (s *ElementService) DeleteDimensionItem(operatorID uint, dimID uint, itemID uint) error {
-	return s.dimensionService.DeleteDimensionItem(operatorID, dimID, itemID)
-}
-
-func (s *ElementService) BatchDeleteDimensionItems(operatorID uint, dimID uint, itemIDs []uint) error {
-	return s.dimensionService.BatchDeleteDimensionItems(operatorID, dimID, itemIDs)
-}
-
-func (s *ElementService) TreeDimensionItems(itemID uint, nodeID uint, query_type string, query_level uint) ([]*model.TreeConfigDimensionItem, error) {
+func (s *ElementService) TreeDimensionItems(itemID uint, nodeID uint, query_type string, query_level uint) ([]model.TreeDimensionItem, error) {
 	return s.dimensionService.TreeDimensionItems(itemID, nodeID, query_type, query_level)
+}
+
+func (s *ElementService) UpdateDimensionItemSort(updaterID uint, dimID uint, itemID uint, parentID uint, sort int) error {
+	return s.dimensionService.UpdateDimensionItemSort(updaterID, dimID, itemID, parentID, sort)
 }

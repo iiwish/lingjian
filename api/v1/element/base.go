@@ -28,9 +28,10 @@ func RegisterElementRoutes(router *gin.RouterGroup) {
 // RegisterRoutes 注册路由
 func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	// 维度明细配置
-	router.GET("/dimension/:dim_id", api.TreeDimensionItems)
+	router.GET("/dimension/:dim_id", api.GetDimensionItems)
 	router.POST("/dimension/:dim_id", api.CreateDimensionItems)
 	router.PUT("/dimension/:dim_id", api.UpdateDimensionItems)
+	router.PUT("/dimension/:dim_id/:id", api.UpdateDimensionItemSort)
 	router.DELETE("/dimension/:dim_id", api.DeleteDimensionItems)
 
 	// 数据表明细配置

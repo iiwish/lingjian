@@ -66,7 +66,7 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, 
 		// 获取同级菜单的最大排序值
 		var maxSort int
 		err = tx.Get(&maxSort, `
-			SELECT MAX(sort) FROM sys_config_menus
+			SELECT IFNULL(MAX(sort),0) FROM sys_config_menus
 			WHERE parent_id = ? AND level = ?
 		`, menu.ParentID, menu.Level)
 		if err != nil {

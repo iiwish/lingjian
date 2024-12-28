@@ -10,21 +10,20 @@ import (
 
 // @Summary      获取维度配置项树
 // @Description  获取指定维度的配置项树
-// @Tags         DimensionItem
+// @Tags         Dimension
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
-// @Param        App-ID header string true "应用ID"
 // @Param        dim_id  path int true "维度ID"
 // @Param        id 	query int     false "节点ID，不指定则返回整个维度配置项树"
 // @Param 	 	 type      query    string  false  "菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'"
 // @Param 	  	 level     query    int     false  "树的层级，可选值为 0、1、2、3， 默认为 0不指定层级"
-// @Success      200 {array}   model.TreeConfigDimensionItem
+// @Success      200 {array}   []model.TreeDimensionItem
 // @Failure      400 {object}  utils.Response
 // @Failure      500 {object}  utils.Response
-// @Router       /dimensions/{dim_id} [get]
-func (api *ElementAPI) TreeDimensionItems(c *gin.Context) {
+// @Router       /dimension/{dim_id} [get]
+func (api *ElementAPI) GetDimensionItems(c *gin.Context) {
 	// 获取id参数
 	id := c.Param("dim_id")
 	if id == "" {
@@ -36,15 +35,14 @@ func (api *ElementAPI) TreeDimensionItems(c *gin.Context) {
 	if node_id == "" {
 		node_id = "0"
 	}
-	// 获取请求参数
+
+	// 获取query参数
+	query_level := c.Query("level")
+
+	// 获取type参数,默认为descendants
 	query_type := c.Query("type")
 	if query_type == "" {
 		query_type = "descendants"
-	}
-	// 获取请求参数
-	query_level := c.Query("level")
-	if query_level == "" {
-		query_level = "0"
 	}
 
 	items, err := api.elementService.TreeDimensionItems(utils.ParseUint(id), utils.ParseUint(node_id), query_type, utils.ParseUint(query_level))
@@ -58,18 +56,17 @@ func (api *ElementAPI) TreeDimensionItems(c *gin.Context) {
 
 // @Summary      批量创建维度配置项
 // @Description  批量创建新的维度配置项
-// @Tags         DimensionItem
+// @Tags         Dimension
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
-// @Param        App-ID header string true "应用ID"
 // @Param        id          path int                        true  "维度ID"
-// @Param        dimensions  body []model.ConfigDimensionItem true  "批量创建维度配置项的请求参数"
+// @Param        dimensions  body []model.DimensionItem true  "批量创建维度配置项的请求参数"
 // @Success      201         {object}  utils.Response
 // @Failure      400         {object}  utils.Response
 // @Failure      500         {object}  utils.Response
-// @Router       /dimensions/{dim_id} [post]
+// @Router       /dimension/{dim_id} [post]
 func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 	// 获取id参数
 	dimID := c.Param("dim_id")
@@ -79,7 +76,7 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 	}
 
 	// 获取请求参数
-	var dimensions []*model.ConfigDimensionItem
+	var dimensions []*model.DimensionItem
 	if err := c.ShouldBindJSON(&dimensions); err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
@@ -98,7 +95,7 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-	err := api.elementService.BatchCreateDimensionItems(dimensions, userID, utils.ParseUint(dimID))
+	err := api.elementService.CreateDimensionItems(dimensions, userID, utils.ParseUint(dimID))
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
@@ -109,19 +106,18 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 
 // @Summary      更新维度配置项
 // @Description  更新已存在的维度配置项
-// @Tags         DimensionItem
+// @Tags         Dimension
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
-// @Param        App-ID header string true "应用ID"
 // @Param        dim_id     path int                      true  "维度ID"
 // @Param        id         path int                      true  "配置项ID"
-// @Param        dimension  body model.ConfigDimensionItem true  "更新维度配置项的请求参数"
-// @Success      200        {object}  model.ConfigDimensionItem
+// @Param        dimension  body model.DimensionItem true  "更新维度配置项的请求参数"
+// @Success      200        {object}  model.DimensionItem
 // @Failure      400        {object}  utils.Response
 // @Failure      500        {object}  utils.Response
-// @Router       /dimensions/{dim_id} [put]
+// @Router       /dimension/{dim_id} [put]
 func (api *ElementAPI) UpdateDimensionItems(c *gin.Context) {
 	// 获取id参数
 	id := c.Param("id")
@@ -137,25 +133,27 @@ func (api *ElementAPI) UpdateDimensionItems(c *gin.Context) {
 	}
 
 	// 获取请求参数
-	var dimension model.ConfigDimensionItem
+	var dimension []*model.DimensionItem
 	if err := c.ShouldBindJSON(&dimension); err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	dimension.ID = utils.ParseUint(id)
+	for _, item := range dimension {
+		item.ID = utils.ParseUint(id)
 
-	// 校验请求参数
-	if dimension.Code == "" {
-		utils.Error(c, http.StatusBadRequest, "code不能为空")
-		return
-	}
-	if dimension.Name == "" {
-		utils.Error(c, http.StatusBadRequest, "name不能为空")
-		return
+		// 校验请求参数
+		if item.Code == "" {
+			utils.Error(c, http.StatusBadRequest, "code不能为空")
+			return
+		}
+		if item.Name == "" {
+			utils.Error(c, http.StatusBadRequest, "name不能为空")
+			return
+		}
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-	if err := api.elementService.UpdateDimensionItem(&dimension, userID, utils.ParseUint(dim_id)); err != nil {
+	if err := api.elementService.UpdateDimensionItems(dimension, userID, utils.ParseUint(dim_id)); err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -165,18 +163,17 @@ func (api *ElementAPI) UpdateDimensionItems(c *gin.Context) {
 
 // @Summary      批量删除维度配置项
 // @Description  批量删除指定的维度配置项
-// @Tags         DimensionItem
+// @Tags         Dimension
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
-// @Param        App-ID header string true "应用ID"
 // @Param        id   path int    true  "维度ID"
 // @Param        ids  body []uint true  "配置项ID列表"
 // @Success      204  {object}  nil
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /dimensions/{dim_id} [delete]
+// @Router       /dimension/{dim_id} [delete]
 func (api *ElementAPI) DeleteDimensionItems(c *gin.Context) {
 	// 获取dimID参数
 	dimID := c.Param("dim_id")
@@ -193,10 +190,59 @@ func (api *ElementAPI) DeleteDimensionItems(c *gin.Context) {
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-	if err := api.elementService.BatchDeleteDimensionItems(userID, utils.ParseUint(dimID), ids); err != nil {
+	if err := api.elementService.DeleteDimensionItems(userID, utils.ParseUint(dimID), ids); err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.Status(http.StatusNoContent)
+}
+
+// @Summary      更新维度配置项排序和父节点
+// @Description  更新维度配置项的排序和父节点
+// @Tags         Dimension
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        dim_id  path int true "维度ID"
+// @Param        id      path int true "配置项ID"
+// @Param        parent  query int false "父节点ID"
+// @Param        sort    query int false "排序值"
+// @Success      200  {object}  nil	"成功"
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /dimension/{dim_id}/{id} [put]
+func (api *ElementAPI) UpdateDimensionItemSort(c *gin.Context) {
+	// 获取dimID参数
+	dimID := c.Param("dim_id")
+	if dimID == "" {
+		utils.Error(c, http.StatusBadRequest, "dim_id不能为空")
+		return
+	}
+
+	// 获取id参数
+	id := c.Param("id")
+	if id == "" {
+		utils.Error(c, http.StatusBadRequest, "id不能为空")
+		return
+	}
+
+	// 获取请求参数
+	parent := c.Query("parent")
+	if parent == "" {
+		utils.Error(c, http.StatusBadRequest, "parent不能为空")
+	}
+	sort := c.Query("sort")
+	if sort == "" {
+		utils.Error(c, http.StatusBadRequest, "sort不能为空")
+	}
+
+	userID := uint(c.GetInt64("user_id"))
+	if err := api.elementService.UpdateDimensionItemSort(userID, utils.ParseUint(dimID), utils.ParseUint(id), utils.ParseUint(parent), utils.ParseInt(sort)); err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.Success(c, nil)
 }

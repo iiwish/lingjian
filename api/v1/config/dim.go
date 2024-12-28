@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/pkg/utils"
 )
 
 // @Summary      创建维度配置
@@ -16,36 +17,33 @@ import (
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
-// @Param        dimension body model.ConfigDimension true "创建维度配置请求参数"
-// @Success      201  {object}  Response
+// @Param        dimension body model.CreateDimReq true "创建维度配置请求参数"
+// @Success      200  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions [post]
 func (api *ConfigAPI) CreateDimension(c *gin.Context) {
-	var dimension model.ConfigDimension
+	var dimension model.CreateDimReq
 	if err := c.ShouldBindJSON(&dimension); err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
+		utils.ServerError(c, err)
 		return
 	}
 
 	// 校验请求参数
-	if dimension.AppID != uint(c.GetInt64("app_id")) {
-		c.JSON(http.StatusBadRequest, Response{Error: "app_id与请求路径中的ID不一致"})
-		return
-	}
 	if dimension.TableName == "" {
-		c.JSON(http.StatusBadRequest, Response{Error: "table_name不能为空"})
+		utils.Error(c, http.StatusBadRequest, "table_name不能为空")
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
-	id, err := api.configService.CreateDimension(&dimension, userID)
+	AppID := c.GetUint("app_id")
+	userID := c.GetUint("user_id")
+	id, err := api.configService.CreateDimension(&dimension, userID, AppID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"ID": id})
+	utils.Success(c, gin.H{"ID": id})
 }
 
 // @Summary      更新维度配置
@@ -66,60 +64,36 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	// 获取请求参数
 	id, err := strconv.ParseUint(c.Param("dim_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
+		utils.Error(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	// 绑定请求参数
 	var dimension model.ConfigDimension
 	if err := c.ShouldBindJSON(&dimension); err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
+		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	dimension.ID = uint(id)
 
 	// 校验请求参数
 	if dimension.ID != uint(c.GetInt64("app_id")) {
-		c.JSON(http.StatusBadRequest, Response{Error: "app_id与请求路径中的ID不一致"})
+		utils.Error(c, http.StatusBadRequest, "app_id与请求路径中的ID不一致")
 		return
 	}
 
 	if dimension.TableName == "" {
-		c.JSON(http.StatusBadRequest, Response{Error: "table_name不能为空"})
+		utils.Error(c, http.StatusBadRequest, "table_name不能为空")
 		return
 	}
 
 	userID := uint(c.GetInt64("user_id"))
 	if err := api.configService.UpdateDimension(&dimension, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, dimension)
-}
-
-// @Summary      获取维度配置列表
-// @Description  获取指定应用的维度配置列表
-// @Tags         ConfigDimension
-// @Accept       json
-// @Produce      json
-// @Security     Bearer
-// @Param        Authorization header string true "Bearer token"
-// @Param        App-ID header string true "应用ID"
-// @Success      200  {array}   model.ConfigDimension
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/dimensions [get]
-func (api *ConfigAPI) ListDimensions(c *gin.Context) {
-	appID := uint(c.GetInt64("app_id"))
-
-	dimensions, err := api.configService.ListDimensions(appID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, dimensions)
+	utils.Success(c, nil)
 }
 
 // @Summary      获取维度配置详情
@@ -135,20 +109,20 @@ func (api *ConfigAPI) ListDimensions(c *gin.Context) {
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions/{dim_id} [get]
-func (api *ConfigAPI) GetDimension(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("dim_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
+func (api *ConfigAPI) GetDimensionByID(c *gin.Context) {
+	id := utils.ParseUint(c.Param("dim_id"))
+	if id == 0 {
+		utils.Error(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	dimension, err := api.configService.GetDimension(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, dimension)
+	utils.Success(c, dimension)
 }
 
 // @Summary      删除维度配置
@@ -165,16 +139,16 @@ func (api *ConfigAPI) GetDimension(c *gin.Context) {
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions/{dim_id} [delete]
 func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
-	id, err := strconv.ParseUint(c.Param("dim_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
+	id := utils.ParseUint(c.Param("dim_id"))
+	if id == 0 {
+		utils.Error(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	if err := api.configService.DeleteDimension(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	utils.Success(c, nil)
 }

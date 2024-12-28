@@ -18,10 +18,17 @@ func NewDimensionService(db *sqlx.DB) *DimensionService {
 }
 
 // CreateDimension 创建维度配置
-func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, creatorID uint) (uint, error) {
-	dimension.Status = 1
-	dimension.CreatorID = creatorID
-	dimension.UpdaterID = creatorID
+func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID uint, appID uint) (uint, error) {
+
+	dimDB := model.ConfigDimension{
+		AppID:       appID,
+		TableName:   req.TableName,
+		DisplayName: req.DisplayName,
+		Description: req.Description,
+		Status:      1,
+		CreatorID:   creatorID,
+		UpdaterID:   creatorID,
+	}
 
 	// 开启事务
 	tx, err := s.db.Beginx()
@@ -32,7 +39,7 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 
 	// 检查表名是否已存在
 	var count int
-	err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", dimension.TableName)
+	err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", req.TableName)
 	if err != nil {
 		return 0, fmt.Errorf("check table name failed: %v", err)
 	}
@@ -47,7 +54,7 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 		) VALUES (
 			:app_id, :table_name, :display_name, :description, :status, NOW(), :creator_id, NOW(), :creator_id
 		)
-	`, dimension)
+	`, dimDB)
 
 	if err != nil {
 		return 0, fmt.Errorf("insert sys_config_dimensions failed: %v", err)
@@ -60,7 +67,6 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 	}
 
 	// 创建维度数据表
-	tableName := dimension.TableName
 	createTableSQL := fmt.Sprintf(`
 		CREATE TABLE %s (
 			id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
@@ -72,16 +78,56 @@ func (s *DimensionService) CreateDimension(dimension *model.ConfigDimension, cre
 			level INT NOT NULL DEFAULT 0 COMMENT '层级',
 			sort INT NOT NULL DEFAULT 0 COMMENT '排序',
 			status TINYINT NOT NULL DEFAULT 1 COMMENT '状态',
+			custom1 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段1',
+			custom2 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段2',
+			custom3 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段3',
 			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
 			creator_id INT NOT NULL DEFAULT 0 COMMENT '创建者ID',
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 			updater_id INT NOT NULL DEFAULT 0 COMMENT '更新者ID',
 			UNIQUE KEY uk_code (code)
 		)
-	`, tableName)
+	`, req.TableName)
 	_, err = tx.Exec(createTableSQL)
 	if err != nil {
 		return 0, fmt.Errorf("create table failed: %v", err)
+	}
+
+	// 插入菜单配置
+	// 获取父节点node_id
+	var parentNodeID string
+	err = tx.Get(&parentNodeID, "SELECT node_id FROM sys_config_menus WHERE app_id = ? AND id = ?", appID, req.ParentID)
+	if err != nil {
+		return 0, fmt.Errorf("get parent node_id failed: %v", err)
+	}
+	// 获取sort
+	var sort int
+	err = tx.Get(&sort, "SELECT IFNULL(MAX(sort),0) FROM sys_config_menus WHERE app_id = ? AND parent_id = ?", appID, req.ParentID)
+	if err != nil {
+		return 0, fmt.Errorf("get sort failed: %v", err)
+	}
+	menuDB := model.ConfigMenu{
+		AppID:     appID,
+		NodeID:    parentNodeID + "_" + fmt.Sprint(id),
+		ParentID:  req.ParentID,
+		MenuName:  req.DisplayName,
+		MenuCode:  fmt.Sprintf("dim_%d", id),
+		MenuType:  3,
+		Level:     1,
+		Sort:      sort + 1,
+		Icon:      "dimension",
+		SourceID:  uint(id),
+		CreatorID: creatorID,
+		UpdaterID: creatorID,
+	}
+	_, err = tx.NamedExec(`
+		INSERT INTO sys_config_menus (
+			app_id, node_id, parent_id, menu_name, menu_code, menu_type, level, sort, icon, source_id, status, created_at, creator_id, updated_at, updater_id
+		) VALUES (
+			:app_id, :node_id, :parent_id, :menu_name, :menu_code, :menu_type, :level, :sort, :icon, :source_id, 1, NOW(), :creator_id, NOW(), :creator_id
+		)`, menuDB)
+	if err != nil {
+		return 0, fmt.Errorf("insert sys_config_menus failed: %v", err)
 	}
 
 	// 提交事务
@@ -193,14 +239,4 @@ func (s *DimensionService) DeleteDimension(id uint) error {
 	}
 
 	return nil
-}
-
-// ListDimensions 获取维度配置列表
-func (s *DimensionService) ListDimensions(appID uint) ([]model.ConfigDimension, error) {
-	var dimensions []model.ConfigDimension
-	err := s.db.Select(&dimensions, "SELECT * FROM sys_config_dimensions WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
-	if err != nil {
-		return nil, fmt.Errorf("list dimensions failed: %v", err)
-	}
-	return dimensions, nil
 }

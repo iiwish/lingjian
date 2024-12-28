@@ -142,50 +142,6 @@ definitions:
       updater_id:
         type: integer
     type: object
-  github_com_iiwish_lingjian_internal_model.ConfigDimensionItem:
-    properties:
-      code:
-        description: 编码
-        type: string
-      created_at:
-        allOf:
-        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-        description: 创建时间
-      creator_id:
-        description: 创建者ID
-        type: integer
-      dimension_id:
-        description: 维度ID
-        type: integer
-      id:
-        description: 主键ID
-        type: integer
-      level:
-        description: 层级
-        type: integer
-      name:
-        description: 名称
-        type: string
-      node_id:
-        description: 节点ID
-        type: string
-      parent_id:
-        description: 父节点ID
-        type: integer
-      sort:
-        description: 排序
-        type: integer
-      status:
-        description: 状态
-        type: integer
-      updated_at:
-        allOf:
-        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-        description: 更新时间
-      updater_id:
-        description: 更新者ID
-        type: integer
-    type: object
   github_com_iiwish_lingjian_internal_model.ConfigForm:
     properties:
       app_id:
@@ -337,8 +293,63 @@ definitions:
         items:
           $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.Index'
         type: array
+      parent_id:
+        type: integer
       table_name:
         type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.DimensionItem:
+    properties:
+      code:
+        description: 编码
+        type: string
+      created_at:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+        description: 创建时间
+      creator_id:
+        description: 创建者ID
+        type: integer
+      custom1:
+        description: 自定义字段1
+        type: string
+      custom2:
+        description: 自定义字段2
+        type: string
+      custom3:
+        description: 自定义字段3
+        type: string
+      dimension_id:
+        description: 维度ID
+        type: integer
+      id:
+        description: 主键ID
+        type: integer
+      level:
+        description: 层级
+        type: integer
+      name:
+        description: 名称
+        type: string
+      node_id:
+        description: 节点ID
+        type: string
+      parent_id:
+        description: 父节点ID
+        type: integer
+      sort:
+        description: 排序
+        type: integer
+      status:
+        description: 状态
+        type: integer
+      updated_at:
+        allOf:
+        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+        description: 更新时间
+      updater_id:
+        description: 更新者ID
+        type: integer
     type: object
   github_com_iiwish_lingjian_internal_model.Field:
     properties:
@@ -564,12 +575,54 @@ definitions:
         description: 表名
         type: string
     type: object
-  github_com_iiwish_lingjian_internal_model.TreeConfigDimensionItem:
+  github_com_iiwish_lingjian_internal_model.TreeConfigMenu:
+    properties:
+      app_id:
+        type: integer
+      children:
+        description: 子菜单列表
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
+        type: array
+      created_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      creator_id:
+        type: integer
+      icon:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      menu_code:
+        type: string
+      menu_name:
+        type: string
+      menu_type:
+        type: integer
+      node_id:
+        type: string
+      parent_id:
+        type: integer
+      path:
+        type: string
+      sort:
+        type: integer
+      source_id:
+        type: integer
+      status:
+        type: integer
+      updated_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      updater_id:
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.TreeDimensionItem:
     properties:
       children:
         description: 子维度列表
         items:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigDimensionItem'
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeDimensionItem'
         type: array
       code:
         description: 编码
@@ -581,6 +634,15 @@ definitions:
       creator_id:
         description: 创建者ID
         type: integer
+      custom1:
+        description: 自定义字段1
+        type: string
+      custom2:
+        description: 自定义字段2
+        type: string
+      custom3:
+        description: 自定义字段3
+        type: string
       dimension_id:
         description: 维度ID
         type: integer
@@ -611,48 +673,6 @@ definitions:
         description: 更新时间
       updater_id:
         description: 更新者ID
-        type: integer
-    type: object
-  github_com_iiwish_lingjian_internal_model.TreeConfigMenu:
-    properties:
-      app_id:
-        type: integer
-      children:
-        description: 子菜单列表
-        items:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
-        type: array
-      created_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-      creator_id:
-        type: integer
-      icon:
-        type: string
-      id:
-        type: integer
-      level:
-        type: integer
-      menu_code:
-        type: string
-      menu_name:
-        type: string
-      menu_type:
-        type: string
-      node_id:
-        type: string
-      parent_id:
-        type: integer
-      path:
-        type: string
-      sort:
-        type: integer
-      source_id:
-        type: string
-      status:
-        type: integer
-      updated_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-      updater_id:
         type: integer
     type: object
   github_com_iiwish_lingjian_internal_model.UpdateTableItemsRequest:
@@ -1375,43 +1395,6 @@ paths:
       tags:
       - Auth
   /config/dimensions:
-    get:
-      consumes:
-      - application/json
-      description: 获取指定应用的维度配置列表
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            items:
-              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
-            type: array
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 获取维度配置列表
-      tags:
-      - ConfigDimension
     post:
       consumes:
       - application/json
@@ -2367,7 +2350,7 @@ paths:
       summary: 更新数据表配置
       tags:
       - ConfigTable
-  /dimensions/{dim_id}:
+  /dimension/{dim_id}:
     delete:
       consumes:
       - application/json
@@ -2376,11 +2359,6 @@ paths:
       - description: Bearer token
         in: header
         name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
         required: true
         type: string
       - description: 维度ID
@@ -2413,7 +2391,7 @@ paths:
       - Bearer: []
       summary: 批量删除维度配置项
       tags:
-      - DimensionItem
+      - Dimension
     get:
       consumes:
       - application/json
@@ -2422,11 +2400,6 @@ paths:
       - description: Bearer token
         in: header
         name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
         required: true
         type: string
       - description: 维度ID
@@ -2453,7 +2426,9 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigDimensionItem'
+              items:
+                $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeDimensionItem'
+              type: array
             type: array
         "400":
           description: Bad Request
@@ -2467,7 +2442,7 @@ paths:
       - Bearer: []
       summary: 获取维度配置项树
       tags:
-      - DimensionItem
+      - Dimension
     post:
       consumes:
       - application/json
@@ -2476,11 +2451,6 @@ paths:
       - description: Bearer token
         in: header
         name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
         required: true
         type: string
       - description: 维度ID
@@ -2494,7 +2464,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem'
           type: array
       produces:
       - application/json
@@ -2515,7 +2485,7 @@ paths:
       - Bearer: []
       summary: 批量创建维度配置项
       tags:
-      - DimensionItem
+      - Dimension
     put:
       consumes:
       - application/json
@@ -2524,11 +2494,6 @@ paths:
       - description: Bearer token
         in: header
         name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
         required: true
         type: string
       - description: 维度ID
@@ -2546,14 +2511,14 @@ paths:
         name: dimension
         required: true
         schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimensionItem'
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem'
         "400":
           description: Bad Request
           schema:
@@ -2566,7 +2531,54 @@ paths:
       - Bearer: []
       summary: 更新维度配置项
       tags:
-      - DimensionItem
+      - Dimension
+  /dimension/{dim_id}/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 更新维度配置项的排序和父节点
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 维度ID
+        in: path
+        name: dim_id
+        required: true
+        type: integer
+      - description: 配置项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 父节点ID
+        in: query
+        name: parent
+        type: integer
+      - description: 排序值
+        in: query
+        name: sort
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 更新维度配置项排序和父节点
+      tags:
+      - Dimension
   /permissions:
     get:
       consumes:
