@@ -20,11 +20,11 @@ func NewDimensionService(db *sqlx.DB) *DimensionService {
 }
 
 // BatchCreateDimensionItems 批量创建维度明细配置
-func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.DimensionItem, creatorID uint, dim_id uint) error {
+func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.DimensionItem, creatorID uint, dim_id uint) ([]uint, error) {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
-		return fmt.Errorf("begin transaction failed: %v", err)
+		return nil, fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
 
@@ -32,9 +32,10 @@ func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.Dimensio
 	var table_name string
 	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
-		return fmt.Errorf("get table name failed: %v", err)
+		return nil, fmt.Errorf("get table name failed: %v", err)
 	}
 
+	ids := make([]uint, 0, len(dimensionItems))
 	// 插入维度配置
 	for _, dimension := range dimensionItems {
 		dimension.Status = 1
@@ -48,7 +49,7 @@ func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.Dimensio
 			}
 			err = tx.Get(&parent, fmt.Sprintf("SELECT node_id, level FROM %s WHERE id = ?", table_name), dimension.ParentID)
 			if err != nil {
-				return fmt.Errorf("get parent node_id and level failed: %v", err)
+				return nil, fmt.Errorf("get parent node_id and level failed: %v", err)
 			}
 			dimension.NodeID = parent.NodeID
 			dimension.Level = parent.Level + 1
@@ -61,23 +62,24 @@ func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.Dimensio
 		var sort int
 		err = tx.Get(&sort, fmt.Sprintf("SELECT IFNULL(MAX(sort), 0) FROM %s WHERE parent_id = ?", table_name), dimension.ParentID)
 		if err != nil {
-			return fmt.Errorf("get max sort failed: %v", err)
+			return nil, fmt.Errorf("get max sort failed: %v", err)
 		}
 		dimension.Sort = sort + 1
 
 		result, err := tx.NamedExec(fmt.Sprintf(`
-			INSERT INTO %s (node_id, parent_id, name, code, description, level, sort, status, created_at, creator_id, updated_at, updater_id)
-			VALUES (:node_id, :parent_id, :name, :code, :description, :level, :sort, :status, Now(), :creator_id, Now(), :updater_id)
+			INSERT INTO %s (node_id, parent_id, name, code, description, level, sort, status, created_at, creator_id, updated_at, updater_id, custom1, custom2, custom3)
+			VALUES (:node_id, :parent_id, :name, :code, :description, :level, :sort, :status, Now(), :creator_id, Now(), :updater_id, :custom1, :custom2, :custom3)
 		`, table_name), dimension)
 		if err != nil {
-			return fmt.Errorf("insert sys_config_dimensions failed: %v", err)
+			return nil, fmt.Errorf("insert sys_config_dimensions failed: %v", err)
 		}
 
 		// 获取插入的ID
 		id, err := result.LastInsertId()
 		if err != nil {
-			return fmt.Errorf("get last insert id failed: %v", err)
+			return nil, fmt.Errorf("get last insert id failed: %v", err)
 		}
+		ids = append(ids, uint(id))
 
 		// 更新node_id为node_id拼接下划线和id
 		_, err = tx.Exec(fmt.Sprintf(`
@@ -88,16 +90,16 @@ func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.Dimensio
 			WHERE id = ?
 		`, table_name), id, id, id)
 		if err != nil {
-			return fmt.Errorf("update node_id failed: %v", err)
+			return nil, fmt.Errorf("update node_id failed: %v", err)
 		}
 	}
 
 	// 提交事务
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction failed: %v", err)
+		return nil, fmt.Errorf("commit transaction failed: %v", err)
 	}
 
-	return nil
+	return ids, nil
 }
 
 // UpdateDimensionItem 更新维度明细配置
@@ -254,7 +256,13 @@ func (s *DimensionService) DeleteDimensionItems(operatorID uint, dim_id uint, it
 	}
 
 	// 删除维度配置
-	_, err = tx.Exec(fmt.Sprintf("DELETE FROM %s WHERE id IN (?)", tableName), itemIDs)
+	query, args, err := sqlx.In(fmt.Sprintf("DELETE FROM %s WHERE id IN (?)", tableName), itemIDs)
+	if err != nil {
+		return fmt.Errorf("prepare query failed: %v", err)
+	}
+
+	query = tx.Rebind(query)
+	_, err = tx.Exec(query, args...)
 	if err != nil {
 		return fmt.Errorf("delete dimension failed: %v", err)
 	}

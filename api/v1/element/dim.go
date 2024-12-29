@@ -95,13 +95,13 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 	}
 
 	userID := uint(c.GetInt64("user_id"))
-	err := api.elementService.CreateDimensionItems(dimensions, userID, utils.ParseUint(dimID))
+	ids, err := api.elementService.CreateDimensionItems(dimensions, userID, utils.ParseUint(dimID))
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.Success(c, gin.H{})
+	utils.Success(c, gin.H{"ids": ids})
 }
 
 // @Summary      更新维度配置项

@@ -39,7 +39,7 @@ func (s *ElementService) DeleteTableItems(operatorID uint, tableID uint, reqItem
 }
 
 // Dimension
-func (s *ElementService) CreateDimensionItems(items []*model.DimensionItem, creatorID uint, dimID uint) error {
+func (s *ElementService) CreateDimensionItems(items []*model.DimensionItem, creatorID uint, dimID uint) ([]uint, error) {
 	return s.dimensionService.CreateDimensionItems(items, creatorID, dimID)
 }
 

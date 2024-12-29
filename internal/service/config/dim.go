@@ -70,7 +70,7 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 	createTableSQL := fmt.Sprintf(`
 		CREATE TABLE %s (
 			id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-			node_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '节点ID',
+			node_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '节点ID',
 			parent_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '父节点ID',
 			name VARCHAR(100) NOT NULL DEFAULT '' COMMENT '名称',
 			code VARCHAR(100) NOT NULL DEFAULT '' COMMENT '编码',
@@ -81,7 +81,7 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 			custom1 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段1',
 			custom2 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段2',
 			custom3 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段3',
-			created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+			created_at DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
 			creator_id INT NOT NULL DEFAULT 0 COMMENT '创建者ID',
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 			updater_id INT NOT NULL DEFAULT 0 COMMENT '更新者ID',
