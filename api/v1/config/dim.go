@@ -77,7 +77,7 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	dimension.ID = uint(id)
 
 	// 校验请求参数
-	if dimension.ID != uint(c.GetInt64("app_id")) {
+	if dimension.ID != c.GetUint("app_id") {
 		utils.Error(c, http.StatusBadRequest, "app_id与请求路径中的ID不一致")
 		return
 	}
@@ -87,7 +87,7 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	if err := api.configService.UpdateDimension(&dimension, userID); err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return

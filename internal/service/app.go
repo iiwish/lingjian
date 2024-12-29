@@ -104,7 +104,7 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		ParentID:  0,
 		NodeID:    "", // 先设置为空，避免唯一索引冲突
 		MenuName:  "系统",
-		MenuCode:  "_sys",
+		MenuCode:  "system",
 		MenuType:  1,
 		SourceID:  0,
 		Icon:      "folder",

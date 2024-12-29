@@ -121,3 +121,11 @@ func (s *ConfigService) DeleteMenu(id uint) error {
 func (s *ConfigService) GetMenus(appID uint, operatorID uint, level *int, parentID *uint, menuType string) ([]model.TreeConfigMenu, error) {
 	return s.menuService.GetMenus(appID, operatorID, level, parentID, menuType)
 }
+
+func (s *ConfigService) UpdateMenuItemSort(userID uint, updaterID uint, menuID uint, parentID uint, sort int) error {
+	return s.menuService.UpdateMenuItemSort(userID, updaterID, menuID, parentID, sort)
+}
+
+func (s *ConfigService) GetSystemMenuID(appID uint) (uint, error) {
+	return s.menuService.GetSystemMenuID(appID)
+}

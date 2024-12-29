@@ -178,7 +178,7 @@ func (api *ElementAPI) CreateTableItems(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	err := api.elementService.CreateTableItems(tableItems, userID, tableID)
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
@@ -218,7 +218,7 @@ func (api *ElementAPI) UpdateTableItems(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	err := api.elementService.UpdateTableItems(reqItems, userID, uint(tableID))
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
@@ -257,7 +257,7 @@ func (api *ElementAPI) DeleteTableItems(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	err := api.elementService.DeleteTableItems(userID, tableID, req)
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())

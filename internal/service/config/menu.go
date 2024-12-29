@@ -128,6 +128,11 @@ func (s *MenuService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, 
 		if err != nil {
 			return 0, fmt.Errorf("update sys_config_menus failed: %v", err)
 		}
+		// 更新原节点的source_id
+		_, err = tx.Exec("UPDATE sys_config_menus SET source_id = ? WHERE id = ?", tempMenu.ID, menu.ID)
+		if err != nil {
+			return 0, fmt.Errorf("update sys_config_menus failed: %v", err)
+		}
 	}
 
 	// 提交事务
@@ -152,13 +157,9 @@ func (s *MenuService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
 	// 更新菜单配置
 	_, err = tx.NamedExec(`
 		UPDATE sys_config_menus SET 
-			parent_id = :parent_id, 
-			node_id = :node_id, 
 			menu_name = :menu_name, 
 			menu_code = :menu_code,
 			menu_type = :menu_type,
-			level = :level,
-			sort = :sort,
 			icon = :icon,
 			source_id = :source_id,
 			updated_at = NOW(),
@@ -233,9 +234,13 @@ func (s *MenuService) DeleteMenu(id uint) error {
 
 	if table, ok := tableMap[menu.MenuType]; ok {
 		var query string
-		if menu.MenuType == 1 || menu.MenuType == 4 {
+		if menu.MenuType == 1 {
 			query = "DELETE FROM " + table + " WHERE node_id LIKE ?"
 			_, err = tx.Exec(query, menu.NodeID+"_%")
+		} else if menu.MenuType == 4 {
+			query = "DELETE FROM " + table + " WHERE node_id = '" + strconv.Itoa(int(menu.SourceID)) + "' OR node_id LIKE ?"
+			fmt.Println(query)
+			_, err = tx.Exec(query, strconv.Itoa(int(menu.SourceID))+"_%")
 		} else {
 			query = "DELETE FROM " + table + " WHERE id = ?"
 			_, err = tx.Exec(query, menu.SourceID)
@@ -428,4 +433,151 @@ func (s *MenuService) GetMenus(appID uint, userID uint, level *int, parentID *ui
 	}
 
 	return result, nil
+}
+
+// UpdateMenuItemSort 更新菜单项排序
+func (s *MenuService) UpdateMenuItemSort(userID uint, updaterID uint, menuID uint, parentID uint, sort int) error {
+	// 开启事务
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin transaction failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	// 获取当前节点的node_id、parent_id和sort
+	var oldNode struct {
+		NodeID   string `db:"node_id"`
+		ParentID uint   `db:"parent_id"`
+		Sort     int    `db:"sort"`
+	}
+	err = tx.Get(&oldNode, "SELECT node_id, parent_id, sort FROM sys_config_menus WHERE id = ?", menuID)
+	if err != nil {
+		return fmt.Errorf("get node_id and sort failed: %v", err)
+	}
+
+	// 检查父节点是否变化
+	if parentID != oldNode.ParentID {
+		// 获取新的node_id
+		var newNodeID string
+		if parentID != 0 {
+			var parent struct {
+				NodeID string `db:"node_id"`
+			}
+			err = tx.Get(&parent, "SELECT node_id FROM sys_config_menus WHERE id = ?", parentID)
+			if err != nil {
+				return fmt.Errorf("get parent node_id failed: %v", err)
+			}
+			newNodeID = parent.NodeID + "_" + fmt.Sprint(menuID)
+		} else {
+			newNodeID = fmt.Sprint(menuID)
+		}
+		// 更新node_id
+		_, err = tx.Exec("UPDATE sys_config_menus SET node_id = ? WHERE id = ?", newNodeID, menuID)
+		if err != nil {
+			return fmt.Errorf("update node_id failed: %v", err)
+		}
+	}
+
+	// 如果父节点变更，需要先从旧父节点移除，再插入到新父节点
+	if parentID != oldNode.ParentID {
+		// 获取新的node_id
+		var newNodeID string
+		if parentID != 0 {
+			var parent struct {
+				NodeID string `db:"node_id"`
+			}
+			err = tx.Get(&parent, "SELECT node_id FROM sys_config_menus WHERE id = ?", parentID)
+			if err != nil {
+				return fmt.Errorf("get parent node_id failed: %v", err)
+			}
+			newNodeID = parent.NodeID + "_" + fmt.Sprint(menuID)
+		} else {
+			newNodeID = fmt.Sprint(menuID)
+		}
+
+		// 1. 在旧父节点下移除该节点
+		if oldNode.Sort != -1 {
+			_, err = tx.Exec(`
+                UPDATE sys_config_menus 
+                SET sort = sort - 1 
+                WHERE parent_id = ? 
+                AND sort > ?
+            `, oldNode.ParentID, oldNode.Sort)
+			if err != nil {
+				return err
+			}
+		}
+
+		// 2. 为新父节点的sort腾位置
+		_, err = tx.Exec(`
+            UPDATE sys_config_menus
+            SET sort = sort + 1
+            WHERE parent_id = ?
+            AND sort >= ?
+        `, parentID, sort)
+		if err != nil {
+			return err
+		}
+
+		// 3. 更新该节点的父节点以及sort
+		_, err = tx.Exec(`
+            UPDATE sys_config_menus
+            SET parent_id = ?,
+                sort = ?,
+                node_id = ?
+            WHERE id = ?
+        `, parentID, sort, newNodeID, menuID)
+		if err != nil {
+			return err
+		}
+	} else {
+		// 如果只是同一父节点内sort值变动，按原逻辑处理
+		if sort != oldNode.Sort {
+			_, err = tx.Exec("UPDATE sys_config_menus SET sort = -1 WHERE id = ?", menuID)
+			if err != nil {
+				return err
+			}
+			if sort < oldNode.Sort {
+				_, err = tx.Exec(`
+                    UPDATE sys_config_menus 
+                    SET sort = sort + 1 
+                    WHERE parent_id = ? 
+                    AND sort >= ? 
+                    AND sort < ?
+                `, parentID, sort, oldNode.Sort)
+			} else {
+				_, err = tx.Exec(`
+                    UPDATE sys_config_menus 
+                    SET sort = sort - 1 
+                    WHERE parent_id = ? 
+                    AND sort > ? 
+                    AND sort <= ?
+                `, parentID, oldNode.Sort, sort)
+			}
+			if err != nil {
+				return err
+			}
+			_, err = tx.Exec("UPDATE sys_config_menus SET sort = ? WHERE id = ?", sort, menuID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// 提交事务
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit transaction failed: %v", err)
+	}
+
+	return nil
+}
+
+// GetSystemMenuID 获取系统菜单ID
+func (s *MenuService) GetSystemMenuID(appID uint) (uint, error) {
+	var id uint
+	err := s.db.Get(&id, "SELECT id FROM sys_config_menus WHERE menu_code = 'system' AND app_id = ?", appID)
+	if err != nil {
+		return 0, fmt.Errorf("get system menu id failed: %v", err)
+	}
+	return id, nil
 }

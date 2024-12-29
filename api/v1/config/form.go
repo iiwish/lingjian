@@ -28,7 +28,7 @@ func (api *ConfigAPI) CreateForm(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	id, err := api.configService.CreateForm(&req, userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
@@ -66,7 +66,7 @@ func (api *ConfigAPI) UpdateForm(c *gin.Context) {
 	}
 	form.ID = uint(id)
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	if err := api.configService.UpdateForm(&form, userID); err != nil {
 		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
 		return

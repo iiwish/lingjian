@@ -96,8 +96,8 @@ func (api *ConfigAPI) UpdateTable(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
-	appID := uint(c.GetInt64("app_id"))
+	userID := c.GetUint("user_id")
+	appID := c.GetUint("app_id")
 	err := api.configService.UpdateTable(id, &req, userID, appID)
 
 	if err != nil {

@@ -94,7 +94,7 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 		}
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	ids, err := api.elementService.CreateDimensionItems(dimensions, userID, utils.ParseUint(dimID))
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
@@ -152,7 +152,7 @@ func (api *ElementAPI) UpdateDimensionItems(c *gin.Context) {
 		}
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	if err := api.elementService.UpdateDimensionItems(dimension, userID, utils.ParseUint(dim_id)); err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
@@ -189,7 +189,7 @@ func (api *ElementAPI) DeleteDimensionItems(c *gin.Context) {
 		return
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	if err := api.elementService.DeleteDimensionItems(userID, utils.ParseUint(dimID), ids); err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
@@ -238,7 +238,7 @@ func (api *ElementAPI) UpdateDimensionItemSort(c *gin.Context) {
 		utils.Error(c, http.StatusBadRequest, "sort不能为空")
 	}
 
-	userID := uint(c.GetInt64("user_id"))
+	userID := c.GetUint("user_id")
 	if err := api.elementService.UpdateDimensionItemSort(userID, utils.ParseUint(dimID), utils.ParseUint(id), utils.ParseUint(parent), utils.ParseInt(sort)); err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
