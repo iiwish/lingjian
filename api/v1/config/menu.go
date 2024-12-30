@@ -274,7 +274,7 @@ func (api *ConfigAPI) UpdateMenuItemSort(c *gin.Context) {
 // @Produce      json
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
-// @Success      200  {object}  {id:1}
+// @Success      200  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/menu/sysid [get]

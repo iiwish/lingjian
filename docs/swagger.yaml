@@ -126,6 +126,8 @@ definitions:
         $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       creator_id:
         type: integer
+      custom_columns:
+        type: string
       description:
         type: string
       display_name:
@@ -275,6 +277,22 @@ definitions:
       updater_id:
         type: integer
     type: object
+  github_com_iiwish_lingjian_internal_model.CreateDimReq:
+    properties:
+      custom_columns:
+        description: 自定义列定义
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CustomColumn'
+        type: array
+      description:
+        type: string
+      display_name:
+        type: string
+      parent_id:
+        type: integer
+      table_name:
+        type: string
+    type: object
   github_com_iiwish_lingjian_internal_model.CreateTableReq:
     properties:
       description:
@@ -298,6 +316,18 @@ definitions:
       table_name:
         type: string
     type: object
+  github_com_iiwish_lingjian_internal_model.CustomColumn:
+    properties:
+      comment:
+        description: 列注释
+        type: string
+      length:
+        description: 长度
+        type: integer
+      name:
+        description: 列名
+        type: string
+    type: object
   github_com_iiwish_lingjian_internal_model.DimensionItem:
     properties:
       code:
@@ -310,18 +340,14 @@ definitions:
       creator_id:
         description: 创建者ID
         type: integer
-      custom1:
-        description: 自定义字段1
+      custom_data:
+        additionalProperties:
+          type: string
+        description: 自定义列数据
+        type: object
+      description:
+        description: 描述
         type: string
-      custom2:
-        description: 自定义字段2
-        type: string
-      custom3:
-        description: 自定义字段3
-        type: string
-      dimension_id:
-        description: 维度ID
-        type: integer
       id:
         description: 主键ID
         type: integer
@@ -634,18 +660,14 @@ definitions:
       creator_id:
         description: 创建者ID
         type: integer
-      custom1:
-        description: 自定义字段1
+      custom_data:
+        additionalProperties:
+          type: string
+        description: 自定义列数据
+        type: object
+      description:
+        description: 描述
         type: string
-      custom2:
-        description: 自定义字段2
-        type: string
-      custom3:
-        description: 自定义字段3
-        type: string
-      dimension_id:
-        description: 维度ID
-        type: integer
       id:
         description: 主键ID
         type: integer
@@ -674,6 +696,22 @@ definitions:
       updater_id:
         description: 更新者ID
         type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.UpdateDimensionReq:
+    properties:
+      custom_columns:
+        description: 自定义列定义
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CustomColumn'
+        type: array
+      description:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+      table_name:
+        type: string
     type: object
   github_com_iiwish_lingjian_internal_model.UpdateTableItemsRequest:
     properties:
@@ -1415,12 +1453,12 @@ paths:
         name: dimension
         required: true
         schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CreateDimReq'
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             $ref: '#/definitions/api_v1_config.Response'
         "400":
@@ -1540,14 +1578,14 @@ paths:
         name: dimension
         required: true
         schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.UpdateDimensionReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.UpdateDimensionReq'
         "400":
           description: Bad Request
           schema:
@@ -1765,6 +1803,84 @@ paths:
       summary: 更新表单配置
       tags:
       - ConfigForm
+  /config/menu/{menu_id}/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 更新菜单项的排序和父节点
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 菜单ID
+        in: path
+        name: menu_id
+        required: true
+        type: integer
+      - description: 菜单项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 父节点ID
+        in: query
+        name: parent
+        type: integer
+      - description: 排序值
+        in: query
+        name: sort
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 更新菜单项排序和父节点
+      tags:
+      - ConfigMenu
+  /config/menu/sysid:
+    get:
+      consumes:
+      - application/json
+      description: 获取系统菜单id
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
+      summary: 获取系统菜单id
+      tags:
+      - ConfigMenu
   /config/menus:
     get:
       consumes:

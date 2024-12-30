@@ -55,8 +55,8 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        dim_id path int true "配置ID"
-// @Param        dimension body model.ConfigDimension true "更新维度配置请求参数"
-// @Success      200  {object}  model.ConfigDimension
+// @Param        dimension body model.UpdateDimensionReq true "更新维度配置请求参数"
+// @Success      200  {object}  model.UpdateDimensionReq
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions/{dim_id} [put]
@@ -69,23 +69,12 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 	}
 
 	// 绑定请求参数
-	var dimension model.ConfigDimension
+	var dimension model.UpdateDimensionReq
 	if err := c.ShouldBindJSON(&dimension); err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	dimension.ID = uint(id)
-
-	// 校验请求参数
-	if dimension.ID != c.GetUint("app_id") {
-		utils.Error(c, http.StatusBadRequest, "app_id与请求路径中的ID不一致")
-		return
-	}
-
-	if dimension.TableName == "" {
-		utils.Error(c, http.StatusBadRequest, "table_name不能为空")
-		return
-	}
 
 	userID := c.GetUint("user_id")
 	if err := api.configService.UpdateDimension(&dimension, userID); err != nil {
@@ -105,7 +94,7 @@ func (api *ConfigAPI) UpdateDimension(c *gin.Context) {
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        dim_id path int true "配置ID"
-// @Success      200  {object}  model.ConfigDimension
+// @Success      200  {object}  model.GetDimResp
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/dimensions/{dim_id} [get]

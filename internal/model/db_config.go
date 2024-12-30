@@ -19,16 +19,17 @@ type ConfigTable struct {
 
 // ConfigDimension 维度配置
 type ConfigDimension struct {
-	ID          uint             `db:"id" json:"id"`
-	AppID       uint             `db:"app_id" json:"app_id"`
-	TableName   string           `db:"table_name" json:"table_name"`
-	DisplayName string           `db:"display_name" json:"display_name"`
-	Description string           `db:"description" json:"description"`
-	Status      int              `db:"status" json:"status"` // 0:禁用 1:启用
-	CreatedAt   utils.CustomTime `db:"created_at" json:"created_at"`
-	CreatorID   uint             `db:"creator_id" json:"creator_id"`
-	UpdatedAt   utils.CustomTime `db:"updated_at" json:"updated_at"`
-	UpdaterID   uint             `db:"updater_id" json:"updater_id"`
+	ID            uint             `db:"id" json:"id"`
+	AppID         uint             `db:"app_id" json:"app_id"`
+	TableName     string           `db:"table_name" json:"table_name"`
+	DisplayName   string           `db:"display_name" json:"display_name"`
+	Description   string           `db:"description" json:"description"`
+	Status        int              `db:"status" json:"status"` // 0:禁用 1:启用
+	CustomColumns string           `db:"custom_columns" json:"custom_columns"`
+	CreatedAt     utils.CustomTime `db:"created_at" json:"created_at"`
+	CreatorID     uint             `db:"creator_id" json:"creator_id"`
+	UpdatedAt     utils.CustomTime `db:"updated_at" json:"updated_at"`
+	UpdaterID     uint             `db:"updater_id" json:"updater_id"`
 }
 
 // ConfigModel 数据模型配置

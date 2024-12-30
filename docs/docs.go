@@ -871,13 +871,13 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CreateDimReq"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/api_v1_config.Response"
                         }
@@ -1004,7 +1004,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.UpdateDimensionReq"
                         }
                     }
                 ],
@@ -1012,7 +1012,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.UpdateDimensionReq"
                         }
                     },
                     "400": {
@@ -1396,6 +1396,127 @@ const docTemplate = `{
                         "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/menu/sysid": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取系统菜单id",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ConfigMenu"
+                ],
+                "summary": "获取系统菜单id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/config/menu/{menu_id}/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新菜单项的排序和父节点",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ConfigMenu"
+                ],
+                "summary": "更新菜单项排序和父节点",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单ID",
+                        "name": "menu_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "父节点ID",
+                        "name": "parent",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "排序值",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
                         }
                     }
                 }
@@ -4742,6 +4863,9 @@ const docTemplate = `{
                 "creator_id": {
                     "type": "integer"
                 },
+                "custom_columns": {
+                    "type": "string"
+                },
                 "description": {
                     "type": "string"
                 },
@@ -4960,6 +5084,30 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_iiwish_lingjian_internal_model.CreateDimReq": {
+            "type": "object",
+            "properties": {
+                "custom_columns": {
+                    "description": "自定义列定义",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CustomColumn"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "table_name": {
+                    "type": "string"
+                }
+            }
+        },
         "github_com_iiwish_lingjian_internal_model.CreateTableReq": {
             "type": "object",
             "properties": {
@@ -4995,6 +5143,23 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_iiwish_lingjian_internal_model.CustomColumn": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "description": "列注释",
+                    "type": "string"
+                },
+                "length": {
+                    "description": "长度",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "列名",
+                    "type": "string"
+                }
+            }
+        },
         "github_com_iiwish_lingjian_internal_model.DimensionItem": {
             "type": "object",
             "properties": {
@@ -5014,21 +5179,16 @@ const docTemplate = `{
                     "description": "创建者ID",
                     "type": "integer"
                 },
-                "custom1": {
-                    "description": "自定义字段1",
-                    "type": "string"
+                "custom_data": {
+                    "description": "自定义列数据",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
-                "custom2": {
-                    "description": "自定义字段2",
+                "description": {
+                    "description": "描述",
                     "type": "string"
-                },
-                "custom3": {
-                    "description": "自定义字段3",
-                    "type": "string"
-                },
-                "dimension_id": {
-                    "description": "维度ID",
-                    "type": "integer"
                 },
                 "id": {
                     "description": "主键ID",
@@ -5504,21 +5664,16 @@ const docTemplate = `{
                     "description": "创建者ID",
                     "type": "integer"
                 },
-                "custom1": {
-                    "description": "自定义字段1",
-                    "type": "string"
+                "custom_data": {
+                    "description": "自定义列数据",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
-                "custom2": {
-                    "description": "自定义字段2",
+                "description": {
+                    "description": "描述",
                     "type": "string"
-                },
-                "custom3": {
-                    "description": "自定义字段3",
-                    "type": "string"
-                },
-                "dimension_id": {
-                    "description": "维度ID",
-                    "type": "integer"
                 },
                 "id": {
                     "description": "主键ID",
@@ -5559,6 +5714,30 @@ const docTemplate = `{
                 "updater_id": {
                     "description": "更新者ID",
                     "type": "integer"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.UpdateDimensionReq": {
+            "type": "object",
+            "properties": {
+                "custom_columns": {
+                    "description": "自定义列定义",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CustomColumn"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "table_name": {
+                    "type": "string"
                 }
             }
         },

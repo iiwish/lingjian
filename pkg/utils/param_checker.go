@@ -24,3 +24,10 @@ func IsCode(code string) bool {
 	var re = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{1,49}$`)
 	return re.MatchString(code)
 }
+
+// IsValidIdentifier 校验标识符格式
+func IsValidIdentifier(identifier string) bool {
+	// 标识符正则：字母开头，允许字母数字下划线，2-100位
+	var re = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{1,99}$`)
+	return re.MatchString(identifier)
+}

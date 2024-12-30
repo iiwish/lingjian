@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/pkg/utils"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -66,10 +68,76 @@ func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.Dimensio
 		}
 		dimension.Sort = sort + 1
 
-		result, err := tx.NamedExec(fmt.Sprintf(`
-			INSERT INTO %s (node_id, parent_id, name, code, description, level, sort, status, created_at, creator_id, updated_at, updater_id, custom1, custom2, custom3)
-			VALUES (:node_id, :parent_id, :name, :code, :description, :level, :sort, :status, Now(), :creator_id, Now(), :updater_id, :custom1, :custom2, :custom3)
-		`, table_name), dimension)
+		// 获取表的列信息
+		var columns []struct {
+			ColumnName string `db:"COLUMN_NAME"`
+		}
+		err = tx.Select(&columns, `
+			SELECT COLUMN_NAME 
+			FROM INFORMATION_SCHEMA.COLUMNS 
+			WHERE TABLE_SCHEMA = DATABASE() 
+			AND TABLE_NAME = ? 
+			AND COLUMN_NAME NOT IN (
+				'id', 'node_id', 'parent_id', 'name', 'code', 'description',
+				'level', 'sort', 'status', 'created_at', 'creator_id', 
+				'updated_at', 'updater_id'
+			)
+		`, table_name)
+		if err != nil {
+			return nil, fmt.Errorf("get columns failed: %v", err)
+		}
+
+		// 构建INSERT语句
+		var insertSQL strings.Builder
+		insertSQL.WriteString(fmt.Sprintf(`
+			INSERT INTO %s (
+				node_id, parent_id, name, code, description, 
+				level, sort, status, created_at, creator_id, 
+				updated_at, updater_id
+		`, table_name))
+
+		// 添加自定义列
+		for _, col := range columns {
+			insertSQL.WriteString(", " + col.ColumnName)
+		}
+
+		insertSQL.WriteString(") VALUES (")
+		insertSQL.WriteString(`
+			:node_id, :parent_id, :name, :code, :description,
+			:level, :sort, :status, Now(), :creator_id,
+			Now(), :updater_id
+		`)
+
+		// 添加自定义列的值
+		for _, col := range columns {
+			insertSQL.WriteString(", :" + col.ColumnName)
+		}
+		insertSQL.WriteString(")")
+
+		// 准备参数
+		params := map[string]interface{}{
+			"node_id":     dimension.NodeID,
+			"parent_id":   dimension.ParentID,
+			"name":        dimension.Name,
+			"code":        dimension.Code,
+			"description": dimension.Description,
+			"level":       dimension.Level,
+			"sort":        dimension.Sort,
+			"status":      dimension.Status,
+			"creator_id":  dimension.CreatorID,
+			"updater_id":  dimension.UpdaterID,
+		}
+
+		// 添加自定义列的值
+		for _, col := range columns {
+			if val, ok := dimension.CustomData[col.ColumnName]; ok {
+				params[col.ColumnName] = val
+			} else {
+				params[col.ColumnName] = "" // 默认空字符串
+			}
+		}
+
+		result, err := tx.NamedExec(insertSQL.String(), params)
 		if err != nil {
 			return nil, fmt.Errorf("insert sys_config_dimensions failed: %v", err)
 		}
@@ -121,11 +189,65 @@ func (s *DimensionService) UpdateDimensionItems(dimensionItems []*model.Dimensio
 	for _, dimension := range dimensionItems {
 		dimension.UpdaterID = updaterID
 
+		// 获取表的列信息
+		var columns []struct {
+			ColumnName string `db:"COLUMN_NAME"`
+		}
+		err = tx.Select(&columns, `
+			SELECT COLUMN_NAME 
+			FROM INFORMATION_SCHEMA.COLUMNS 
+			WHERE TABLE_SCHEMA = DATABASE() 
+			AND TABLE_NAME = ? 
+			AND COLUMN_NAME NOT IN (
+				'id', 'node_id', 'parent_id', 'name', 'code', 'description',
+				'level', 'sort', 'status', 'created_at', 'creator_id', 
+				'updated_at', 'updater_id'
+			)
+		`, table_name)
+		if err != nil {
+			return fmt.Errorf("get columns failed: %v", err)
+		}
+
+		// 构建UPDATE语句
+		var updateSQL strings.Builder
+		updateSQL.WriteString(fmt.Sprintf(`
+			UPDATE %s SET 
+				name = :name, 
+				code = :code, 
+				description = :description, 
+				status = :status, 
+				updated_at = Now(), 
+				updater_id = :updater_id
+		`, table_name))
+
+		// 添加自定义列
+		for _, col := range columns {
+			updateSQL.WriteString(fmt.Sprintf(", %s = :%s", col.ColumnName, col.ColumnName))
+		}
+
+		updateSQL.WriteString(" WHERE id = :id")
+
+		// 准备参数
+		params := map[string]interface{}{
+			"id":          dimension.ID,
+			"name":        dimension.Name,
+			"code":        dimension.Code,
+			"description": dimension.Description,
+			"status":      dimension.Status,
+			"updater_id":  dimension.UpdaterID,
+		}
+
+		// 添加自定义列的值
+		for _, col := range columns {
+			if val, ok := dimension.CustomData[col.ColumnName]; ok {
+				params[col.ColumnName] = val
+			} else {
+				params[col.ColumnName] = "" // 默认空字符串
+			}
+		}
+
 		// 更新维度配置
-		_, err = tx.NamedExec(fmt.Sprintf(`
-			UPDATE %s SET name = :name, code = :code, description = :description, status = :status, updated_at = Now(), updater_id = :updater_id, custom1 = :custom1, custom2 = :custom2, custom3 = :custom3
-			WHERE id = :id
-		`, table_name), dimension)
+		_, err = tx.NamedExec(updateSQL.String(), params)
 		if err != nil {
 			return fmt.Errorf("update sys_config_dimensions failed: %v", err)
 		}
@@ -148,9 +270,38 @@ func (s *DimensionService) TreeDimensionItems(dim_id uint, id uint, query_type s
 		return nil, fmt.Errorf("get table name failed: %v", err)
 	}
 
+	// 获取表的列信息
+	var columns []struct {
+		ColumnName string `db:"COLUMN_NAME"`
+	}
+	err = s.db.Select(&columns, `
+		SELECT COLUMN_NAME 
+		FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_SCHEMA = DATABASE() 
+		AND TABLE_NAME = ? 
+		AND COLUMN_NAME NOT IN (
+			'id', 'node_id', 'parent_id', 'name', 'code', 'description',
+			'level', 'sort', 'status', 'created_at', 'creator_id', 
+			'updated_at', 'updater_id'
+		)
+	`, tableName)
+	if err != nil {
+		return nil, fmt.Errorf("get columns failed: %v", err)
+	}
+
 	// 构建查询
 	var query strings.Builder
-	query.WriteString(fmt.Sprintf("SELECT * FROM %s WHERE 1 = 1", tableName))
+	query.WriteString(`
+		SELECT id, node_id, parent_id, name, code, description, 
+		level, sort, status, created_at, creator_id, updated_at, updater_id
+	`)
+
+	// 添加自定义列
+	for _, col := range columns {
+		query.WriteString(fmt.Sprintf(", %s", col.ColumnName))
+	}
+
+	query.WriteString(fmt.Sprintf(" FROM %s WHERE 1 = 1", tableName))
 	args := []interface{}{}
 
 	// 根据查询类型构建不同的查询条件
@@ -187,10 +338,56 @@ func (s *DimensionService) TreeDimensionItems(dim_id uint, id uint, query_type s
 	query.WriteString(" ORDER BY sort ASC, id ASC")
 
 	// 执行查询
-	var items []model.TreeDimensionItem
-	err = s.db.Select(&items, query.String(), args...)
+	rows, err := s.db.Queryx(query.String(), args...)
 	if err != nil {
-		return nil, fmt.Errorf("list dimensions failed: %v", err)
+		return nil, fmt.Errorf("query dimensions failed: %v", err)
+	}
+	defer rows.Close()
+
+	var items []model.TreeDimensionItem
+	for rows.Next() {
+		var item model.TreeDimensionItem
+		item.CustomData = make(map[string]string)
+
+		// 创建map存储所有列的值
+		data := make(map[string]interface{})
+		err := rows.MapScan(data)
+		if err != nil {
+			return nil, fmt.Errorf("scan row failed: %v", err)
+		}
+
+		// 设置基础字段
+		item.ID = utils.ParseUint(string(data["id"].([]byte)))
+		item.NodeID = string(data["node_id"].([]byte))
+		item.ParentID = utils.ParseUint(string(data["parent_id"].([]byte)))
+		item.Name = string(data["name"].([]byte))
+		item.Code = string(data["code"].([]byte))
+		item.Description = string(data["description"].([]byte))
+		item.Level = utils.ParseInt(string(data["level"].([]byte)))
+		item.Sort = utils.ParseInt(string(data["sort"].([]byte)))
+		item.Status = utils.ParseInt(string(data["status"].([]byte)))
+		item.CreatedAt = utils.NewCustomTime(data["created_at"].(time.Time))
+		item.CreatorID = utils.ParseUint(string(data["creator_id"].([]byte)))
+		item.UpdatedAt = utils.NewCustomTime(data["updated_at"].(time.Time))
+		item.UpdaterID = utils.ParseUint(string(data["updater_id"].([]byte)))
+
+		// 设置自定义列的值
+		for _, col := range columns {
+			if val, ok := data[col.ColumnName]; ok {
+				switch v := val.(type) {
+				case []byte:
+					item.CustomData[col.ColumnName] = string(v)
+				case int64:
+					item.CustomData[col.ColumnName] = fmt.Sprintf("%d", v)
+				case string:
+					item.CustomData[col.ColumnName] = v
+				default:
+					item.CustomData[col.ColumnName] = fmt.Sprintf("%v", v)
+				}
+			}
+		}
+
+		items = append(items, item)
 	}
 	if len(items) == 0 {
 		return []model.TreeDimensionItem{}, nil

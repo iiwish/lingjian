@@ -47,11 +47,11 @@ func (s *ConfigService) CreateDimension(dimension *model.CreateDimReq, creatorID
 	return s.dimensionService.CreateDimension(dimension, creatorID, appID)
 }
 
-func (s *ConfigService) UpdateDimension(dimension *model.ConfigDimension, updaterID uint) error {
-	return s.dimensionService.UpdateDimension(dimension, updaterID)
+func (s *ConfigService) UpdateDimension(req *model.UpdateDimensionReq, updaterID uint) error {
+	return s.dimensionService.UpdateDimension(req, updaterID)
 }
 
-func (s *ConfigService) GetDimension(id uint) (*model.ConfigDimension, error) {
+func (s *ConfigService) GetDimension(id uint) (*model.GetDimResp, error) {
 	return s.dimensionService.GetDimension(id)
 }
 

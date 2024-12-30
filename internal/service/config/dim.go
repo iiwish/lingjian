@@ -1,11 +1,24 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/jmoiron/sqlx"
 )
+
+func toJSONString(v interface{}) string {
+	if v == nil {
+		return "[]"
+	}
+	bytes, err := json.Marshal(v)
+	if err != nil {
+		return "[]"
+	}
+	return string(bytes)
+}
 
 // DimensionService 维度配置服务
 type DimensionService struct {
@@ -19,15 +32,16 @@ func NewDimensionService(db *sqlx.DB) *DimensionService {
 
 // CreateDimension 创建维度配置
 func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID uint, appID uint) (uint, error) {
-
+	// 维度配置
 	dimDB := model.ConfigDimension{
-		AppID:       appID,
-		TableName:   req.TableName,
-		DisplayName: req.DisplayName,
-		Description: req.Description,
-		Status:      1,
-		CreatorID:   creatorID,
-		UpdaterID:   creatorID,
+		AppID:         appID,
+		TableName:     req.TableName,
+		DisplayName:   req.DisplayName,
+		Description:   req.Description,
+		Status:        1,
+		CustomColumns: toJSONString(req.CustomColumns),
+		CreatorID:     creatorID,
+		UpdaterID:     creatorID,
 	}
 
 	// 开启事务
@@ -67,7 +81,8 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 	}
 
 	// 创建维度数据表
-	createTableSQL := fmt.Sprintf(`
+	var createTableSQL strings.Builder
+	createTableSQL.WriteString(fmt.Sprintf(`
 		CREATE TABLE %s (
 			id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
 			node_id VARCHAR(100) NOT NULL DEFAULT '' COMMENT '节点ID',
@@ -78,17 +93,26 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 			level INT NOT NULL DEFAULT 0 COMMENT '层级',
 			sort INT NOT NULL DEFAULT 0 COMMENT '排序',
 			status TINYINT NOT NULL DEFAULT 1 COMMENT '状态',
-			custom1 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段1',
-			custom2 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段2',
-			custom3 VARCHAR(100) NOT NULL DEFAULT '' COMMENT '自定义字段3',
+	`, req.TableName))
+
+	// 添加自定义列
+	for _, col := range req.CustomColumns {
+		colDef := fmt.Sprintf("%s VARCHAR(%d) NOT NULL DEFAULT '' COMMENT '%s'",
+			col.Name, col.Length, col.Comment)
+
+		createTableSQL.WriteString(colDef + ",\n")
+	}
+
+	// 添加基础字段
+	createTableSQL.WriteString(`
 			created_at DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
 			creator_id INT NOT NULL DEFAULT 0 COMMENT '创建者ID',
 			updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
 			updater_id INT NOT NULL DEFAULT 0 COMMENT '更新者ID',
 			UNIQUE KEY uk_code (code)
 		)
-	`, req.TableName)
-	_, err = tx.Exec(createTableSQL)
+	`)
+	_, err = tx.Exec(createTableSQL.String())
 	if err != nil {
 		return 0, fmt.Errorf("create table failed: %v", err)
 	}
@@ -139,7 +163,7 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 }
 
 // UpdateDimension 更新维度配置
-func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, updaterID uint) error {
+func (s *DimensionService) UpdateDimension(req *model.UpdateDimensionReq, updaterID uint) error {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
@@ -147,18 +171,18 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 	}
 	defer tx.Rollback()
 
-	// 获取旧数据表名
-	var oldTableName string
-	err = tx.Get(&oldTableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dimension.ID)
+	// 获取旧数据表名和配置
+	var oldDim model.ConfigDimension
+	err = tx.Get(&oldDim, "SELECT * FROM sys_config_dimensions WHERE id = ?", req.ID)
 	if err != nil {
-		return fmt.Errorf("get old table name failed: %v", err)
+		return fmt.Errorf("get old dimension failed: %v", err)
 	}
 
 	// 对比数据表名是否有变化
-	if oldTableName != dimension.TableName {
+	if oldDim.TableName != req.TableName {
 		// 检查新表名是否已存在
 		var count int
-		err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", dimension.TableName)
+		err = tx.Get(&count, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?", req.TableName)
 		if err != nil {
 			return fmt.Errorf("check table name failed: %v", err)
 		}
@@ -167,22 +191,77 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 		}
 
 		// 修改数据表名
-		_, err = tx.Exec("RENAME TABLE " + oldTableName + " TO " + dimension.TableName)
+		_, err = tx.Exec("RENAME TABLE " + oldDim.TableName + " TO " + req.TableName)
 		if err != nil {
 			return fmt.Errorf("rename table failed: %v", err)
 		}
 	}
 
+	// 获取表的列信息
+	var columns []struct {
+		ColumnName string `db:"COLUMN_NAME"`
+	}
+	err = tx.Select(&columns, `
+		SELECT COLUMN_NAME 
+		FROM INFORMATION_SCHEMA.COLUMNS 
+		WHERE TABLE_SCHEMA = DATABASE() 
+		AND TABLE_NAME = ? 
+		AND COLUMN_NAME NOT IN (
+			'id', 'node_id', 'parent_id', 'name', 'code', 'description',
+			'level', 'sort', 'status', 'created_at', 'creator_id', 
+			'updated_at', 'updater_id'
+		)
+	`, req.TableName)
+	if err != nil {
+		return fmt.Errorf("get columns failed: %v", err)
+	}
+
+	// 构建当前自定义列map
+	currentColumns := make(map[string]bool)
+	for _, col := range columns {
+		currentColumns[col.ColumnName] = true
+	}
+
+	// 构建新自定义列map
+	newColumns := make(map[string]model.CustomColumn)
+	for _, col := range req.CustomColumns {
+		newColumns[col.Name] = col
+	}
+
+	// 删除不再需要的列
+	for colName := range currentColumns {
+		if _, exists := newColumns[colName]; !exists {
+			_, err = tx.Exec(fmt.Sprintf("ALTER TABLE %s DROP COLUMN %s", req.TableName, colName))
+			if err != nil {
+				return fmt.Errorf("drop column failed: %v", err)
+			}
+		}
+	}
+
+	// 添加新列
+	for colName, col := range newColumns {
+		if !currentColumns[colName] {
+			colDef := fmt.Sprintf("ADD COLUMN %s VARCHAR(%d) NOT NULL DEFAULT '' COMMENT '%s'",
+				col.Name, col.Length, col.Comment)
+
+			_, err = tx.Exec(fmt.Sprintf("ALTER TABLE %s %s", req.TableName, colDef))
+			if err != nil {
+				return fmt.Errorf("add column failed: %v", err)
+			}
+		}
+	}
+
 	// 更新维度配置
-	_, err = tx.NamedExec(`
-			UPDATE sys_config_dimensions SET 
-				table_name = :table_name,
-				display_name = :display_name, 
-				description = :description, 
-				updated_at = NOW(), 
-				updater_id = :updater_id
-			WHERE id = :id
-		`, dimension)
+	_, err = tx.Exec(`
+		UPDATE sys_config_dimensions SET 
+			table_name = ?,
+			display_name = ?, 
+			description = ?, 
+			custom_columns = ?,
+			updated_at = NOW(), 
+			updater_id = ?
+		WHERE id = ?
+	`, req.TableName, req.DisplayName, req.Description, toJSONString(req.CustomColumns), updaterID, req.ID)
 	if err != nil {
 		return fmt.Errorf("update sys_config_dimensions failed: %v", err)
 	}
@@ -196,13 +275,31 @@ func (s *DimensionService) UpdateDimension(dimension *model.ConfigDimension, upd
 }
 
 // GetDimension 获取维度配置
-func (s *DimensionService) GetDimension(id uint) (*model.ConfigDimension, error) {
+func (s *DimensionService) GetDimension(id uint) (*model.GetDimResp, error) {
 	var dimension model.ConfigDimension
 	err := s.db.Get(&dimension, "SELECT * FROM sys_config_dimensions WHERE id = ?", id)
 	if err != nil {
 		return nil, fmt.Errorf("get dimension failed: %v", err)
 	}
-	return &dimension, nil
+
+	result := model.GetDimResp{
+		ID:            dimension.ID,
+		AppID:         dimension.AppID,
+		TableName:     dimension.TableName,
+		DisplayName:   dimension.DisplayName,
+		Description:   dimension.Description,
+		Status:        dimension.Status,
+		CreatedAt:     dimension.CreatedAt,
+		CreatorID:     dimension.CreatorID,
+		UpdatedAt:     dimension.UpdatedAt,
+		UpdaterID:     dimension.UpdaterID,
+		CustomColumns: []model.CustomColumn{},
+	}
+	if err := json.Unmarshal([]byte(dimension.CustomColumns), &result.CustomColumns); err != nil {
+		return nil, fmt.Errorf("unmarshal custom columns failed: %v", err)
+	}
+
+	return &result, nil
 }
 
 // DeleteDimension 删除维度配置
