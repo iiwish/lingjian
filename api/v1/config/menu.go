@@ -36,12 +36,13 @@ func (api *ConfigAPI) CreateMenu(c *gin.Context) {
 	userID := c.GetUint("user_id")
 	appID := c.GetUint("app_id")
 	req.AppID = appID
-	if _, err := api.configService.CreateMenu(&req, userID); err != nil {
+	menuID, err := api.configService.CreateMenu(&req, userID)
+	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.Success(c, nil)
+	utils.Success(c, gin.H{"id": menuID})
 }
 
 // @Summary      更新菜单配置
