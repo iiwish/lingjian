@@ -24,6 +24,7 @@ type ConfigDimension struct {
 	TableName     string           `db:"table_name" json:"table_name"`
 	DisplayName   string           `db:"display_name" json:"display_name"`
 	Description   string           `db:"description" json:"description"`
+	DimensionType string           `db:"dimension_type" json:"dimension_type"`
 	Status        int              `db:"status" json:"status"` // 0:禁用 1:启用
 	CustomColumns string           `db:"custom_columns" json:"custom_columns"`
 	CreatedAt     utils.CustomTime `db:"created_at" json:"created_at"`

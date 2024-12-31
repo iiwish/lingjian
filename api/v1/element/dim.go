@@ -45,7 +45,8 @@ func (api *ElementAPI) GetDimensionItems(c *gin.Context) {
 		query_type = "descendants"
 	}
 
-	items, err := api.elementService.TreeDimensionItems(utils.ParseUint(id), utils.ParseUint(node_id), query_type, utils.ParseUint(query_level))
+	userID := c.GetUint("user_id")
+	items, err := api.elementService.TreeDimensionItems(userID, utils.ParseUint(id), utils.ParseUint(node_id), query_type, utils.ParseUint(query_level))
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return

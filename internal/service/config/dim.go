@@ -32,6 +32,10 @@ func NewDimensionService(db *sqlx.DB) *DimensionService {
 
 // CreateDimension 创建维度配置
 func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID uint, appID uint) (uint, error) {
+	dimType := "general"
+	if req.DimensionType != "" {
+		dimType = req.DimensionType
+	}
 	// 维度配置
 	dimDB := model.ConfigDimension{
 		AppID:         appID,
@@ -39,6 +43,7 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 		DisplayName:   req.DisplayName,
 		Description:   req.Description,
 		Status:        1,
+		DimensionType: dimType,
 		CustomColumns: toJSONString(req.CustomColumns),
 		CreatorID:     creatorID,
 		UpdaterID:     creatorID,
@@ -64,9 +69,9 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 	// 插入维度配置
 	result, err := tx.NamedExec(`
 		INSERT INTO sys_config_dimensions (
-			app_id, table_name, display_name, description, status, created_at, creator_id, updated_at, updater_id
+			app_id, table_name, display_name, description, dimension_type, status, created_at, creator_id, updated_at, updater_id
 		) VALUES (
-			:app_id, :table_name, :display_name, :description, :status, NOW(), :creator_id, NOW(), :creator_id
+			:app_id, :table_name, :display_name, :description, :dimension_type, :status, NOW(), :creator_id, NOW(), :creator_id
 		)
 	`, dimDB)
 
@@ -288,6 +293,7 @@ func (s *DimensionService) GetDimension(id uint) (*model.GetDimResp, error) {
 		TableName:     dimension.TableName,
 		DisplayName:   dimension.DisplayName,
 		Description:   dimension.Description,
+		DimensionType: dimension.DimensionType,
 		Status:        dimension.Status,
 		CreatedAt:     dimension.CreatedAt,
 		CreatorID:     dimension.CreatorID,

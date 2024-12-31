@@ -38,6 +38,7 @@ type CreateDimReq struct {
 	DisplayName   string         `json:"display_name"`
 	Description   string         `json:"description"`
 	ParentID      uint           `json:"parent_id"`
+	DimensionType string         `json:"dimension_type"`
 	CustomColumns []CustomColumn `json:"custom_columns"` // 自定义列定义
 }
 
@@ -121,6 +122,7 @@ type GetDimResp struct {
 	TableName     string           `json:"table_name"`
 	DisplayName   string           `json:"display_name"`
 	Description   string           `json:"description"`
+	DimensionType string           `json:"dimension_type"`
 	AppID         uint             `json:"app_id"`
 	Status        int              `db:"status" json:"status"`
 	CreatedAt     utils.CustomTime `db:"created_at" json:"created_at"`

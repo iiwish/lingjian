@@ -51,8 +51,8 @@ func (s *ElementService) DeleteDimensionItems(operatorID uint, dimID uint, itemI
 	return s.dimensionService.DeleteDimensionItems(operatorID, dimID, itemIDs)
 }
 
-func (s *ElementService) TreeDimensionItems(itemID uint, nodeID uint, query_type string, query_level uint) ([]model.TreeDimensionItem, error) {
-	return s.dimensionService.TreeDimensionItems(itemID, nodeID, query_type, query_level)
+func (s *ElementService) TreeDimensionItems(userID uint, itemID uint, nodeID uint, query_type string, query_level uint) ([]model.TreeDimensionItem, error) {
+	return s.dimensionService.TreeDimensionItems(userID, itemID, nodeID, query_type, query_level)
 }
 
 func (s *ElementService) UpdateDimensionItemSort(updaterID uint, dimID uint, itemID uint, parentID uint, sort int) error {

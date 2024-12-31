@@ -262,10 +262,39 @@ func (s *DimensionService) UpdateDimensionItems(dimensionItems []*model.Dimensio
 }
 
 // TreeDimensionItems 获取维度明细配置树形结构
-func (s *DimensionService) TreeDimensionItems(dim_id uint, id uint, query_type string, query_level uint) ([]model.TreeDimensionItem, error) {
+func (s *DimensionService) TreeDimensionItems(userID uint, dim_id uint, id uint, query_type string, query_level uint) ([]model.TreeDimensionItem, error) {
+	// 首先检查用户是否有该维度的权限
+	permissionQuery := `
+		SELECT DISTINCT p.item_id FROM sys_permissions p
+		INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
+		INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
+		WHERE ur.user_id = ? 
+		AND p.dim_id = ?
+		AND p.status = 1
+	`
+	var permItemIDs []uint
+	err := s.db.Select(&permItemIDs, permissionQuery, userID, dim_id)
+	if err != nil {
+		return nil, fmt.Errorf("get user permissions failed: %v", err)
+	}
+
+	// 如果没有该维度的权限记录,直接返回空值
+	if len(permItemIDs) == 0 {
+		return []model.TreeDimensionItem{}, nil
+	}
+
+	// 检查是否有全部权限(item_id为0)
+	hasFullAccess := false
+	for _, itemID := range permItemIDs {
+		if itemID == 0 {
+			hasFullAccess = true
+			break
+		}
+	}
+
 	// 从sys_config_dimensions表读取维度表名
 	var tableName string
-	err := s.db.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
+	err = s.db.Get(&tableName, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
 		return nil, fmt.Errorf("get table name failed: %v", err)
 	}
@@ -289,10 +318,67 @@ func (s *DimensionService) TreeDimensionItems(dim_id uint, id uint, query_type s
 		return nil, fmt.Errorf("get columns failed: %v", err)
 	}
 
+	// 如果没有全部权限,需要获取有权限的节点的所有上下级节点
+	var allowedIDs []uint
+	if !hasFullAccess && len(permItemIDs) > 0 {
+		// 获取所有有权限的item_id对应的node_id
+		nodeIDQuery := fmt.Sprintf(`
+			SELECT id, node_id FROM %s WHERE id IN (?)
+		`, tableName)
+		query, args, err := sqlx.In(nodeIDQuery, permItemIDs)
+		if err != nil {
+			return nil, fmt.Errorf("prepare node_id query failed: %v", err)
+		}
+		query = s.db.Rebind(query)
+
+		type nodeInfo struct {
+			ID     uint   `db:"id"`
+			NodeID string `db:"node_id"`
+		}
+		var nodes []nodeInfo
+		err = s.db.Select(&nodes, query, args...)
+		if err != nil {
+			return nil, fmt.Errorf("get node_ids failed: %v", err)
+		}
+
+		// 使用map去重
+		idMap := make(map[uint]struct{})
+
+		// 处理每个有权限的节点
+		for _, node := range nodes {
+			// 添加节点本身
+			idMap[node.ID] = struct{}{}
+
+			// 添加所有父节点
+			idStrs := strings.Split(node.NodeID, "_")
+			for _, idStr := range idStrs {
+				idMap[utils.ParseUint(idStr)] = struct{}{}
+			}
+
+			// 获取所有子节点
+			var childIDs []uint
+			childQuery := fmt.Sprintf(`
+				SELECT id FROM %s WHERE node_id LIKE ?
+			`, tableName)
+			err = s.db.Select(&childIDs, childQuery, node.NodeID+"_%")
+			if err != nil {
+				return nil, fmt.Errorf("get child ids failed: %v", err)
+			}
+			for _, id := range childIDs {
+				idMap[id] = struct{}{}
+			}
+		}
+
+		// 转换为切片
+		for id := range idMap {
+			allowedIDs = append(allowedIDs, id)
+		}
+	}
+
 	// 构建查询
 	var query strings.Builder
 	query.WriteString(`
-		SELECT id, node_id, parent_id, name, code, description, 
+		SELECT DISTINCT id, node_id, parent_id, name, code, description, 
 		level, sort, status, created_at, creator_id, updated_at, updater_id
 	`)
 
@@ -303,6 +389,15 @@ func (s *DimensionService) TreeDimensionItems(dim_id uint, id uint, query_type s
 
 	query.WriteString(fmt.Sprintf(" FROM %s WHERE 1 = 1", tableName))
 	args := []interface{}{}
+
+	// 添加权限过滤条件
+	if !hasFullAccess {
+		if len(allowedIDs) == 0 {
+			return []model.TreeDimensionItem{}, nil
+		}
+		query.WriteString(" AND id IN (?)")
+		args = append(args, allowedIDs)
+	}
 
 	// 根据查询类型构建不同的查询条件
 	switch query_type {

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS sys_config_dimensions (
     table_name VARCHAR(64) NOT NULL DEFAULT '' COMMENT '维度表名',
     display_name VARCHAR(64) NOT NULL DEFAULT '' COMMENT '显示名称',
     description VARCHAR(200) DEFAULT '' COMMENT '描述',
+    dimension_type VARCHAR(20) NOT NULL DEFAULT '' COMMENT '维度类型：general, menu',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 0:禁用 1:启用',
     custom_columns JSON COMMENT '自定义字段',
     created_at DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
