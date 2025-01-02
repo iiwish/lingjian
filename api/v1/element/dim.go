@@ -8,8 +8,8 @@ import (
 	"github.com/iiwish/lingjian/pkg/utils"
 )
 
-// @Summary      获取维度配置项树
-// @Description  获取指定维度的配置项树
+// @Summary      获取维度项树
+// @Description  获取指定维度的项树
 // @Tags         Dimension
 // @Accept       json
 // @Produce      json
@@ -55,20 +55,20 @@ func (api *ElementAPI) GetDimensionItems(c *gin.Context) {
 	utils.Success(c, items)
 }
 
-// @Summary      批量创建维度配置项
-// @Description  批量创建新的维度配置项
+// @Summary      批量创建维度项
+// @Description  批量创建新的维度项
 // @Tags         Dimension
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
 // @Param        id          path int                        true  "维度ID"
-// @Param        dimensions  body []model.DimensionItem true  "批量创建维度配置项的请求参数"
+// @Param        dimensions  body model.CreateDimensionItemReq true  "创建维度项的请求参数"
 // @Success      201         {object}  utils.Response
 // @Failure      400         {object}  utils.Response
 // @Failure      500         {object}  utils.Response
 // @Router       /dimension/{dim_id} [post]
-func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
+func (api *ElementAPI) CreateDimensionItem(c *gin.Context) {
 	// 获取id参数
 	dimID := c.Param("dim_id")
 	if dimID == "" {
@@ -77,7 +77,7 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 	}
 
 	// 获取请求参数
-	var dimensionItem *model.DimensionItem
+	var dimensionItem *model.CreateDimensionItemReq
 	if err := c.ShouldBindJSON(&dimensionItem); err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
@@ -103,8 +103,8 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 	utils.Success(c, gin.H{"ids": ids})
 }
 
-// @Summary      更新维度配置项
-// @Description  更新已存在的维度配置项
+// @Summary      更新维度项
+// @Description  更新已存在的维度项
 // @Tags         Dimension
 // @Accept       json
 // @Produce      json
@@ -112,12 +112,12 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 // @Param        Authorization header string true "Bearer token"
 // @Param        dim_id     path int                      true  "维度ID"
 // @Param        id         path int                      true  "配置项ID"
-// @Param        dimension  body model.DimensionItem true  "更新维度配置项的请求参数"
-// @Success      200        {object}  model.DimensionItem
+// @Param        dimension  body model.UpdateDimensionItemReq true  "更新维度项的请求参数"
+// @Success      200        {object}  utils.Response
 // @Failure      400        {object}  utils.Response
 // @Failure      500        {object}  utils.Response
 // @Router       /dimension/{dim_id} [put]
-func (api *ElementAPI) UpdateDimensionItems(c *gin.Context) {
+func (api *ElementAPI) UpdateDimensionItem(c *gin.Context) {
 	// 获取id参数
 	id := c.Param("id")
 	if id == "" {
@@ -132,36 +132,34 @@ func (api *ElementAPI) UpdateDimensionItems(c *gin.Context) {
 	}
 
 	// 获取请求参数
-	var dimension []*model.DimensionItem
-	if err := c.ShouldBindJSON(&dimension); err != nil {
+	var dimItem *model.UpdateDimensionItemReq
+	if err := c.ShouldBindJSON(&dimItem); err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	for _, item := range dimension {
-		item.ID = utils.ParseUint(id)
+	dimItem.ID = utils.ParseUint(id)
 
-		// 校验请求参数
-		if item.Code == "" {
-			utils.Error(c, http.StatusBadRequest, "code不能为空")
-			return
-		}
-		if item.Name == "" {
-			utils.Error(c, http.StatusBadRequest, "name不能为空")
-			return
-		}
+	// 校验请求参数
+	if dimItem.Code == "" {
+		utils.Error(c, http.StatusBadRequest, "code不能为空")
+		return
+	}
+	if dimItem.Name == "" {
+		utils.Error(c, http.StatusBadRequest, "name不能为空")
+		return
 	}
 
 	userID := c.GetUint("user_id")
-	if err := api.elementService.UpdateDimensionItems(dimension, userID, utils.ParseUint(dim_id)); err != nil {
+	if err := api.elementService.UpdateDimensionItem(dimItem, userID, utils.ParseUint(dim_id)); err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	utils.Success(c, dimension)
+	utils.Success(c, nil)
 }
 
-// @Summary      批量删除维度配置项
-// @Description  批量删除指定的维度配置项
+// @Summary      批量删除维度项
+// @Description  批量删除指定的维度项
 // @Tags         Dimension
 // @Accept       json
 // @Produce      json
@@ -197,8 +195,8 @@ func (api *ElementAPI) DeleteDimensionItems(c *gin.Context) {
 	c.Status(http.StatusNoContent)
 }
 
-// @Summary      更新维度配置项排序和父节点
-// @Description  更新维度配置项的排序和父节点
+// @Summary      更新维度项排序和父节点
+// @Description  更新维度项的排序和父节点
 // @Tags         Dimension
 // @Accept       json
 // @Produce      json

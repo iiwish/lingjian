@@ -41,12 +41,12 @@ func (s *ElementService) DeleteTableItems(operatorID uint, tableID uint, reqItem
 }
 
 // Dimension
-func (s *ElementService) CreateDimensionItem(item *model.DimensionItem, creatorID uint, dimID uint) (uint, error) {
+func (s *ElementService) CreateDimensionItem(item *model.CreateDimensionItemReq, creatorID uint, dimID uint) (uint, error) {
 	return s.dimensionService.CreateDimensionItem(item, creatorID, dimID)
 }
 
-func (s *ElementService) UpdateDimensionItems(item []*model.DimensionItem, updaterID uint, dimID uint) error {
-	return s.dimensionService.UpdateDimensionItems(item, updaterID, dimID)
+func (s *ElementService) UpdateDimensionItem(item *model.UpdateDimensionItemReq, updaterID uint, dimID uint) error {
+	return s.dimensionService.UpdateDimensionItem(item, updaterID, dimID)
 }
 
 func (s *ElementService) DeleteDimensionItems(operatorID uint, dimID uint, itemIDs []uint) error {
@@ -64,4 +64,20 @@ func (s *ElementService) UpdateDimensionItemSort(updaterID uint, dimID uint, ite
 // Menu
 func (s *ElementService) GetMenuItems(userID uint, menuID uint, nodeID uint, queryType string, queryLevel uint) ([]*model.TreeMenuItem, error) {
 	return s.menuService.GetMenuItems(userID, menuID, nodeID, queryType, queryLevel)
+}
+
+func (s *ElementService) CreateMenuItem(userID uint, menu *model.CreateMenuItemReq, menuID uint) (uint, error) {
+	return s.menuService.CreateMenuItem(userID, menu, menuID)
+}
+
+func (s *ElementService) UpdateMenuItem(menu *model.UpdateMenuItemReq, updaterID uint, menuID uint) error {
+	return s.menuService.UpdateMenuItem(menu, updaterID, menuID)
+}
+
+func (s *ElementService) DeleteMenuItem(operatorID uint, menuID uint, itemIDs []uint) error {
+	return s.menuService.DeleteMenuItem(operatorID, menuID, itemIDs)
+}
+
+func (s *ElementService) UpdateMenuItemSort(userID uint, menuID uint, itemID uint, parentID uint, sort int) error {
+	return s.menuService.UpdateMenuItemSort(userID, menuID, itemID, parentID, sort)
 }

@@ -24,6 +24,16 @@ func ParseInt(s string) int {
 	return n
 }
 
+// Uint2String 将uint转换为字符串
+func Uint2String(n uint) string {
+	return strconv.FormatUint(uint64(n), 10)
+}
+
+// Int2String 将int转换为字符串
+func Int2String(n int) string {
+	return strconv.Itoa(n)
+}
+
 // convertBytesToString 递归地将 map 中的 []byte 转换为字符串
 func ConvertBytesToString(data interface{}) interface{} {
 	switch v := data.(type) {

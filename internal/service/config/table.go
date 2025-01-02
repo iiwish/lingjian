@@ -5,20 +5,21 @@ import (
 	"strings"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/internal/service/element"
 	"github.com/jmoiron/sqlx"
 )
 
 // TableService 数据表配置服务
 type TableService struct {
 	db          *sqlx.DB
-	menuService *MenuService
+	menuService *element.MenuService
 }
 
 // NewTableService 创建数据表配置服务实例
 func NewTableService(db *sqlx.DB) *TableService {
 	return &TableService{
 		db:          db,
-		menuService: NewMenuService(db),
+		menuService: element.NewMenuService(db),
 	}
 }
 
@@ -130,20 +131,19 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 	}
 
 	fmt.Printf("table id: %d\n", id)
-	// 创建对应的menu
-	menu := &model.ConfigMenu{
-		AppID:     appID,
-		ParentID:  tableinfo.ParentID,
-		MenuName:  table.DisplayName,
-		MenuCode:  table.TableName,
-		MenuType:  2, // 表示table类型
-		Icon:      "table",
-		SourceID:  uint(id),
-		CreatorID: creatorID,
-		UpdaterID: creatorID,
+	// 创建对应的系统菜单的menu
+	menu := &model.CreateMenuItemReq{
+		ParentID:    tableinfo.ParentID,
+		Name:        table.DisplayName,
+		Code:        table.TableName,
+		Description: table.Description,
+		MenuType:    2, // 表示table类型
+		Status:      1,
+		IconPath:    "table",
+		SourceID:    uint(id),
 	}
 
-	_, err = s.menuService.CreateMenu(menu, creatorID)
+	err = s.menuService.CreateSysMenu(table.AppID, creatorID, menu)
 	if err != nil {
 		return 0, fmt.Errorf("create menu failed: %v", err)
 	}

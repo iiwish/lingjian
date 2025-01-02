@@ -29,13 +29,16 @@ func RegisterElementRoutes(router *gin.RouterGroup) {
 func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	// 维度明细配置
 	router.GET("/dimension/:dim_id", api.GetDimensionItems)
-	router.POST("/dimension/:dim_id", api.CreateDimensionItems)
-	router.PUT("/dimension/:dim_id", api.UpdateDimensionItems)
+	router.POST("/dimension/:dim_id", api.CreateDimensionItem)
+	router.PUT("/dimension/:dim_id", api.UpdateDimensionItem)
 	router.PUT("/dimension/:dim_id/:id", api.UpdateDimensionItemSort)
 	router.DELETE("/dimension/:dim_id", api.DeleteDimensionItems)
 
 	// 菜单明细配置
 	router.GET("/menu/:menu_id", api.GetMenuItems)
+	router.POST("/menu/:menu_id", api.CreateMenuItem)
+	router.PUT("/menu/:menu_id/:id", api.UpdateMenuItem)
+	router.DELETE("/menu/:menu_id/:id", api.DeleteMenuItem)
 
 	// 数据表明细配置
 	router.POST("/table/:table_id/query", api.QueryTableItems)

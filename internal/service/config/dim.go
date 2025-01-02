@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/internal/service/element"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -22,12 +23,16 @@ func toJSONString(v interface{}) string {
 
 // DimensionService 维度配置服务
 type DimensionService struct {
-	db *sqlx.DB
+	db          *sqlx.DB
+	menuService *element.MenuService
 }
 
 // NewDimensionService 创建维度配置服务实例
 func NewDimensionService(db *sqlx.DB) *DimensionService {
-	return &DimensionService{db: db}
+	return &DimensionService{
+		db:          db,
+		menuService: element.NewMenuService(db),
+	}
 }
 
 // CreateDimension 创建维度配置
@@ -122,41 +127,26 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 		return 0, fmt.Errorf("create table failed: %v", err)
 	}
 
+	var menuType int
+	if req.DimensionType == "menu" {
+		menuType = 4
+	} else {
+		menuType = 3
+	}
 	// 插入菜单配置
-	// 获取父节点node_id
-	var parentNodeID string
-	err = tx.Get(&parentNodeID, "SELECT node_id FROM sys_config_menus WHERE app_id = ? AND id = ?", appID, req.ParentID)
-	if err != nil {
-		return 0, fmt.Errorf("get parent node_id failed: %v", err)
+	menu := &model.CreateMenuItemReq{
+		ParentID:    req.ParentID,
+		Name:        req.DisplayName,
+		Code:        req.TableName,
+		Description: req.Description,
+		Status:      1,
+		SourceID:    uint(id),
+		MenuType:    menuType,
+		IconPath:    "folder",
 	}
-	// 获取sort
-	var sort int
-	err = tx.Get(&sort, "SELECT IFNULL(MAX(sort),0) FROM sys_config_menus WHERE app_id = ? AND parent_id = ?", appID, req.ParentID)
+	_, err = s.menuService.CreateMenuItem(creatorID, menu, appID)
 	if err != nil {
-		return 0, fmt.Errorf("get sort failed: %v", err)
-	}
-	menuDB := model.ConfigMenu{
-		AppID:     appID,
-		NodeID:    parentNodeID + "_" + fmt.Sprint(id),
-		ParentID:  req.ParentID,
-		MenuName:  req.DisplayName,
-		MenuCode:  fmt.Sprintf("dim_%d", id),
-		MenuType:  3,
-		Level:     1,
-		Sort:      sort + 1,
-		Icon:      "dimension",
-		SourceID:  uint(id),
-		CreatorID: creatorID,
-		UpdaterID: creatorID,
-	}
-	_, err = tx.NamedExec(`
-		INSERT INTO sys_config_menus (
-			app_id, node_id, parent_id, menu_name, menu_code, menu_type, level, sort, icon, source_id, status, created_at, creator_id, updated_at, updater_id
-		) VALUES (
-			:app_id, :node_id, :parent_id, :menu_name, :menu_code, :menu_type, :level, :sort, :icon, :source_id, 1, NOW(), :creator_id, NOW(), :creator_id
-		)`, menuDB)
-	if err != nil {
-		return 0, fmt.Errorf("insert sys_config_menus failed: %v", err)
+		return 0, fmt.Errorf("create menu item failed: %v", err)
 	}
 
 	// 提交事务

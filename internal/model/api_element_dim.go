@@ -28,28 +28,20 @@ type TreeDimensionItem struct {
 
 // CreateDimensionItemReq 创建维度数据请求
 type CreateDimensionItemReq struct {
-	ParentID    uint              `json:"parent_id"`   // 父节点ID
 	Name        string            `json:"name"`        // 名称
 	Code        string            `json:"code"`        // 编码
 	Description string            `json:"description"` // 描述
+	Status      int               `json:"status"`      // 状态
 	CustomData  map[string]string `json:"custom_data"` // 自定义列数据
+	ParentID    uint              `json:"parent_id"`   // 父节点ID
 }
 
 // UpdateDimensionItemReq 更新维度数据请求
 type UpdateDimensionItemReq struct {
-	ID          uint              `json:"id"`          // 主键ID
 	Name        string            `json:"name"`        // 名称
 	Code        string            `json:"code"`        // 编码
 	Description string            `json:"description"` // 描述
+	Status      int               `json:"status"`      // 状态
 	CustomData  map[string]string `json:"custom_data"` // 自定义列数据
-}
-
-// BatchCreateDimensionItemReq 批量创建维度数据请求
-type BatchCreateDimensionItemReq struct {
-	Items []CreateDimensionItemReq `json:"items"` // 维度数据项列表
-}
-
-// BatchUpdateDimensionItemReq 批量更新维度数据请求
-type BatchUpdateDimensionItemReq struct {
-	Items []UpdateDimensionItemReq `json:"items"` // 维度数据项列表
+	ID          uint              `json:"id"`          // 主键ID
 }
