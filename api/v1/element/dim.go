@@ -77,26 +77,24 @@ func (api *ElementAPI) CreateDimensionItems(c *gin.Context) {
 	}
 
 	// 获取请求参数
-	var dimensions []*model.DimensionItem
-	if err := c.ShouldBindJSON(&dimensions); err != nil {
+	var dimensionItem *model.DimensionItem
+	if err := c.ShouldBindJSON(&dimensionItem); err != nil {
 		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	// 校验请求参数
-	for _, dimension := range dimensions {
-		if dimension.Code == "" {
-			utils.Error(c, http.StatusBadRequest, "code不能为空")
-			return
-		}
-		if dimension.Name == "" {
-			utils.Error(c, http.StatusBadRequest, "name不能为空")
-			return
-		}
+	if dimensionItem.Code == "" {
+		utils.Error(c, http.StatusBadRequest, "code不能为空")
+		return
+	}
+	if dimensionItem.Name == "" {
+		utils.Error(c, http.StatusBadRequest, "name不能为空")
+		return
 	}
 
 	userID := c.GetUint("user_id")
-	ids, err := api.elementService.CreateDimensionItems(dimensions, userID, utils.ParseUint(dimID))
+	ids, err := api.elementService.CreateDimensionItem(dimensionItem, userID, utils.ParseUint(dimID))
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return

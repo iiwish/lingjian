@@ -34,6 +34,10 @@ func (api *ConfigAPI) CreateDimension(c *gin.Context) {
 		utils.Error(c, http.StatusBadRequest, "table_name不能为空")
 		return
 	}
+	if utils.IsSystemMenu(dimension.TableName) {
+		utils.Error(c, http.StatusBadRequest, "table_name不允许使用，请更换")
+		return
+	}
 
 	AppID := c.GetUint("app_id")
 	userID := c.GetUint("user_id")
@@ -140,4 +144,29 @@ func (api *ConfigAPI) DeleteDimension(c *gin.Context) {
 	}
 
 	utils.Success(c, nil)
+}
+
+// @Summary      获取维度配置列表
+// @Description  获取维度配置列表
+// @Tags         ConfigDimension
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param		 type query string false "维度类型"
+// @Success      200  {object}  Response
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /config/dimensions [get]
+func (api *ConfigAPI) GetDimensions(c *gin.Context) {
+	dimType := c.Query("type")
+	appID := c.GetUint("app_id")
+	userID := c.GetUint("user_id")
+	dimensions, err := api.configService.GetDimensions(userID, appID, dimType)
+	if err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.Success(c, dimensions)
 }

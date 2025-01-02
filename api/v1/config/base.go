@@ -49,13 +49,11 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.DELETE("/forms/:id", api.DeleteForm)
 
 		// 菜单配置
+		config.GET("/menus", api.GetMenuList)
 		config.POST("/menus", api.CreateMenu)
 		config.PUT("/menus/:id", api.UpdateMenu)
-		config.GET("/menus", api.GetMenus)
 		config.GET("/menus/sysid", api.GetSystemMenuID)
-		config.GET("/menus/:id", api.GetMenuByID)
 		config.DELETE("/menus/:id", api.DeleteMenu)
-		config.POST("/menus/:menu_id/:id", api.UpdateMenuItemSort)
 
 		// 数据模型配置
 		config.POST("/models", api.CreateModel)

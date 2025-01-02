@@ -9,6 +9,7 @@ import (
 type ElementService struct {
 	tableService     *TableService
 	dimensionService *DimensionService
+	menuService      *MenuService
 	db               *sqlx.DB
 }
 
@@ -17,6 +18,7 @@ func NewElementService(db *sqlx.DB) *ElementService {
 	return &ElementService{
 		tableService:     NewTableService(db),
 		dimensionService: NewDimensionService(db),
+		menuService:      NewMenuService(db),
 		db:               db,
 	}
 }
@@ -39,8 +41,8 @@ func (s *ElementService) DeleteTableItems(operatorID uint, tableID uint, reqItem
 }
 
 // Dimension
-func (s *ElementService) CreateDimensionItems(items []*model.DimensionItem, creatorID uint, dimID uint) ([]uint, error) {
-	return s.dimensionService.CreateDimensionItems(items, creatorID, dimID)
+func (s *ElementService) CreateDimensionItem(item *model.DimensionItem, creatorID uint, dimID uint) (uint, error) {
+	return s.dimensionService.CreateDimensionItem(item, creatorID, dimID)
 }
 
 func (s *ElementService) UpdateDimensionItems(item []*model.DimensionItem, updaterID uint, dimID uint) error {
@@ -57,4 +59,9 @@ func (s *ElementService) TreeDimensionItems(userID uint, itemID uint, nodeID uin
 
 func (s *ElementService) UpdateDimensionItemSort(updaterID uint, dimID uint, itemID uint, parentID uint, sort int) error {
 	return s.dimensionService.UpdateDimensionItemSort(updaterID, dimID, itemID, parentID, sort)
+}
+
+// Menu
+func (s *ElementService) GetMenuItems(userID uint, menuID uint, nodeID uint, queryType string, queryLevel uint) ([]*model.TreeMenuItem, error) {
+	return s.menuService.GetMenuItems(userID, menuID, nodeID, queryType, queryLevel)
 }

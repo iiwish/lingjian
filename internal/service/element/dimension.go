@@ -22,11 +22,11 @@ func NewDimensionService(db *sqlx.DB) *DimensionService {
 }
 
 // BatchCreateDimensionItems 批量创建维度明细配置
-func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.DimensionItem, creatorID uint, dim_id uint) ([]uint, error) {
+func (s *DimensionService) CreateDimensionItem(dimensionItem *model.DimensionItem, creatorID uint, dim_id uint) (uint, error) {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
-		return nil, fmt.Errorf("begin transaction failed: %v", err)
+		return 0, fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
 
@@ -34,45 +34,42 @@ func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.Dimensio
 	var table_name string
 	err = tx.Get(&table_name, "SELECT table_name FROM sys_config_dimensions WHERE id = ?", dim_id)
 	if err != nil {
-		return nil, fmt.Errorf("get table name failed: %v", err)
+		return 0, fmt.Errorf("get table name failed: %v", err)
 	}
 
-	ids := make([]uint, 0, len(dimensionItems))
-	// 插入维度配置
-	for _, dimension := range dimensionItems {
-		dimension.Status = 1
-		dimension.CreatorID = creatorID
-		dimension.UpdaterID = creatorID
-		// 获取父节点的node_id
-		if dimension.ParentID != 0 {
-			var parent struct {
-				NodeID string `db:"node_id"`
-				Level  int    `db:"level"`
-			}
-			err = tx.Get(&parent, fmt.Sprintf("SELECT node_id, level FROM %s WHERE id = ?", table_name), dimension.ParentID)
-			if err != nil {
-				return nil, fmt.Errorf("get parent node_id and level failed: %v", err)
-			}
-			dimension.NodeID = parent.NodeID
-			dimension.Level = parent.Level + 1
-		} else {
-			dimension.NodeID = ""
-			dimension.Level = 1
+	dimensionItem.Status = 1
+	dimensionItem.CreatorID = creatorID
+	dimensionItem.UpdaterID = creatorID
+	// 获取父节点的node_id
+	if dimensionItem.ParentID != 0 {
+		var parent struct {
+			NodeID string `db:"node_id"`
+			Level  int    `db:"level"`
 		}
-
-		// 获取sort数值
-		var sort int
-		err = tx.Get(&sort, fmt.Sprintf("SELECT IFNULL(MAX(sort), 0) FROM %s WHERE parent_id = ?", table_name), dimension.ParentID)
+		err = tx.Get(&parent, fmt.Sprintf("SELECT node_id, level FROM %s WHERE id = ?", table_name), dimensionItem.ParentID)
 		if err != nil {
-			return nil, fmt.Errorf("get max sort failed: %v", err)
+			return 0, fmt.Errorf("get parent node_id and level failed: %v", err)
 		}
-		dimension.Sort = sort + 1
+		dimensionItem.NodeID = parent.NodeID
+		dimensionItem.Level = parent.Level + 1
+	} else {
+		dimensionItem.NodeID = ""
+		dimensionItem.Level = 1
+	}
 
-		// 获取表的列信息
-		var columns []struct {
-			ColumnName string `db:"COLUMN_NAME"`
-		}
-		err = tx.Select(&columns, `
+	// 获取sort数值
+	var sort int
+	err = tx.Get(&sort, fmt.Sprintf("SELECT IFNULL(MAX(sort), 0) FROM %s WHERE parent_id = ?", table_name), dimensionItem.ParentID)
+	if err != nil {
+		return 0, fmt.Errorf("get max sort failed: %v", err)
+	}
+	dimensionItem.Sort = sort + 1
+
+	// 获取表的列信息
+	var columns []struct {
+		ColumnName string `db:"COLUMN_NAME"`
+	}
+	err = tx.Select(&columns, `
 			SELECT COLUMN_NAME 
 			FROM INFORMATION_SCHEMA.COLUMNS 
 			WHERE TABLE_SCHEMA = DATABASE() 
@@ -83,91 +80,89 @@ func (s *DimensionService) CreateDimensionItems(dimensionItems []*model.Dimensio
 				'updated_at', 'updater_id'
 			)
 		`, table_name)
-		if err != nil {
-			return nil, fmt.Errorf("get columns failed: %v", err)
-		}
+	if err != nil {
+		return 0, fmt.Errorf("get columns failed: %v", err)
+	}
 
-		// 构建INSERT语句
-		var insertSQL strings.Builder
-		insertSQL.WriteString(fmt.Sprintf(`
+	// 构建INSERT语句
+	var insertSQL strings.Builder
+	insertSQL.WriteString(fmt.Sprintf(`
 			INSERT INTO %s (
 				node_id, parent_id, name, code, description, 
 				level, sort, status, created_at, creator_id, 
 				updated_at, updater_id
 		`, table_name))
 
-		// 添加自定义列
-		for _, col := range columns {
-			insertSQL.WriteString(", " + col.ColumnName)
-		}
+	// 添加自定义列
+	for _, col := range columns {
+		insertSQL.WriteString(", " + col.ColumnName)
+	}
 
-		insertSQL.WriteString(") VALUES (")
-		insertSQL.WriteString(`
+	insertSQL.WriteString(") VALUES (")
+	insertSQL.WriteString(`
 			:node_id, :parent_id, :name, :code, :description,
 			:level, :sort, :status, Now(), :creator_id,
 			Now(), :updater_id
 		`)
 
-		// 添加自定义列的值
-		for _, col := range columns {
-			insertSQL.WriteString(", :" + col.ColumnName)
-		}
-		insertSQL.WriteString(")")
+	// 添加自定义列的值
+	for _, col := range columns {
+		insertSQL.WriteString(", :" + col.ColumnName)
+	}
+	insertSQL.WriteString(")")
 
-		// 准备参数
-		params := map[string]interface{}{
-			"node_id":     dimension.NodeID,
-			"parent_id":   dimension.ParentID,
-			"name":        dimension.Name,
-			"code":        dimension.Code,
-			"description": dimension.Description,
-			"level":       dimension.Level,
-			"sort":        dimension.Sort,
-			"status":      dimension.Status,
-			"creator_id":  dimension.CreatorID,
-			"updater_id":  dimension.UpdaterID,
-		}
+	// 准备参数
+	params := map[string]interface{}{
+		"node_id":     dimensionItem.NodeID,
+		"parent_id":   dimensionItem.ParentID,
+		"name":        dimensionItem.Name,
+		"code":        dimensionItem.Code,
+		"description": dimensionItem.Description,
+		"level":       dimensionItem.Level,
+		"sort":        dimensionItem.Sort,
+		"status":      dimensionItem.Status,
+		"creator_id":  dimensionItem.CreatorID,
+		"updater_id":  dimensionItem.UpdaterID,
+	}
 
-		// 添加自定义列的值
-		for _, col := range columns {
-			if val, ok := dimension.CustomData[col.ColumnName]; ok {
-				params[col.ColumnName] = val
-			} else {
-				params[col.ColumnName] = "" // 默认空字符串
-			}
+	// 添加自定义列的值
+	for _, col := range columns {
+		if val, ok := dimensionItem.CustomData[col.ColumnName]; ok {
+			params[col.ColumnName] = val
+		} else {
+			params[col.ColumnName] = "" // 默认空字符串
 		}
+	}
 
-		result, err := tx.NamedExec(insertSQL.String(), params)
-		if err != nil {
-			return nil, fmt.Errorf("insert sys_config_dimensions failed: %v", err)
-		}
+	result, err := tx.NamedExec(insertSQL.String(), params)
+	if err != nil {
+		return 0, fmt.Errorf("insert sys_config_dimensions failed: %v", err)
+	}
 
-		// 获取插入的ID
-		id, err := result.LastInsertId()
-		if err != nil {
-			return nil, fmt.Errorf("get last insert id failed: %v", err)
-		}
-		ids = append(ids, uint(id))
+	// 获取插入的ID
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("get last insert id failed: %v", err)
+	}
 
-		// 更新node_id为node_id拼接下划线和id
-		_, err = tx.Exec(fmt.Sprintf(`
+	// 更新node_id为node_id拼接下划线和id
+	_, err = tx.Exec(fmt.Sprintf(`
 			UPDATE %s SET node_id = CASE 
 				WHEN node_id = '' OR node_id IS NULL THEN CAST(? AS CHAR)
 				ELSE CONCAT(node_id, '_', ?)
 			END
 			WHERE id = ?
 		`, table_name), id, id, id)
-		if err != nil {
-			return nil, fmt.Errorf("update node_id failed: %v", err)
-		}
+	if err != nil {
+		return 0, fmt.Errorf("update node_id failed: %v", err)
 	}
 
 	// 提交事务
 	if err := tx.Commit(); err != nil {
-		return nil, fmt.Errorf("commit transaction failed: %v", err)
+		return 0, fmt.Errorf("commit transaction failed: %v", err)
 	}
 
-	return ids, nil
+	return uint(id), nil
 }
 
 // UpdateDimensionItem 更新维度明细配置

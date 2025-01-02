@@ -34,6 +34,9 @@ func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	router.PUT("/dimension/:dim_id/:id", api.UpdateDimensionItemSort)
 	router.DELETE("/dimension/:dim_id", api.DeleteDimensionItems)
 
+	// 菜单明细配置
+	router.GET("/menu/:menu_id", api.GetMenuItems)
+
 	// 数据表明细配置
 	router.POST("/table/:table_id/query", api.QueryTableItems)
 	// router.GET("/table/:table_id", api.GetTableItems)

@@ -59,6 +59,10 @@ func (s *ConfigService) DeleteDimension(id uint) error {
 	return s.dimensionService.DeleteDimension(id)
 }
 
+func (s *ConfigService) GetDimensions(userID uint, appID uint, dimType string) ([]model.GetDimResp, error) {
+	return s.dimensionService.GetDimensions(userID, appID, dimType)
+}
+
 // 数据模型配置相关方法
 func (s *ConfigService) CreateModel(dataModel *model.ConfigModel, creatorID uint) (uint, error) {
 	return s.modelService.CreateModel(dataModel, creatorID)
@@ -102,30 +106,22 @@ func (s *ConfigService) ListForms(appID uint) ([]model.ConfigForm, error) {
 }
 
 // 菜单配置相关方法
-func (s *ConfigService) CreateMenu(menu *model.ConfigMenu, creatorID uint) (uint, error) {
-	return s.menuService.CreateMenu(menu, creatorID)
+func (s *ConfigService) CreateMenu(userID uint, appID uint, menu *model.CreateMenuReq) (uint, error) {
+	return s.menuService.CreateMenu(userID, appID, menu)
 }
 
-func (s *ConfigService) UpdateMenu(menu *model.ConfigMenu, updaterID uint) error {
-	return s.menuService.UpdateMenu(menu, updaterID)
-}
-
-func (s *ConfigService) GetMenuByID(id uint) (*model.ConfigMenu, error) {
-	return s.menuService.GetMenuByID(id)
+func (s *ConfigService) UpdateMenu(menu *model.UpdateMenuReq, updaterID uint, dimID uint) error {
+	return s.menuService.UpdateMenu(menu, updaterID, dimID)
 }
 
 func (s *ConfigService) DeleteMenu(id uint) error {
 	return s.menuService.DeleteMenu(id)
 }
 
-func (s *ConfigService) GetMenus(appID uint, operatorID uint, level *int, parentID *uint, menuType string) ([]model.TreeConfigMenu, error) {
-	return s.menuService.GetMenus(appID, operatorID, level, parentID, menuType)
-}
-
-func (s *ConfigService) UpdateMenuItemSort(userID uint, updaterID uint, menuID uint, parentID uint, sort int) error {
-	return s.menuService.UpdateMenuItemSort(userID, updaterID, menuID, parentID, sort)
-}
-
 func (s *ConfigService) GetSystemMenuID(appID uint) (uint, error) {
 	return s.menuService.GetSystemMenuID(appID)
+}
+
+func (s *ConfigService) GetMenuList(userID uint, appID uint) ([]model.GetDimResp, error) {
+	return s.menuService.GetMenuList(userID, appID)
 }

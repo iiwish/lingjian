@@ -343,3 +343,80 @@ func (s *DimensionService) DeleteDimension(id uint) error {
 
 	return nil
 }
+
+// GetDimensions 获取维度配置列表
+func (s *DimensionService) GetDimensions(userID uint, appID uint, dimType string) ([]model.GetDimResp, error) {
+	// 查询用户在该维度的权限
+	permissionQuery := `
+		SELECT DISTINCT p.dim_id FROM sys_permissions p
+		INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
+		INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
+		WHERE ur.user_id = ? 
+		AND p.status = 1
+	`
+	var permDimIDs []uint
+	err := s.db.Select(&permDimIDs, permissionQuery, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get user permissions failed: %v", err)
+	}
+
+	// 如果没有权限记录,直接返回空值
+	if len(permDimIDs) == 0 {
+		return []model.GetDimResp{}, nil
+	}
+	// 开启事务
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return nil, fmt.Errorf("begin transaction failed: %v", err)
+	}
+	defer tx.Rollback()
+
+	// 查询维度配置
+	var dimensions []model.ConfigDimension
+	if dimType == "" {
+		query, args, err := sqlx.In("SELECT * FROM sys_config_dimensions WHERE app_id = ? AND id IN (?)", appID, permDimIDs)
+		if err != nil {
+			return nil, fmt.Errorf("prepare query failed: %v", err)
+		}
+		query = tx.Rebind(query)
+		err = tx.Select(&dimensions, query, args...)
+		if err != nil {
+			return nil, fmt.Errorf("get dimensions failed: %v", err)
+		}
+	} else {
+		query, args, err := sqlx.In("SELECT * FROM sys_config_dimensions WHERE app_id = ? AND dimension_type = ? AND id IN (?)", appID, dimType, permDimIDs)
+		if err != nil {
+			return nil, fmt.Errorf("prepare query failed: %v", err)
+		}
+		query = tx.Rebind(query)
+		err = tx.Select(&dimensions, query, args...)
+		if err != nil {
+			return nil, fmt.Errorf("get dimensions failed: %v", err)
+		}
+	}
+
+	// 构建返回结果
+	results := make([]model.GetDimResp, 0, len(dimensions))
+	for _, dimension := range dimensions {
+		result := model.GetDimResp{
+			ID:            dimension.ID,
+			AppID:         dimension.AppID,
+			TableName:     dimension.TableName,
+			DisplayName:   dimension.DisplayName,
+			Description:   dimension.Description,
+			DimensionType: dimension.DimensionType,
+			Status:        dimension.Status,
+			CreatedAt:     dimension.CreatedAt,
+			CreatorID:     dimension.CreatorID,
+			UpdatedAt:     dimension.UpdatedAt,
+			UpdaterID:     dimension.UpdaterID,
+			CustomColumns: []model.CustomColumn{},
+		}
+		if err := json.Unmarshal([]byte(dimension.CustomColumns), &result.CustomColumns); err != nil {
+			return nil, fmt.Errorf("unmarshal custom columns failed: %v", err)
+		}
+		results = append(results, result)
+	}
+
+	return results, nil
+}

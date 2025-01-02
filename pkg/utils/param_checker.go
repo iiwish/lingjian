@@ -31,3 +31,10 @@ func IsValidIdentifier(identifier string) bool {
 	var re = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9_]{1,99}$`)
 	return re.MatchString(identifier)
 }
+
+// IsSystemMenu 校验系统菜单格式
+func IsSystemMenu(menu string) bool {
+	// 系统菜单正则：字母开头，允许字母数字下划线，2-50位
+	var re = regexp.MustCompile(`^app[0-9]+_menu_system$|^sys_menu_system$`)
+	return re.MatchString(menu)
+}
