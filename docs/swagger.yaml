@@ -118,32 +118,6 @@ definitions:
         - $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.LogicOperator'
         description: 逻辑运算符
     type: object
-  github_com_iiwish_lingjian_internal_model.ConfigDimension:
-    properties:
-      app_id:
-        type: integer
-      created_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-      creator_id:
-        type: integer
-      custom_columns:
-        type: string
-      description:
-        type: string
-      display_name:
-        type: string
-      id:
-        type: integer
-      status:
-        description: 0:禁用 1:启用
-        type: integer
-      table_name:
-        type: string
-      updated_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-      updater_id:
-        type: integer
-    type: object
   github_com_iiwish_lingjian_internal_model.ConfigForm:
     properties:
       app_id:
@@ -286,11 +260,78 @@ definitions:
         type: array
       description:
         type: string
+      dimension_type:
+        type: string
       display_name:
         type: string
       parent_id:
         type: integer
       table_name:
+        type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.CreateDimensionItemReq:
+    properties:
+      code:
+        description: 编码
+        type: string
+      custom_data:
+        additionalProperties:
+          type: string
+        description: 自定义列数据
+        type: object
+      description:
+        description: 描述
+        type: string
+      name:
+        description: 名称
+        type: string
+      parent_id:
+        description: 父节点ID
+        type: integer
+      status:
+        description: 状态
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.CreateMenuItemReq:
+    properties:
+      code:
+        description: 编码
+        type: string
+      description:
+        description: 描述
+        type: string
+      icon_path:
+        description: 菜单图标
+        type: string
+      menu_type:
+        description: 菜单类型
+        type: integer
+      name:
+        description: 名称
+        type: string
+      parent_id:
+        description: 父节点ID
+        type: integer
+      source_id:
+        description: 菜单图标
+        type: integer
+      status:
+        description: 状态
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.CreateMenuReq:
+    properties:
+      description:
+        description: 描述
+        type: string
+      menu_name:
+        description: 名称
+        type: string
+      parent_id:
+        description: 父节点ID
+        type: integer
+      table_name:
+        description: 数据表名
         type: string
     type: object
   github_com_iiwish_lingjian_internal_model.CreateTableReq:
@@ -328,55 +369,6 @@ definitions:
         description: 列名
         type: string
     type: object
-  github_com_iiwish_lingjian_internal_model.DimensionItem:
-    properties:
-      code:
-        description: 编码
-        type: string
-      created_at:
-        allOf:
-        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-        description: 创建时间
-      creator_id:
-        description: 创建者ID
-        type: integer
-      custom_data:
-        additionalProperties:
-          type: string
-        description: 自定义列数据
-        type: object
-      description:
-        description: 描述
-        type: string
-      id:
-        description: 主键ID
-        type: integer
-      level:
-        description: 层级
-        type: integer
-      name:
-        description: 名称
-        type: string
-      node_id:
-        description: 节点ID
-        type: string
-      parent_id:
-        description: 父节点ID
-        type: integer
-      sort:
-        description: 排序
-        type: integer
-      status:
-        description: 状态
-        type: integer
-      updated_at:
-        allOf:
-        - $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-        description: 更新时间
-      updater_id:
-        description: 更新者ID
-        type: integer
-    type: object
   github_com_iiwish_lingjian_internal_model.Field:
     properties:
       auto_increment:
@@ -409,6 +401,36 @@ definitions:
         allOf:
         - $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.UpdateTypeString'
         description: 更新类型：add, drop, modify
+    type: object
+  github_com_iiwish_lingjian_internal_model.GetDimResp:
+    properties:
+      app_id:
+        type: integer
+      created_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      creator_id:
+        type: integer
+      custom_columns:
+        description: 自定义列定义
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CustomColumn'
+        type: array
+      description:
+        type: string
+      dimension_type:
+        type: string
+      display_name:
+        type: string
+      id:
+        type: integer
+      status:
+        type: integer
+      table_name:
+        type: string
+      updated_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      updater_id:
+        type: integer
     type: object
   github_com_iiwish_lingjian_internal_model.Index:
     properties:
@@ -601,48 +623,6 @@ definitions:
         description: 表名
         type: string
     type: object
-  github_com_iiwish_lingjian_internal_model.TreeConfigMenu:
-    properties:
-      app_id:
-        type: integer
-      children:
-        description: 子菜单列表
-        items:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
-        type: array
-      created_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-      creator_id:
-        type: integer
-      icon:
-        type: string
-      id:
-        type: integer
-      level:
-        type: integer
-      menu_code:
-        type: string
-      menu_name:
-        type: string
-      menu_type:
-        type: integer
-      node_id:
-        type: string
-      parent_id:
-        type: integer
-      path:
-        type: string
-      sort:
-        type: integer
-      source_id:
-        type: integer
-      status:
-        type: integer
-      updated_at:
-        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
-      updater_id:
-        type: integer
-    type: object
   github_com_iiwish_lingjian_internal_model.TreeDimensionItem:
     properties:
       children:
@@ -697,6 +677,67 @@ definitions:
         description: 更新者ID
         type: integer
     type: object
+  github_com_iiwish_lingjian_internal_model.TreeMenuItem:
+    properties:
+      children:
+        description: 子菜单列表
+        items:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeMenuItem'
+        type: array
+      created_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      creator_id:
+        type: integer
+      icon_path:
+        type: string
+      id:
+        type: integer
+      level:
+        type: integer
+      menu_code:
+        type: string
+      menu_name:
+        type: string
+      menu_type:
+        type: integer
+      node_id:
+        type: string
+      parent_id:
+        type: integer
+      sort:
+        type: integer
+      source_id:
+        type: integer
+      status:
+        type: integer
+      updated_at:
+        $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
+      updater_id:
+        type: integer
+    type: object
+  github_com_iiwish_lingjian_internal_model.UpdateDimensionItemReq:
+    properties:
+      code:
+        description: 编码
+        type: string
+      custom_data:
+        additionalProperties:
+          type: string
+        description: 自定义列数据
+        type: object
+      description:
+        description: 描述
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      name:
+        description: 名称
+        type: string
+      status:
+        description: 状态
+        type: integer
+    type: object
   github_com_iiwish_lingjian_internal_model.UpdateDimensionReq:
     properties:
       custom_columns:
@@ -712,6 +753,33 @@ definitions:
         type: integer
       table_name:
         type: string
+    type: object
+  github_com_iiwish_lingjian_internal_model.UpdateMenuItemReq:
+    properties:
+      code:
+        description: 编码
+        type: string
+      description:
+        description: 描述
+        type: string
+      icon_path:
+        description: 菜单图标
+        type: string
+      id:
+        description: 主键ID
+        type: integer
+      menu_type:
+        description: 菜单类型
+        type: integer
+      name:
+        description: 名称
+        type: string
+      source_id:
+        description: 菜单图标
+        type: integer
+      status:
+        description: 状态
+        type: integer
     type: object
   github_com_iiwish_lingjian_internal_model.UpdateTableItemsRequest:
     properties:
@@ -1433,6 +1501,40 @@ paths:
       tags:
       - Auth
   /config/dimensions:
+    get:
+      consumes:
+      - application/json
+      description: 获取维度配置列表
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 维度类型
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
+      summary: 获取维度配置列表
+      tags:
+      - ConfigDimension
     post:
       consumes:
       - application/json
@@ -1539,7 +1641,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension'
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.GetDimResp'
         "400":
           description: Bad Request
           schema:
@@ -1803,53 +1905,6 @@ paths:
       summary: 更新表单配置
       tags:
       - ConfigForm
-  /config/menu/{menu_id}/{id}:
-    put:
-      consumes:
-      - application/json
-      description: 更新菜单项的排序和父节点
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 菜单ID
-        in: path
-        name: menu_id
-        required: true
-        type: integer
-      - description: 菜单项ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: 父节点ID
-        in: query
-        name: parent
-        type: integer
-      - description: 排序值
-        in: query
-        name: sort
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: 成功
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
-      security:
-      - Bearer: []
-      summary: 更新菜单项排序和父节点
-      tags:
-      - ConfigMenu
   /config/menu/sysid:
     get:
       consumes:
@@ -1885,29 +1940,12 @@ paths:
     get:
       consumes:
       - application/json
-      description: 根据可选的 level、parent_id 和 type 参数获取菜单列表
+      description: 获取菜单配置列表
       parameters:
       - description: Bearer token
         in: header
         name: Authorization
         required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 菜单级别
-        in: query
-        name: level
-        type: integer
-      - description: 父菜单ID
-        in: query
-        name: parent_id
-        type: integer
-      - description: 菜单类型，可选值为 'children'、'descendants' , 默认为 'children'
-        in: query
-        name: type
         type: string
       produces:
       - application/json
@@ -1915,9 +1953,7 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu'
-            type: array
+            $ref: '#/definitions/api_v1_config.Response'
         "400":
           description: Bad Request
           schema:
@@ -1928,7 +1964,7 @@ paths:
             $ref: '#/definitions/api_v1_config.Response'
       security:
       - Bearer: []
-      summary: 获取菜单列表
+      summary: 获取菜单配置列表
       tags:
       - ConfigMenu
     post:
@@ -1951,7 +1987,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CreateMenuReq'
       produces:
       - application/json
       responses:
@@ -2009,46 +2045,6 @@ paths:
       security:
       - Bearer: []
       summary: 删除菜单配置
-      tags:
-      - ConfigMenu
-    get:
-      consumes:
-      - application/json
-      description: 获取指定菜单配置的详细信息
-      parameters:
-      - description: Bearer token
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      - description: 应用ID
-        in: header
-        name: App-ID
-        required: true
-        type: string
-      - description: 配置ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/api_v1_config.Response'
-      security:
-      - Bearer: []
-      summary: 获取菜单配置详情
       tags:
       - ConfigMenu
     put:
@@ -2470,7 +2466,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: 批量删除指定的维度配置项
+      description: 批量删除指定的维度项
       parameters:
       - description: Bearer token
         in: header
@@ -2505,13 +2501,13 @@ paths:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 批量删除维度配置项
+      summary: 批量删除维度项
       tags:
       - Dimension
     get:
       consumes:
       - application/json
-      description: 获取指定维度的配置项树
+      description: 获取指定维度的项树
       parameters:
       - description: Bearer token
         in: header
@@ -2556,13 +2552,13 @@ paths:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 获取维度配置项树
+      summary: 获取维度项树
       tags:
       - Dimension
     post:
       consumes:
       - application/json
-      description: 批量创建新的维度配置项
+      description: 批量创建新的维度项
       parameters:
       - description: Bearer token
         in: header
@@ -2574,14 +2570,12 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 批量创建维度配置项的请求参数
+      - description: 创建维度项的请求参数
         in: body
         name: dimensions
         required: true
         schema:
-          items:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem'
-          type: array
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CreateDimensionItemReq'
       produces:
       - application/json
       responses:
@@ -2599,13 +2593,13 @@ paths:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 批量创建维度配置项
+      summary: 批量创建维度项
       tags:
       - Dimension
     put:
       consumes:
       - application/json
-      description: 更新已存在的维度配置项
+      description: 更新已存在的维度项
       parameters:
       - description: Bearer token
         in: header
@@ -2622,19 +2616,19 @@ paths:
         name: id
         required: true
         type: integer
-      - description: 更新维度配置项的请求参数
+      - description: 更新维度项的请求参数
         in: body
         name: dimension
         required: true
         schema:
-          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem'
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.UpdateDimensionItemReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem'
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
         "400":
           description: Bad Request
           schema:
@@ -2645,14 +2639,14 @@ paths:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 更新维度配置项
+      summary: 更新维度项
       tags:
       - Dimension
   /dimension/{dim_id}/{id}:
     put:
       consumes:
       - application/json
-      description: 更新维度配置项的排序和父节点
+      description: 更新维度项的排序和父节点
       parameters:
       - description: Bearer token
         in: header
@@ -2692,9 +2686,247 @@ paths:
             $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
       security:
       - Bearer: []
-      summary: 更新维度配置项排序和父节点
+      summary: 更新维度项排序和父节点
       tags:
       - Dimension
+  /dimension/{menu_id}/{id}:
+    put:
+      consumes:
+      - application/json
+      description: 更新菜单项的排序和父节点
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 菜单ID
+        in: path
+        name: menu_id
+        required: true
+        type: integer
+      - description: 菜单项ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 父节点ID
+        in: query
+        name: parent
+        type: integer
+      - description: 排序值
+        in: query
+        name: sort
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 更新菜单项排序和父节点
+      tags:
+      - Dimension
+  /menu/{menu_id}:
+    get:
+      consumes:
+      - application/json
+      description: 获取菜单明细树
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 菜单ID
+        in: path
+        name: menu_id
+        required: true
+        type: integer
+      - description: 节点ID，不指定则返回整个维度配置项树
+        in: query
+        name: id
+        type: integer
+      - description: 菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'
+        in: query
+        name: type
+        type: string
+      - description: 树的层级，可选值为 0、1、2、3， 默认为 0不指定层级
+        in: query
+        name: level
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 获取菜单明细树
+      tags:
+      - Menu
+    post:
+      consumes:
+      - application/json
+      description: 创建新的菜单明细
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 创建菜单明细请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CreateMenuItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 创建菜单明细
+      tags:
+      - Menu
+  /menu/{menu_id}/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除指定的菜单明细
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 菜单ID
+        in: path
+        name: menu_id
+        required: true
+        type: integer
+      - description: 菜单明细ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 删除菜单明细
+      tags:
+      - Menu
+    put:
+      consumes:
+      - application/json
+      description: 更新已存在的菜单明细
+      parameters:
+      - description: Bearer Token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 菜单ID
+        in: path
+        name: menu_id
+        required: true
+        type: integer
+      - description: 菜单明细ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 更新菜单明细请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.UpdateMenuItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 更新菜单明细
+      tags:
+      - Menu
   /permissions:
     get:
       consumes:

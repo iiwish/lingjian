@@ -833,6 +833,59 @@ const docTemplate = `{
             }
         },
         "/config/dimensions": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取维度配置列表",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ConfigDimension"
+                ],
+                "summary": "获取维度配置列表",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "维度类型",
+                        "name": "type",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api_v1_config.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -942,7 +995,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigDimension"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.GetDimResp"
                         }
                     },
                     "400": {
@@ -1450,78 +1503,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/config/menu/{menu_id}/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "更新菜单项的排序和父节点",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ConfigMenu"
-                ],
-                "summary": "更新菜单项排序和父节点",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "菜单ID",
-                        "name": "menu_id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "菜单项ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "父节点ID",
-                        "name": "parent",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "排序值",
-                        "name": "sort",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "成功"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/config/menus": {
             "get": {
                 "security": [
@@ -1529,7 +1510,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "根据可选的 level、parent_id 和 type 参数获取菜单列表",
+                "description": "获取菜单配置列表",
                 "consumes": [
                     "application/json"
                 ],
@@ -1539,7 +1520,7 @@ const docTemplate = `{
                 "tags": [
                     "ConfigMenu"
                 ],
-                "summary": "获取菜单列表",
+                "summary": "获取菜单配置列表",
                 "parameters": [
                     {
                         "type": "string",
@@ -1547,41 +1528,13 @@ const docTemplate = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "菜单级别",
-                        "name": "level",
-                        "in": "query"
-                    },
-                    {
-                        "type": "integer",
-                        "description": "父菜单ID",
-                        "name": "parent_id",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "菜单类型，可选值为 'children'、'descendants' , 默认为 'children'",
-                        "name": "type",
-                        "in": "query"
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu"
-                            }
+                            "$ref": "#/definitions/api_v1_config.Response"
                         }
                     },
                     "400": {
@@ -1636,7 +1589,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CreateMenuReq"
                         }
                     }
                 ],
@@ -1663,67 +1616,6 @@ const docTemplate = `{
             }
         },
         "/config/menus/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "Bearer": []
-                    }
-                ],
-                "description": "获取指定菜单配置的详细信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "ConfigMenu"
-                ],
-                "summary": "获取菜单配置详情",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer token",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "应用ID",
-                        "name": "App-ID",
-                        "in": "header",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "配置ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/api_v1_config.Response"
-                        }
-                    }
-                }
-            },
             "put": {
                 "security": [
                     {
@@ -2426,7 +2318,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "获取指定维度的配置项树",
+                "description": "获取指定维度的项树",
                 "consumes": [
                     "application/json"
                 ],
@@ -2436,7 +2328,7 @@ const docTemplate = `{
                 "tags": [
                     "Dimension"
                 ],
-                "summary": "获取维度配置项树",
+                "summary": "获取维度项树",
                 "parameters": [
                     {
                         "type": "string",
@@ -2504,7 +2396,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "更新已存在的维度配置项",
+                "description": "更新已存在的维度项",
                 "consumes": [
                     "application/json"
                 ],
@@ -2514,7 +2406,7 @@ const docTemplate = `{
                 "tags": [
                     "Dimension"
                 ],
-                "summary": "更新维度配置项",
+                "summary": "更新维度项",
                 "parameters": [
                     {
                         "type": "string",
@@ -2538,12 +2430,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "更新维度配置项的请求参数",
+                        "description": "更新维度项的请求参数",
                         "name": "dimension",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.UpdateDimensionItemReq"
                         }
                     }
                 ],
@@ -2551,7 +2443,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem"
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
                         }
                     },
                     "400": {
@@ -2574,7 +2466,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "批量创建新的维度配置项",
+                "description": "批量创建新的维度项",
                 "consumes": [
                     "application/json"
                 ],
@@ -2584,7 +2476,7 @@ const docTemplate = `{
                 "tags": [
                     "Dimension"
                 ],
-                "summary": "批量创建维度配置项",
+                "summary": "批量创建维度项",
                 "parameters": [
                     {
                         "type": "string",
@@ -2601,15 +2493,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "批量创建维度配置项的请求参数",
+                        "description": "创建维度项的请求参数",
                         "name": "dimensions",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.DimensionItem"
-                            }
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CreateDimensionItemReq"
                         }
                     }
                 ],
@@ -2640,7 +2529,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "批量删除指定的维度配置项",
+                "description": "批量删除指定的维度项",
                 "consumes": [
                     "application/json"
                 ],
@@ -2650,7 +2539,7 @@ const docTemplate = `{
                 "tags": [
                     "Dimension"
                 ],
-                "summary": "批量删除维度配置项",
+                "summary": "批量删除维度项",
                 "parameters": [
                     {
                         "type": "string",
@@ -2705,7 +2594,7 @@ const docTemplate = `{
                         "Bearer": []
                     }
                 ],
-                "description": "更新维度配置项的排序和父节点",
+                "description": "更新维度项的排序和父节点",
                 "consumes": [
                     "application/json"
                 ],
@@ -2715,7 +2604,7 @@ const docTemplate = `{
                 "tags": [
                     "Dimension"
                 ],
-                "summary": "更新维度配置项排序和父节点",
+                "summary": "更新维度项排序和父节点",
                 "parameters": [
                     {
                         "type": "string",
@@ -2754,6 +2643,369 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "成功"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/dimension/{menu_id}/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新菜单项的排序和父节点",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Dimension"
+                ],
+                "summary": "更新菜单项排序和父节点",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单ID",
+                        "name": "menu_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单项ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "父节点ID",
+                        "name": "parent",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "排序值",
+                        "name": "sort",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "成功"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/menu/{menu_id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "获取菜单明细树",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "获取菜单明细树",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单ID",
+                        "name": "menu_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "节点ID，不指定则返回整个维度配置项树",
+                        "name": "id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'",
+                        "name": "type",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "树的层级，可选值为 0、1、2、3， 默认为 0不指定层级",
+                        "name": "level",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "创建新的菜单明细",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "创建菜单明细",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "创建菜单明细请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CreateMenuItemReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/menu/{menu_id}/{id}": {
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "更新已存在的菜单明细",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "更新菜单明细",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单ID",
+                        "name": "menu_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单明细ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "更新菜单明细请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.UpdateMenuItemReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "删除指定的菜单明细",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Menu"
+                ],
+                "summary": "删除菜单明细",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer Token",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "应用ID",
+                        "name": "App-ID",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单ID",
+                        "name": "menu_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "菜单明细ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.Response"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
@@ -4851,45 +5103,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_iiwish_lingjian_internal_model.ConfigDimension": {
-            "type": "object",
-            "properties": {
-                "app_id": {
-                    "type": "integer"
-                },
-                "created_at": {
-                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
-                },
-                "creator_id": {
-                    "type": "integer"
-                },
-                "custom_columns": {
-                    "type": "string"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "display_name": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "0:禁用 1:启用",
-                    "type": "integer"
-                },
-                "table_name": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
-                },
-                "updater_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "github_com_iiwish_lingjian_internal_model.ConfigForm": {
             "type": "object",
             "properties": {
@@ -5097,6 +5310,9 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "dimension_type": {
+                    "type": "string"
+                },
                 "display_name": {
                     "type": "string"
                 },
@@ -5104,6 +5320,96 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "table_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.CreateDimensionItemReq": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "编码",
+                    "type": "string"
+                },
+                "custom_data": {
+                    "description": "自定义列数据",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "parent_id": {
+                    "description": "父节点ID",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.CreateMenuItemReq": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "编码",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "icon_path": {
+                    "description": "菜单图标",
+                    "type": "string"
+                },
+                "menu_type": {
+                    "description": "菜单类型",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "parent_id": {
+                    "description": "父节点ID",
+                    "type": "integer"
+                },
+                "source_id": {
+                    "description": "菜单图标",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.CreateMenuReq": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "menu_name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "parent_id": {
+                    "description": "父节点ID",
+                    "type": "integer"
+                },
+                "table_name": {
+                    "description": "数据表名",
                     "type": "string"
                 }
             }
@@ -5160,78 +5466,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_iiwish_lingjian_internal_model.DimensionItem": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "description": "编码",
-                    "type": "string"
-                },
-                "created_at": {
-                    "description": "创建时间",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
-                        }
-                    ]
-                },
-                "creator_id": {
-                    "description": "创建者ID",
-                    "type": "integer"
-                },
-                "custom_data": {
-                    "description": "自定义列数据",
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "description": {
-                    "description": "描述",
-                    "type": "string"
-                },
-                "id": {
-                    "description": "主键ID",
-                    "type": "integer"
-                },
-                "level": {
-                    "description": "层级",
-                    "type": "integer"
-                },
-                "name": {
-                    "description": "名称",
-                    "type": "string"
-                },
-                "node_id": {
-                    "description": "节点ID",
-                    "type": "string"
-                },
-                "parent_id": {
-                    "description": "父节点ID",
-                    "type": "integer"
-                },
-                "sort": {
-                    "description": "排序",
-                    "type": "integer"
-                },
-                "status": {
-                    "description": "状态",
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "description": "更新时间",
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
-                        }
-                    ]
-                },
-                "updater_id": {
-                    "description": "更新者ID",
-                    "type": "integer"
-                }
-            }
-        },
         "github_com_iiwish_lingjian_internal_model.Field": {
             "type": "object",
             "properties": {
@@ -5283,6 +5517,51 @@ const docTemplate = `{
                             "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.UpdateTypeString"
                         }
                     ]
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.GetDimResp": {
+            "type": "object",
+            "properties": {
+                "app_id": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
+                },
+                "creator_id": {
+                    "type": "integer"
+                },
+                "custom_columns": {
+                    "description": "自定义列定义",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.CustomColumn"
+                    }
+                },
+                "description": {
+                    "type": "string"
+                },
+                "dimension_type": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "table_name": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
+                },
+                "updater_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -5575,69 +5854,6 @@ const docTemplate = `{
                 }
             }
         },
-        "github_com_iiwish_lingjian_internal_model.TreeConfigMenu": {
-            "type": "object",
-            "properties": {
-                "app_id": {
-                    "type": "integer"
-                },
-                "children": {
-                    "description": "子菜单列表",
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.TreeConfigMenu"
-                    }
-                },
-                "created_at": {
-                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
-                },
-                "creator_id": {
-                    "type": "integer"
-                },
-                "icon": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "level": {
-                    "type": "integer"
-                },
-                "menu_code": {
-                    "type": "string"
-                },
-                "menu_name": {
-                    "type": "string"
-                },
-                "menu_type": {
-                    "type": "integer"
-                },
-                "node_id": {
-                    "type": "string"
-                },
-                "parent_id": {
-                    "type": "integer"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "sort": {
-                    "type": "integer"
-                },
-                "source_id": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "integer"
-                },
-                "updated_at": {
-                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
-                },
-                "updater_id": {
-                    "type": "integer"
-                }
-            }
-        },
         "github_com_iiwish_lingjian_internal_model.TreeDimensionItem": {
             "type": "object",
             "properties": {
@@ -5717,6 +5933,95 @@ const docTemplate = `{
                 }
             }
         },
+        "github_com_iiwish_lingjian_internal_model.TreeMenuItem": {
+            "type": "object",
+            "properties": {
+                "children": {
+                    "description": "子菜单列表",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.TreeMenuItem"
+                    }
+                },
+                "created_at": {
+                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
+                },
+                "creator_id": {
+                    "type": "integer"
+                },
+                "icon_path": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "level": {
+                    "type": "integer"
+                },
+                "menu_code": {
+                    "type": "string"
+                },
+                "menu_name": {
+                    "type": "string"
+                },
+                "menu_type": {
+                    "type": "integer"
+                },
+                "node_id": {
+                    "type": "string"
+                },
+                "parent_id": {
+                    "type": "integer"
+                },
+                "sort": {
+                    "type": "integer"
+                },
+                "source_id": {
+                    "type": "integer"
+                },
+                "status": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "$ref": "#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime"
+                },
+                "updater_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.UpdateDimensionItemReq": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "编码",
+                    "type": "string"
+                },
+                "custom_data": {
+                    "description": "自定义列数据",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键ID",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
+                }
+            }
+        },
         "github_com_iiwish_lingjian_internal_model.UpdateDimensionReq": {
             "type": "object",
             "properties": {
@@ -5738,6 +6043,43 @@ const docTemplate = `{
                 },
                 "table_name": {
                     "type": "string"
+                }
+            }
+        },
+        "github_com_iiwish_lingjian_internal_model.UpdateMenuItemReq": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "编码",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "描述",
+                    "type": "string"
+                },
+                "icon_path": {
+                    "description": "菜单图标",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键ID",
+                    "type": "integer"
+                },
+                "menu_type": {
+                    "description": "菜单类型",
+                    "type": "integer"
+                },
+                "name": {
+                    "description": "名称",
+                    "type": "string"
+                },
+                "source_id": {
+                    "description": "菜单图标",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "状态",
+                    "type": "integer"
                 }
             }
         },

@@ -5,12 +5,25 @@ import (
 	"strconv"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/internal/service/config"
+	"github.com/iiwish/lingjian/internal/service/element"
 	"github.com/iiwish/lingjian/pkg/utils"
 	"github.com/jmoiron/sqlx"
 )
 
 // AppService 应用服务
-type AppService struct{}
+type AppService struct {
+	menuService        *config.MenuService
+	elementMenuService *element.MenuService
+}
+
+// NewAppService 创建应用服务实例
+func NewAppService(db *sqlx.DB) *AppService {
+	return &AppService{
+		menuService:        config.NewMenuService(db),
+		elementMenuService: element.NewMenuService(db),
+	}
+}
 
 // ListApps 获取所有应用列表
 func (s *AppService) ListApps(userID uint) (map[string]interface{}, error) {
@@ -19,8 +32,8 @@ func (s *AppService) ListApps(userID uint) (map[string]interface{}, error) {
 	// 基础查询,添加权限控制
 	appIDs := []uint{}
 	query := `
-        SELECT DISTINCT m.app_id FROM sys_config_menus m
-        INNER JOIN sys_permissions p ON m.id = p.menu_id
+        SELECT DISTINCT m.app_id FROM sys_config_dimensions m
+        INNER JOIN sys_permissions p ON m.id = p.dim_id
         INNER JOIN sys_role_permissions rp ON p.id = rp.permission_id
         INNER JOIN sys_user_roles ur ON rp.role_id = ur.role_id
         WHERE ur.user_id = ?
@@ -98,98 +111,44 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		return nil, err
 	}
 
-	// 插入 'sys' 菜单
-	sysMenu := &model.ConfigMenu{
-		AppID:     uint(appID),
-		ParentID:  0,
-		NodeID:    "", // 先设置为空，避免唯一索引冲突
-		MenuName:  "系统",
-		MenuCode:  "system",
-		MenuType:  1,
-		SourceID:  0,
-		Icon:      "folder",
-		Sort:      1,
-		Status:    1,
-		CreatorID: user_id,
-		UpdaterID: user_id,
+	// 创建系统菜单
+	sysMenuReq := &model.CreateMenuReq{
+		TableName:   "app" + strconv.FormatInt(appID, 10) + "_menu_system",
+		MenuName:    "系统",
+		Description: "系统菜单",
+		ParentID:    0,
 	}
 
-	// 插入 'sys' 菜单
-	menuResult, err := tx.NamedExec(`
-        INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, source_id, icon, sort, status, created_at, creator_id, updated_at, updater_id)
-        VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :source_id, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
-    `, sysMenu)
+	sysMenuID, err := s.menuService.CreateMenu(user_id, uint(appID), sysMenuReq)
 	if err != nil {
 		return nil, err
 	}
 
-	// 获取 'sys' 菜单的 ID
-	sysMenuID, err := menuResult.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-	sysMenu.ID = uint(sysMenuID)
-
-	// 更新 'sys' 菜单的 NodeID
-	sysMenu.NodeID = strconv.FormatUint(uint64(sysMenuID), 10)
-	_, err = tx.Exec(`
-        UPDATE sys_config_menus SET node_id = ? WHERE id = ?
-    `, sysMenu.NodeID, sysMenuID)
-	if err != nil {
-		return nil, err
-	}
-
-	// 插入子菜单
+	// 创建子菜单项
 	childMenus := []struct {
-		MenuName string
-		MenuCode string
-		Icon     string
-		Sort     int
+		Name     string
+		Code     string
+		IconPath string
 	}{
-		{"维度", "dimension", "folder", 1},
-		{"表单", "form", "folder", 2},
-		{"菜单", "menu", "folder", 3},
-		{"模型", "model", "folder", 4},
-		{"数据表", "table", "folder", 5},
+		{"数据表", "table", "folder"},
+		{"维度", "dimension", "folder"},
+		{"菜单", "menu", "folder"},
+		{"表单", "form", "folder"},
+		{"模型", "model", "folder"},
 	}
 
 	for _, item := range childMenus {
-		menu := &model.ConfigMenu{
-			AppID:     uint(appID),
-			ParentID:  sysMenu.ID,
-			NodeID:    "", // 先设置为空，避免唯一索引冲突
-			MenuName:  item.MenuName,
-			MenuCode:  item.MenuCode,
-			MenuType:  1,
-			SourceID:  0,
-			Icon:      item.Icon,
-			Sort:      item.Sort,
-			Status:    1,
-			CreatorID: user_id,
-			UpdaterID: user_id,
+		menuItemReq := &model.CreateMenuItemReq{
+			Name:     item.Name,
+			Code:     item.Code,
+			MenuType: 1,
+			SourceID: 0,
+			IconPath: item.IconPath,
+			Status:   1,
+			ParentID: 0,
 		}
 
-		// 插入子菜单
-		menuResult, err := tx.NamedExec(`
-            INSERT INTO sys_config_menus (app_id, parent_id, node_id, menu_name, menu_code, menu_type, source_id, icon, sort, status, created_at, creator_id, updated_at, updater_id)
-            VALUES (:app_id, :parent_id, :node_id, :menu_name, :menu_code, :menu_type, :source_id, :icon, :sort, :status, NOW(), :creator_id, NOW(), :updater_id)
-        `, menu)
-		if err != nil {
-			return nil, err
-		}
-
-		// 获取子菜单的 ID
-		menuID, err := menuResult.LastInsertId()
-		if err != nil {
-			return nil, err
-		}
-		menu.ID = uint(menuID)
-
-		// 更新子菜单的 NodeID
-		menu.NodeID = sysMenu.NodeID + "_" + strconv.FormatUint(uint64(menuID), 10)
-		_, err = tx.Exec(`
-            UPDATE sys_config_menus SET node_id = ? WHERE id = ?
-        `, menu.NodeID, menuID)
+		_, err := s.elementMenuService.CreateMenuItem(user_id, menuItemReq, sysMenuID)
 		if err != nil {
 			return nil, err
 		}
@@ -202,7 +161,8 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 		Type:        "menu",
 		Path:        "",
 		Method:      "",
-		MenuID:      sysMenu.ID,
+		DimID:       sysMenuID,
+		ItemID:      0,
 		Status:      1,
 		Description: "app" + strconv.FormatInt(appID, 10) + "的系统菜单权限",
 		CreatorID:   user_id,
@@ -312,7 +272,7 @@ func (s *AppService) DeleteApp(id uint, user_id uint) error {
 	}
 
 	// 删除应用下的菜单
-	_, err = tx.Exec("DELETE FROM sys_config_menus WHERE app_id = ?", id)
+	_, err = tx.Exec("DELETE FROM sys_config_dimensions WHERE app_id = ?", id)
 	if err != nil {
 		return err
 	}

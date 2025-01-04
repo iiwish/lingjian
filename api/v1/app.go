@@ -41,7 +41,7 @@ type CreateAppRequest struct {
 // @Router       /apps [get]
 func ListApps(c *gin.Context) {
 	userID := c.GetUint("user_id")
-	appService := &service.AppService{}
+	appService := service.NewAppService(model.DB)
 	result, err := appService.ListApps(userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
@@ -71,7 +71,7 @@ func GetApp(c *gin.Context) {
 	}
 
 	userID := c.GetUint("user_id")
-	appService := &service.AppService{}
+	appService := service.NewAppService(model.DB)
 	result, err := appService.GetAppByID(appID, userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
@@ -104,7 +104,7 @@ func CreateApp(c *gin.Context) {
 	// 获取当前用户ID
 	userID := c.GetUint("user_id")
 
-	appService := &service.AppService{}
+	appService := service.NewAppService(model.DB)
 	result, err := appService.CreateApp(&req, userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
@@ -148,7 +148,7 @@ func UpdateApp(c *gin.Context) {
 
 	log.Printf("UpdateApp: appID=%d, userID=%d, req=%+v", appID, userID, req)
 
-	appService := &service.AppService{}
+	appService := service.NewAppService(model.DB)
 	err := appService.UpdateApp(&req, userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())
@@ -181,7 +181,7 @@ func DeleteApp(c *gin.Context) {
 	// 获取当前用户ID
 	userID := c.GetUint("user_id")
 
-	appService := &service.AppService{}
+	appService := service.NewAppService(model.DB)
 	err := appService.DeleteApp(appID, userID)
 	if err != nil {
 		utils.Error(c, 500, err.Error())

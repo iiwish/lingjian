@@ -127,26 +127,28 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 		return 0, fmt.Errorf("create table failed: %v", err)
 	}
 
-	var menuType int
-	if req.DimensionType == "menu" {
-		menuType = 4
-	} else {
-		menuType = 3
-	}
-	// 插入菜单配置
-	menu := &model.CreateMenuItemReq{
-		ParentID:    req.ParentID,
-		Name:        req.DisplayName,
-		Code:        req.TableName,
-		Description: req.Description,
-		Status:      1,
-		SourceID:    uint(id),
-		MenuType:    menuType,
-		IconPath:    "folder",
-	}
-	_, err = s.menuService.CreateMenuItem(creatorID, menu, appID)
-	if err != nil {
-		return 0, fmt.Errorf("create menu item failed: %v", err)
+	if req.ParentID != 0 {
+		var menuType int
+		if req.DimensionType == "menu" {
+			menuType = 4
+		} else {
+			menuType = 3
+		}
+		// 插入菜单配置
+		menu := &model.CreateMenuItemReq{
+			ParentID:    req.ParentID,
+			Name:        req.DisplayName,
+			Code:        req.TableName,
+			Description: req.Description,
+			Status:      1,
+			SourceID:    uint(id),
+			MenuType:    menuType,
+			IconPath:    "folder",
+		}
+		_, err = s.menuService.CreateMenuItem(creatorID, menu, appID)
+		if err != nil {
+			return 0, fmt.Errorf("create menu item failed: %v", err)
+		}
 	}
 
 	// 提交事务
