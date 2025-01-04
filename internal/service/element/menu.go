@@ -69,8 +69,8 @@ func (s *MenuService) CreateMenuItem(userID uint, menu *model.CreateMenuItemReq,
 	dimService := NewDimensionService(s.db)
 
 	req := &model.CreateDimensionItemReq{
-		Name:        menu.Name,
-		Code:        menu.Code,
+		Name:        menu.MenuName,
+		Code:        menu.MenuCode,
 		Description: menu.Description,
 		Status:      menu.Status,
 		CustomData: map[string]string{
@@ -90,8 +90,8 @@ func (s *MenuService) UpdateMenuItem(menu *model.UpdateMenuItemReq, userID uint,
 
 	req := &model.UpdateDimensionItemReq{
 		ID:          menu.ID,
-		Name:        menu.Name,
-		Code:        menu.Code,
+		Name:        menu.MenuName,
+		Code:        menu.MenuCode,
 		Description: menu.Description,
 		Status:      menu.Status,
 		CustomData: map[string]string{

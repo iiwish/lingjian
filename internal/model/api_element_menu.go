@@ -23,8 +23,8 @@ type TreeMenuItem struct {
 }
 
 type CreateMenuItemReq struct {
-	Name        string `db:"name" json:"name"`               // 名称
-	Code        string `db:"code" json:"code"`               // 编码
+	MenuName    string `db:"menu_name" json:"menu_name"`     // 名称
+	MenuCode    string `db:"menu_code" json:"menu_code"`     // 编码
 	Description string `db:"description" json:"description"` // 描述
 	Status      int    `db:"status" json:"status"`           // 状态
 	SourceID    uint   `db:"source_id" json:"source_id"`     // 菜单图标
@@ -34,8 +34,8 @@ type CreateMenuItemReq struct {
 }
 
 type UpdateMenuItemReq struct {
-	Name        string `db:"name" json:"name"`               // 名称
-	Code        string `db:"code" json:"code"`               // 编码
+	MenuName    string `db:"menu_name" json:"menu_name"`     // 名称
+	MenuCode    string `db:"menu_code" json:"menu_code"`     // 编码
 	Description string `db:"description" json:"description"` // 描述
 	Status      int    `db:"status" json:"status"`           // 状态
 	SourceID    uint   `db:"source_id" json:"source_id"`     // 菜单图标

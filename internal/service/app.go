@@ -139,8 +139,8 @@ func (s *AppService) CreateApp(app *model.App, user_id uint) (*model.App, error)
 
 	for _, item := range childMenus {
 		menuItemReq := &model.CreateMenuItemReq{
-			Name:     item.Name,
-			Code:     item.Code,
+			MenuName: item.Name,
+			MenuCode: item.Code,
 			MenuType: 1,
 			SourceID: 0,
 			IconPath: item.IconPath,

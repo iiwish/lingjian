@@ -5671,10 +5671,13 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "dim_id": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "integer"
                 },
-                "menu_id": {
+                "item_id": {
                     "type": "integer"
                 },
                 "method": {

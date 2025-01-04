@@ -501,9 +501,11 @@ definitions:
         $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.CustomTime'
       description:
         type: string
+      dim_id:
+        type: integer
       id:
         type: integer
-      menu_id:
+      item_id:
         type: integer
       method:
         type: string

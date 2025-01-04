@@ -137,8 +137,8 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 		// 插入菜单配置
 		menu := &model.CreateMenuItemReq{
 			ParentID:    req.ParentID,
-			Name:        req.DisplayName,
-			Code:        req.TableName,
+			MenuName:    req.DisplayName,
+			MenuCode:    req.TableName,
 			Description: req.Description,
 			Status:      1,
 			SourceID:    uint(id),

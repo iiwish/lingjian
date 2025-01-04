@@ -134,8 +134,8 @@ func (s *TableService) CreateTable(tableinfo *model.CreateTableReq, creatorID ui
 	// 创建对应的系统菜单的menu
 	menu := &model.CreateMenuItemReq{
 		ParentID:    tableinfo.ParentID,
-		Name:        table.DisplayName,
-		Code:        table.TableName,
+		MenuName:    table.DisplayName,
+		MenuCode:    table.TableName,
 		Description: table.Description,
 		MenuType:    2, // 表示table类型
 		Status:      1,
