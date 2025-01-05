@@ -270,7 +270,7 @@ func (s *DimensionService) UpdateDimensionItem(reqItem *model.UpdateDimensionIte
 }
 
 // TreeDimensionItems 获取维度明细配置树形结构
-func (s *DimensionService) TreeDimensionItems(userID uint, dim_id uint, id uint, query_type string, query_level uint) ([]model.TreeDimensionItem, error) {
+func (s *DimensionService) TreeDimensionItems(userID uint, dim_id uint, item_id uint, query_type string, query_level uint) ([]model.TreeDimensionItem, error) {
 	// 首先检查用户是否有该维度的权限
 	permissionQuery := `
 		SELECT DISTINCT p.item_id FROM sys_permissions p
@@ -411,18 +411,18 @@ func (s *DimensionService) TreeDimensionItems(userID uint, dim_id uint, id uint,
 	switch query_type {
 	case "children":
 		query.WriteString(" AND parent_id = ?")
-		args = append(args, id)
+		args = append(args, item_id)
 	case "leaves":
-		if id != 0 {
+		if item_id != 0 {
 			query.WriteString(" AND (node_id LIKE CONCAT(?,'_%') OR node_id LIKE CONCAT('%_' , ?,'_%'))")
-			args = append(args, id)
+			args = append(args, item_id)
 		}
 		query.WriteString(" AND NOT EXISTS (SELECT 1 FROM " + tableName + " b WHERE b.parent_id = " + tableName + ".id)")
 	case "descendants":
-		if id != 0 {
+		if item_id != 0 {
 			// 获取节点的node_id
 			var nodeID string
-			err := s.db.Get(&nodeID, "SELECT node_id FROM sys_config_dimensions WHERE id = ?", id)
+			err := s.db.Get(&nodeID, "SELECT node_id FROM sys_config_dimensions WHERE id = ?", item_id)
 			if err != nil {
 				return nil, fmt.Errorf("get node_id failed: %v", err)
 			}
@@ -440,6 +440,8 @@ func (s *DimensionService) TreeDimensionItems(userID uint, dim_id uint, id uint,
 	// 添加排序
 	query.WriteString(" ORDER BY sort ASC, id ASC")
 
+	// 打印查询语句
+	fmt.Println(query.String(), args)
 	// 执行查询
 	rows, err := s.db.Queryx(query.String(), args...)
 	if err != nil {
@@ -459,20 +461,60 @@ func (s *DimensionService) TreeDimensionItems(userID uint, dim_id uint, id uint,
 			return nil, fmt.Errorf("scan row failed: %v", err)
 		}
 
+		// 辅助函数：安全地将interface{}转换为uint
+		toUint := func(v interface{}) uint {
+			switch val := v.(type) {
+			case int64:
+				return uint(val)
+			case []byte:
+				return utils.ParseUint(string(val))
+			case string:
+				return utils.ParseUint(val)
+			default:
+				return 0
+			}
+		}
+
+		// 辅助函数：安全地将interface{}转换为string
+		toString := func(v interface{}) string {
+			switch val := v.(type) {
+			case []byte:
+				return string(val)
+			case string:
+				return val
+			default:
+				return fmt.Sprintf("%v", val)
+			}
+		}
+
+		// 辅助函数：安全地将interface{}转换为int
+		toInt := func(v interface{}) int {
+			switch val := v.(type) {
+			case int64:
+				return int(val)
+			case []byte:
+				return utils.ParseInt(string(val))
+			case string:
+				return utils.ParseInt(val)
+			default:
+				return 0
+			}
+		}
+
 		// 设置基础字段
-		item.ID = utils.ParseUint(string(data["id"].([]byte)))
-		item.NodeID = string(data["node_id"].([]byte))
-		item.ParentID = utils.ParseUint(string(data["parent_id"].([]byte)))
-		item.Name = string(data["name"].([]byte))
-		item.Code = string(data["code"].([]byte))
-		item.Description = string(data["description"].([]byte))
-		item.Level = utils.ParseInt(string(data["level"].([]byte)))
-		item.Sort = utils.ParseInt(string(data["sort"].([]byte)))
-		item.Status = utils.ParseInt(string(data["status"].([]byte)))
+		item.ID = toUint(data["id"])
+		item.NodeID = toString(data["node_id"])
+		item.ParentID = toUint(data["parent_id"])
+		item.Name = toString(data["name"])
+		item.Code = toString(data["code"])
+		item.Description = toString(data["description"])
+		item.Level = toInt(data["level"])
+		item.Sort = toInt(data["sort"])
+		item.Status = toInt(data["status"])
 		item.CreatedAt = utils.NewCustomTime(data["created_at"].(time.Time))
-		item.CreatorID = utils.ParseUint(string(data["creator_id"].([]byte)))
+		item.CreatorID = toUint(data["creator_id"])
 		item.UpdatedAt = utils.NewCustomTime(data["updated_at"].(time.Time))
-		item.UpdaterID = utils.ParseUint(string(data["updater_id"].([]byte)))
+		item.UpdaterID = toUint(data["updater_id"])
 
 		// 设置自定义列的值
 		for _, col := range columns {

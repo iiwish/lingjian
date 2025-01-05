@@ -16,7 +16,7 @@ import (
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
 // @Param        dim_id  path int true "维度ID"
-// @Param        id 	query int     false "节点ID，不指定则返回整个维度配置项树"
+// @Param        parent_id 	query int     false "节点ID，不指定则返回整个维度配置项树"
 // @Param 	 	 type      query    string  false  "菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'"
 // @Param 	  	 level     query    int     false  "树的层级，可选值为 0、1、2、3， 默认为 0不指定层级"
 // @Success      200 {array}   []model.TreeDimensionItem
@@ -31,9 +31,9 @@ func (api *ElementAPI) GetDimensionItems(c *gin.Context) {
 		return
 	}
 	// 获取请求参数
-	node_id := c.Query("id")
-	if node_id == "" {
-		node_id = "0"
+	parent_id := c.Query("parent_id")
+	if parent_id == "" {
+		parent_id = "0"
 	}
 
 	// 获取query参数
@@ -46,7 +46,7 @@ func (api *ElementAPI) GetDimensionItems(c *gin.Context) {
 	}
 
 	userID := c.GetUint("user_id")
-	items, err := api.elementService.TreeDimensionItems(userID, utils.ParseUint(id), utils.ParseUint(node_id), query_type, utils.ParseUint(query_level))
+	items, err := api.elementService.TreeDimensionItems(userID, utils.ParseUint(id), utils.ParseUint(parent_id), query_type, utils.ParseUint(query_level))
 	if err != nil {
 		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return

@@ -17,7 +17,7 @@ import (
 // @Param        Authorization header string true "Bearer Token"
 // @Param        App-ID header string true "应用ID"
 // @Param        menu_id  path int true "菜单ID"
-// @Param        id 	query int     false "节点ID，不指定则返回整个维度配置项树"
+// @Param        parent_id 	query int     false "节点ID，不指定则返回整个维度配置项树"
 // @Param 	 	 type      query    string  false  "菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'"
 // @Param 	  	 level     query    int     false  "树的层级，可选值为 0、1、2、3， 默认为 0不指定层级"
 // @Success      200 {array}   []model.TreeMenuItem
@@ -34,7 +34,7 @@ func (api *ElementAPI) GetMenuItems(c *gin.Context) {
 	}
 
 	// 获取请求参数
-	nodeID := utils.ParseUint(c.Query("id"))
+	nodeID := utils.ParseUint(c.Query("parent_id"))
 
 	// 获取query参数
 	queryLevel := utils.ParseUint(c.Query("level"))

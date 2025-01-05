@@ -5359,10 +5359,6 @@ const docTemplate = `{
         "github_com_iiwish_lingjian_internal_model.CreateMenuItemReq": {
             "type": "object",
             "properties": {
-                "code": {
-                    "description": "编码",
-                    "type": "string"
-                },
                 "description": {
                     "description": "描述",
                     "type": "string"
@@ -5371,13 +5367,17 @@ const docTemplate = `{
                     "description": "菜单图标",
                     "type": "string"
                 },
+                "menu_code": {
+                    "description": "编码",
+                    "type": "string"
+                },
+                "menu_name": {
+                    "description": "名称",
+                    "type": "string"
+                },
                 "menu_type": {
                     "description": "菜单类型",
                     "type": "integer"
-                },
-                "name": {
-                    "description": "名称",
-                    "type": "string"
                 },
                 "parent_id": {
                     "description": "父节点ID",
@@ -6052,10 +6052,6 @@ const docTemplate = `{
         "github_com_iiwish_lingjian_internal_model.UpdateMenuItemReq": {
             "type": "object",
             "properties": {
-                "code": {
-                    "description": "编码",
-                    "type": "string"
-                },
                 "description": {
                     "description": "描述",
                     "type": "string"
@@ -6068,13 +6064,17 @@ const docTemplate = `{
                     "description": "主键ID",
                     "type": "integer"
                 },
+                "menu_code": {
+                    "description": "编码",
+                    "type": "string"
+                },
+                "menu_name": {
+                    "description": "名称",
+                    "type": "string"
+                },
                 "menu_type": {
                     "description": "菜单类型",
                     "type": "integer"
-                },
-                "name": {
-                    "description": "名称",
-                    "type": "string"
                 },
                 "source_id": {
                     "description": "菜单图标",
