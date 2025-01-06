@@ -125,3 +125,7 @@ func (s *ConfigService) GetSystemMenuID(appID uint) (uint, error) {
 func (s *ConfigService) GetMenuList(userID uint, appID uint) ([]model.GetDimResp, error) {
 	return s.menuService.GetMenuList(userID, appID)
 }
+
+func (s *ConfigService) GetMenuByID(id uint) (*model.GetDimResp, error) {
+	return s.menuService.GetMenuByID(id)
+}

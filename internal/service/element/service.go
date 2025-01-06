@@ -81,3 +81,7 @@ func (s *ElementService) DeleteMenuItem(operatorID uint, menuID uint, itemIDs []
 func (s *ElementService) UpdateMenuItemSort(userID uint, menuID uint, itemID uint, parentID uint, sort int) error {
 	return s.menuService.UpdateMenuItemSort(userID, menuID, itemID, parentID, sort)
 }
+
+func (s *ElementService) CreateSysMenu(appID uint, userID uint, menu *model.CreateMenuItemReq) error {
+	return s.menuService.CreateSysMenu(appID, userID, menu)
+}

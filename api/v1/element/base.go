@@ -35,6 +35,8 @@ func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	router.DELETE("/dimension/:dim_id", api.DeleteDimensionItems)
 
 	// 菜单明细配置
+	router.POST("/menu", api.CreateSysMenuItem)
+
 	router.GET("/menu/:menu_id", api.GetMenuItems)
 	router.POST("/menu/:menu_id", api.CreateMenuItem)
 	router.PUT("/menu/:menu_id/:id", api.UpdateMenuItem)

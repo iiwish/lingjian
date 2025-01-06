@@ -17,7 +17,7 @@ func (s *PermissionService) ListPermissions() ([]model.Permission, error) {
 }
 
 // CreatePermission 创建权限
-func (s *PermissionService) CreatePermission(operatorID uint, req *model.Permission) error {
+func (s *PermissionService) CreatePermission(operatorID uint, req *model.Permission) (int64, error) {
 	req.CreatorID = operatorID
 	req.UpdaterID = operatorID
 
@@ -25,19 +25,29 @@ func (s *PermissionService) CreatePermission(operatorID uint, req *model.Permiss
 	var count int
 	err := model.DB.Get(&count, "SELECT COUNT(*) FROM sys_permissions WHERE code = ?", req.Code)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	if count > 0 {
-		return errors.New("权限代码已存在")
+		return 0, errors.New("权限代码已存在")
 	}
 
 	// 创建权限
-	_, err = model.DB.Exec(`
+	res, err := model.DB.Exec(`
 		INSERT INTO sys_permissions (name, code, type, path, method, menu_id, status, description, created_at, creator_id, updated_at, updater_id)
 		VALUES (:name, :code, :type, :path, :method, :menu_id, :status, :description, NOW(), :creator_id, NOW(), :updater_id)
 	`, req)
 
-	return err
+	if err != nil {
+		return 0, err
+	}
+
+	// 获取新创建的权限ID
+	id, err := res.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return id, err
 }
 
 // UpdatePermission 更新权限

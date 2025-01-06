@@ -227,3 +227,35 @@ func (api *ElementAPI) UpdateMenuItemSort(c *gin.Context) {
 
 	utils.Success(c, nil)
 }
+
+// @Summary      创建系统菜单
+// @Description  创建系统菜单
+// @Tags         Menu
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
+// @Param        request body model.CreateMenuItemReq true "创建系统菜单请求参数"
+// @Success      200  {object}  utils.Response
+// @Failure      400  {object}  utils.Response
+// @Failure      500  {object}  utils.Response
+// @Router       /menu [post]
+func (api *ElementAPI) CreateSysMenuItem(c *gin.Context) {
+
+	// 绑定请求参数
+	var req model.CreateMenuItemReq
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	userID := c.GetUint("user_id")
+	appID := c.GetUint("app_id")
+	if err := api.elementService.CreateSysMenu(appID, userID, &req); err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	utils.Success(c, nil)
+}

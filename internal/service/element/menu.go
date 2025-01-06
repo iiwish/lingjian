@@ -84,7 +84,7 @@ func (s *MenuService) CreateMenuItem(userID uint, menu *model.CreateMenuItemReq,
 	return dimService.CreateDimensionItem(req, userID, menuID)
 }
 
-// UpdateMenu 更新菜单明细
+// UpdateMenuItem 更新菜单明细
 func (s *MenuService) UpdateMenuItem(menu *model.UpdateMenuItemReq, userID uint, menuID uint) error {
 	dimService := NewDimensionService(s.db)
 
@@ -104,7 +104,7 @@ func (s *MenuService) UpdateMenuItem(menu *model.UpdateMenuItemReq, userID uint,
 	return dimService.UpdateDimensionItem(req, userID, menuID)
 }
 
-// DeleteMenu 删除菜单明细
+// DeleteMenuItem 删除菜单明细
 func (s *MenuService) DeleteMenuItem(operatorID uint, menuID uint, itemIDs []uint) error {
 	dimService := NewDimensionService(s.db)
 	return dimService.DeleteDimensionItems(operatorID, menuID, itemIDs)
@@ -121,7 +121,7 @@ func (s *MenuService) CreateSysMenu(appID uint, user_id uint, sysMenu *model.Cre
 
 	// 获取系统菜单表名
 	var sysMenuTableName string
-	if appID == 0 {
+	if appID == 1 {
 		sysMenuTableName = "sys_menu_system"
 	} else {
 		sysMenuTableName = "app" + utils.Uint2String(appID) + "_menu_system"

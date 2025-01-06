@@ -68,6 +68,12 @@ func (s *MenuService) GetMenuList(userID uint, appID uint) ([]model.GetDimResp, 
 	return dimService.GetDimensions(userID, appID, "menu")
 }
 
+// GetMenuByID 获取菜单配置
+func (s *MenuService) GetMenuByID(id uint) (*model.GetDimResp, error) {
+	dimService := NewDimensionService(s.db)
+	return dimService.GetDimension(id)
+}
+
 // GetSystemMenuID 获取系统菜单ID
 func (s *MenuService) GetSystemMenuID(appID uint) (uint, error) {
 	var id uint

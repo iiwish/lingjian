@@ -52,6 +52,7 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		config.GET("/menus", api.GetMenuList)
 		config.POST("/menus", api.CreateMenu)
 		config.PUT("/menus/:id", api.UpdateMenu)
+		config.GET("/menus/:id", api.GetMenuByID)
 		config.GET("/menus/sysid", api.GetSystemMenuID)
 		config.DELETE("/menus/:id", api.DeleteMenu)
 

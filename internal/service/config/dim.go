@@ -73,11 +73,13 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 
 	// 插入维度配置
 	result, err := tx.NamedExec(`
-		INSERT INTO sys_config_dimensions (
-			app_id, table_name, display_name, description, dimension_type, status, created_at, creator_id, updated_at, updater_id
-		) VALUES (
-			:app_id, :table_name, :display_name, :description, :dimension_type, :status, NOW(), :creator_id, NOW(), :creator_id
-		)
+	INSERT INTO sys_config_dimensions (
+		app_id, table_name, display_name, description, dimension_type, status, 
+		created_at, creator_id, updated_at, updater_id, custom_columns
+	) VALUES (
+		:app_id, :table_name, :display_name, :description, :dimension_type, :status, 
+		NOW(), :creator_id, NOW(), :creator_id, :custom_columns
+	)
 	`, dimDB)
 
 	if err != nil {
@@ -127,28 +129,68 @@ func (s *DimensionService) CreateDimension(req *model.CreateDimReq, creatorID ui
 		return 0, fmt.Errorf("create table failed: %v", err)
 	}
 
-	if req.ParentID != 0 {
-		var menuType int
-		if req.DimensionType == "menu" {
-			menuType = 4
-		} else {
-			menuType = 3
-		}
-		// 插入菜单配置
-		menu := &model.CreateMenuItemReq{
-			ParentID:    req.ParentID,
-			MenuName:    req.DisplayName,
-			MenuCode:    req.TableName,
-			Description: req.Description,
-			Status:      1,
-			SourceID:    uint(id),
-			MenuType:    menuType,
-			IconPath:    "folder",
-		}
-		_, err = s.menuService.CreateMenuItem(creatorID, menu, appID)
-		if err != nil {
-			return 0, fmt.Errorf("create menu item failed: %v", err)
-		}
+	// 插入菜单配置
+	var menuType int
+	if req.DimensionType == "menu" {
+		menuType = 4
+	} else {
+		menuType = 3
+	}
+	menu := &model.CreateMenuItemReq{
+		ParentID:    req.ParentID,
+		MenuName:    req.DisplayName,
+		MenuCode:    req.TableName,
+		Description: req.Description,
+		Status:      1,
+		SourceID:    uint(id),
+		MenuType:    menuType,
+		IconPath:    "folder",
+	}
+	err = s.menuService.CreateSysMenu(appID, creatorID, menu)
+	if err != nil {
+		return 0, fmt.Errorf("create menu item failed: %v", err)
+	}
+
+	// 添加权限
+	permission := &model.Permission{
+		Name:        req.DisplayName,
+		Code:        req.TableName,
+		Type:        "dim",
+		Path:        "",
+		Method:      "",
+		DimID:       uint(id),
+		ItemID:      0,
+		Status:      1,
+		Description: req.Description,
+		CreatorID:   creatorID,
+		UpdaterID:   creatorID,
+	}
+	res, err := tx.NamedExec(`
+		INSERT INTO sys_permissions (name, code, type, path, method, dim_id, item_id, status, description, created_at, creator_id, updated_at, updater_id)
+		VALUES (:name, :code, :type, :path, :method, :dim_id, :item_id, :status, :description, NOW(), :creator_id, NOW(), :updater_id)
+	`, permission)
+	if err != nil {
+		return 0, fmt.Errorf("insert permission failed: %v", err)
+	}
+
+	// 获取新创建的权限ID
+	permID, err := res.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("get last insert id failed: %v", err)
+	}
+
+	// 创建角色权限关联
+	rolePerm := &model.RolePermission{
+		RoleID:       1,
+		PermissionID: uint(permID),
+		CreatorID:    creatorID,
+	}
+	_, err = tx.NamedExec(`
+		INSERT INTO sys_role_permissions (role_id, permission_id, created_at, creator_id)
+		VALUES (:role_id, :permission_id, NOW(), :creator_id)
+	`, rolePerm)
+	if err != nil {
+		return 0, fmt.Errorf("insert role permission failed: %v", err)
 	}
 
 	// 提交事务

@@ -100,7 +100,7 @@ func (api *ElementAPI) CreateDimensionItem(c *gin.Context) {
 		return
 	}
 
-	utils.Success(c, gin.H{"ids": ids})
+	utils.Success(c, gin.H{"id": ids})
 }
 
 // @Summary      更新维度项

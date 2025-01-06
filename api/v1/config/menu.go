@@ -153,3 +153,32 @@ func (api *ConfigAPI) GetMenuList(c *gin.Context) {
 
 	utils.Success(c, menus)
 }
+
+// @Summary      获取菜单配置
+// @Description  获取指定的菜单配置
+// @Tags         ConfigMenu
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        Authorization header string true "Bearer token"
+// @Param        App-ID header string true "应用ID"
+// @Param        id path int true "配置ID"
+// @Success      200  {object}  model.ConfigMenu
+// @Failure      400  {object}  Response
+// @Failure      500  {object}  Response
+// @Router       /config/menus/{id} [get]
+func (api *ConfigAPI) GetMenuByID(c *gin.Context) {
+	id := utils.ParseUint(c.Param("id"))
+	if id == 0 {
+		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
+		return
+	}
+
+	menu, err := api.configService.GetMenuByID(uint(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		return
+	}
+
+	utils.Success(c, menu)
+}

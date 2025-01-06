@@ -56,12 +56,13 @@ func CreatePermission(c *gin.Context) {
 	}
 
 	permissionService := &rbac.PermissionService{}
-	if err := permissionService.CreatePermission(operatorID, &req); err != nil {
+	id, err := permissionService.CreatePermission(operatorID, &req)
+	if err != nil {
 		utils.Error(c, 500, err.Error())
 		return
 	}
 
-	utils.Success(c, nil)
+	utils.Success(c, gin.H{"id": id})
 }
 
 // @Summary      更新权限

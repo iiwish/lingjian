@@ -2049,6 +2049,46 @@ paths:
       summary: 删除菜单配置
       tags:
       - ConfigMenu
+    get:
+      consumes:
+      - application/json
+      description: 获取指定的菜单配置
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 配置ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.ConfigMenu'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api_v1_config.Response'
+      security:
+      - Bearer: []
+      summary: 获取菜单配置
+      tags:
+      - ConfigMenu
     put:
       consumes:
       - application/json
@@ -2523,7 +2563,7 @@ paths:
         type: integer
       - description: 节点ID，不指定则返回整个维度配置项树
         in: query
-        name: id
+        name: parent_id
         type: integer
       - description: 菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'
         in: query
@@ -2738,6 +2778,89 @@ paths:
       summary: 更新菜单项排序和父节点
       tags:
       - Dimension
+  /menu:
+    post:
+      consumes:
+      - application/json
+      description: 创建系统菜单
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 创建系统菜单请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/github_com_iiwish_lingjian_internal_model.CreateMenuItemReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 创建系统菜单
+      tags:
+      - Menu
+  /menu/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 删除系统菜单
+      parameters:
+      - description: Bearer token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 应用ID
+        in: header
+        name: App-ID
+        required: true
+        type: string
+      - description: 菜单ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/github_com_iiwish_lingjian_pkg_utils.Response'
+      security:
+      - Bearer: []
+      summary: 删除系统菜单
+      tags:
+      - Menu
   /menu/{menu_id}:
     get:
       consumes:
@@ -2761,7 +2884,7 @@ paths:
         type: integer
       - description: 节点ID，不指定则返回整个维度配置项树
         in: query
-        name: id
+        name: parent_id
         type: integer
       - description: 菜单类型，可选值为 'children'、'descendants'、'leaves' , 默认为 'descendants'
         in: query
