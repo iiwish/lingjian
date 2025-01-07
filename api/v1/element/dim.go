@@ -116,7 +116,7 @@ func (api *ElementAPI) CreateDimensionItem(c *gin.Context) {
 // @Success      200        {object}  utils.Response
 // @Failure      400        {object}  utils.Response
 // @Failure      500        {object}  utils.Response
-// @Router       /dimension/{dim_id} [put]
+// @Router       /dimension/{dim_id}/{id} [put]
 func (api *ElementAPI) UpdateDimensionItem(c *gin.Context) {
 	// 获取id参数
 	id := c.Param("id")
@@ -209,7 +209,7 @@ func (api *ElementAPI) DeleteDimensionItems(c *gin.Context) {
 // @Success      200  {object}  nil	"成功"
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /dimension/{dim_id}/{id} [put]
+// @Router       /dimension/{dim_id}/{id}/sort [put]
 func (api *ElementAPI) UpdateDimensionItemSort(c *gin.Context) {
 	// 获取dimID参数
 	dimID := c.Param("dim_id")

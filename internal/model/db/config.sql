@@ -40,7 +40,6 @@ CREATE TABLE IF NOT EXISTS sys_config_models (
     description VARCHAR(200) DEFAULT '' COMMENT '描述',
     configuration JSON COMMENT '模型配置，包含表关系、关联字段等',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 0:禁用 1:启用',
-    version INT NOT NULL DEFAULT 1 COMMENT '版本号',
     created_at DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
     creator_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建人ID',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -59,7 +58,6 @@ CREATE TABLE IF NOT EXISTS sys_config_forms (
     description VARCHAR(200) DEFAULT '' COMMENT '描述',
     configuration JSON COMMENT '表单配置，包含元素类型、布局等',
     status TINYINT NOT NULL DEFAULT 1 COMMENT '状态 0:禁用 1:启用',
-    version INT NOT NULL DEFAULT 1 COMMENT '版本号',
     created_at DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
     creator_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建人ID',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
@@ -88,17 +86,3 @@ CREATE TABLE IF NOT EXISTS sys_config_menus (
     updater_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新人ID',
     UNIQUE KEY uk_app_menu (app_id, node_id) COMMENT '应用ID和节点ID唯一索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='菜单配置' COLLATE=utf8mb4_general_ci;
-
--- 配置版本记录
-CREATE TABLE IF NOT EXISTS sys_config_versions (
-    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
-    app_id BIGINT UNSIGNED NOT NULL COMMENT '应用ID',
-    config_type VARCHAR(20) NOT NULL COMMENT '配置类型：table, dimension, model, form_',
-    config_id BIGINT UNSIGNED NOT NULL COMMENT '配置ID',
-    version INT NOT NULL DEFAULT 1 COMMENT '版本号',
-    comment VARCHAR(255) DEFAULT '' COMMENT '版本说明',
-    creator_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建人ID',
-    created_at DATETIME NOT NULL DEFAULT '1901-01-01 00:00:00' COMMENT '创建时间',
-    updater_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新人ID',
-    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='配置版本记录' COLLATE=utf8mb4_general_ci;

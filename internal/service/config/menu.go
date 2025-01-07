@@ -77,7 +77,7 @@ func (s *MenuService) GetMenuByID(id uint) (*model.GetDimResp, error) {
 // GetSystemMenuID 获取系统菜单ID
 func (s *MenuService) GetSystemMenuID(appID uint) (uint, error) {
 	var id uint
-	err := s.db.Get(&id, "SELECT id FROM sys_config_dimensions WHERE menu_code like '%_menu_system' AND app_id = ?", appID)
+	err := s.db.Get(&id, "SELECT id FROM sys_config_dimensions WHERE table_name like '%_menu_system' AND app_id = ?", appID)
 	if err != nil {
 		return 0, fmt.Errorf("get system menu id failed: %v", err)
 	}

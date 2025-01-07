@@ -59,7 +59,6 @@ func (api *ConfigAPI) RegisterRoutes(router *gin.RouterGroup) {
 		// 数据模型配置
 		config.POST("/models", api.CreateModel)
 		config.PUT("/models/:id", api.UpdateModel)
-		// config.GET("/models", api.ListModels)
 		config.GET("/models/:id", api.GetModel)
 		config.DELETE("/models/:id", api.DeleteModel)
 

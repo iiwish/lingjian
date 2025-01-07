@@ -180,7 +180,7 @@ func (api *ElementAPI) DeleteMenuItem(c *gin.Context) {
 
 // @Summary      更新菜单项排序和父节点
 // @Description  更新菜单项的排序和父节点
-// @Tags         Dimension
+// @Tags         Menu
 // @Accept       json
 // @Produce      json
 // @Security     Bearer
@@ -192,7 +192,7 @@ func (api *ElementAPI) DeleteMenuItem(c *gin.Context) {
 // @Success      200  {object}  nil	"成功"
 // @Failure      400  {object}  utils.Response
 // @Failure      500  {object}  utils.Response
-// @Router       /dimension/{menu_id}/{id} [put]
+// @Router       /menu/{menu_id}/{id}/sort [put]
 func (api *ElementAPI) UpdateMenuItemSort(c *gin.Context) {
 	// 获取menuID参数
 	menuID := utils.ParseUint(c.Param("menu_id"))
@@ -210,9 +210,6 @@ func (api *ElementAPI) UpdateMenuItemSort(c *gin.Context) {
 
 	// 获取请求参数
 	parent := utils.ParseUint(c.Query("parent"))
-	if parent == 0 {
-		utils.Error(c, http.StatusBadRequest, "parent不能为空")
-	}
 
 	sort := utils.ParseInt(c.Query("sort"))
 	if sort == 0 {

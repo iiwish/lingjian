@@ -41,8 +41,7 @@ type ConfigModel struct {
 	DisplayName   string           `db:"display_name" json:"display_name"`
 	Description   string           `db:"description" json:"description"`
 	Configuration string           `db:"configuration" json:"configuration"`
-	Status        int              `db:"status" json:"status"`   // 0:禁用 1:启用
-	Version       int              `db:"version" json:"version"` // 版本号
+	Status        int              `db:"status" json:"status"` // 0:禁用 1:启用
 	CreatedAt     utils.CustomTime `db:"created_at" json:"created_at"`
 	CreatorID     uint             `db:"creator_id" json:"creator_id"`
 	UpdatedAt     utils.CustomTime `db:"updated_at" json:"updated_at"`
@@ -59,8 +58,7 @@ type ConfigForm struct {
 	DisplayName   string           `db:"display_name" json:"display_name"`
 	Description   string           `db:"description" json:"description"`
 	Configuration string           `db:"configuration" json:"configuration"`
-	Status        int              `db:"status" json:"status"`   // 0:禁用 1:启用
-	Version       int              `db:"version" json:"version"` // 版本号
+	Status        int              `db:"status" json:"status"` // 0:禁用 1:启用
 	CreatedAt     utils.CustomTime `db:"created_at" json:"created_at"`
 	CreatorID     uint             `db:"creator_id" json:"creator_id"`
 	UpdatedAt     utils.CustomTime `db:"updated_at" json:"updated_at"`
@@ -85,18 +83,4 @@ type ConfigMenu struct {
 	CreatorID uint             `db:"creator_id" json:"creator_id"`
 	UpdatedAt utils.CustomTime `db:"updated_at" json:"updated_at"`
 	UpdaterID uint             `db:"updater_id" json:"updater_id"`
-}
-
-// ConfigVersion 配置版本记录
-type ConfigVersion struct {
-	ID         uint             `db:"id" json:"id"`
-	AppID      uint             `db:"app_id" json:"app_id"`
-	ConfigType string           `db:"config_type" json:"config_type"` // table:数据表 dimension:维度 model:数据模型 form:表单
-	ConfigID   uint             `db:"config_id" json:"config_id"`     // 配置ID
-	Version    int              `db:"version" json:"version"`         // 版本号
-	Comment    string           `db:"comment" json:"comment"`         // 版本说明
-	CreatedAt  utils.CustomTime `db:"created_at" json:"created_at"`
-	CreatorID  uint             `db:"creator_id" json:"creator_id"` // 创建人ID
-	UpdateAt   utils.CustomTime `db:"updated_at" json:"updated_at"`
-	UpdaterID  uint             `db:"updater_id" json:"updater_id"` // 更新人ID
 }

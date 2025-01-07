@@ -64,24 +64,20 @@ func (s *ConfigService) GetDimensions(userID uint, appID uint, dimType string) (
 }
 
 // 数据模型配置相关方法
-func (s *ConfigService) CreateModel(dataModel *model.ConfigModel, creatorID uint) (uint, error) {
-	return s.modelService.CreateModel(dataModel, creatorID)
+func (s *ConfigService) CreateModel(appID uint, userID uint, dataModel *model.CreateModelReq) (uint, error) {
+	return s.modelService.CreateModel(appID, userID, dataModel)
 }
 
-func (s *ConfigService) UpdateModel(dataModel *model.ConfigModel, updaterID uint) error {
-	return s.modelService.UpdateModel(dataModel, updaterID)
+func (s *ConfigService) UpdateModel(appID uint, userID uint, dataModel *model.UpdateModelReq) error {
+	return s.modelService.UpdateModel(appID, userID, dataModel)
 }
 
-func (s *ConfigService) GetModel(id uint) (*model.ConfigModel, error) {
+func (s *ConfigService) GetModel(id uint) (*model.ModelResp, error) {
 	return s.modelService.GetModel(id)
 }
 
 func (s *ConfigService) DeleteModel(id uint) error {
 	return s.modelService.DeleteModel(id)
-}
-
-func (s *ConfigService) ListModels(appID uint) ([]model.ConfigModel, error) {
-	return s.modelService.ListModels(appID)
 }
 
 // 表单配置相关方法

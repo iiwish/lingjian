@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 
+	"encoding/json"
+
 	"github.com/iiwish/lingjian/internal/model"
 	"github.com/jmoiron/sqlx"
 )
@@ -17,14 +19,36 @@ func NewModelService(db *sqlx.DB) *ModelService {
 	return &ModelService{db: db}
 }
 
+func toJSONString2(v interface{}) string {
+	if v == nil {
+		return "{}"
+	}
+	bytes, err := json.Marshal(v)
+	if err != nil {
+		return "{}"
+	}
+	return string(bytes)
+}
+
 // CreateModel 创建数据模型配置
-func (s *ModelService) CreateModel(dataModel *model.ConfigModel, creatorID uint) (uint, error) {
+func (s *ModelService) CreateModel(appID uint, userID uint, Req *model.CreateModelReq) (uint, error) {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return 0, fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
+
+	dataModel := &model.ConfigModel{
+		AppID:         appID,
+		ModelName:     Req.ModelName,
+		DisplayName:   Req.DisplayName,
+		Description:   Req.Description,
+		Configuration: toJSONString2(Req.Configuration),
+		Status:        1,
+		CreatorID:     userID,
+		UpdaterID:     userID,
+	}
 
 	// 插入数据模型配置
 	result, err := tx.NamedExec(`
@@ -53,13 +77,24 @@ func (s *ModelService) CreateModel(dataModel *model.ConfigModel, creatorID uint)
 }
 
 // UpdateModel 更新数据模型配置
-func (s *ModelService) UpdateModel(dataModel *model.ConfigModel, updaterID uint) error {
+func (s *ModelService) UpdateModel(appID uint, userID uint, Req *model.UpdateModelReq) error {
 	// 开启事务
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return fmt.Errorf("begin transaction failed: %v", err)
 	}
 	defer tx.Rollback()
+
+	dataModel := &model.ConfigModel{
+		ID:            Req.ID,
+		AppID:         appID,
+		ModelName:     Req.ModelName,
+		DisplayName:   Req.DisplayName,
+		Description:   Req.Description,
+		Configuration: toJSONString2(Req.Configuration),
+		Status:        Req.Status,
+		UpdaterID:     userID,
+	}
 
 	// 更新数据模型配置
 	_, err = tx.NamedExec(`
@@ -86,13 +121,29 @@ func (s *ModelService) UpdateModel(dataModel *model.ConfigModel, updaterID uint)
 }
 
 // GetModel 获取数据模型配置
-func (s *ModelService) GetModel(id uint) (*model.ConfigModel, error) {
+func (s *ModelService) GetModel(id uint) (*model.ModelResp, error) {
 	var dataModel model.ConfigModel
 	err := s.db.Get(&dataModel, "SELECT * FROM sys_config_models WHERE id = ?", id)
 	if err != nil {
 		return nil, fmt.Errorf("get model failed: %v", err)
 	}
-	return &dataModel, nil
+
+	var configItem model.ModelConfigItem
+	err = json.Unmarshal([]byte(dataModel.Configuration), &configItem)
+	if err != nil {
+		return nil, fmt.Errorf("unmarshal configuration failed: %v", err)
+	}
+
+	resp := model.ModelResp{
+		ID:            dataModel.ID,
+		ModelName:     dataModel.ModelName,
+		DisplayName:   dataModel.DisplayName,
+		Description:   dataModel.Description,
+		Configuration: configItem,
+		Status:        dataModel.Status,
+	}
+
+	return &resp, nil
 }
 
 // DeleteModel 删除数据模型配置
@@ -116,14 +167,4 @@ func (s *ModelService) DeleteModel(id uint) error {
 	}
 
 	return nil
-}
-
-// ListModels 获取数据模型配置列表
-func (s *ModelService) ListModels(appID uint) ([]model.ConfigModel, error) {
-	var models []model.ConfigModel
-	err := s.db.Select(&models, "SELECT id, app_id, model_name, display_name, description, status, version, created_at, creator_id, updated_at, updater_id FROM sys_config_models WHERE app_id = ? AND status = 1 ORDER BY id DESC", appID)
-	if err != nil {
-		return nil, fmt.Errorf("list models failed: %v", err)
-	}
-	return models, nil
 }

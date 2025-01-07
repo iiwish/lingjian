@@ -30,8 +30,6 @@ func (s *FormService) CreateForm(form *model.ConfigForm, creatorID uint) (uint, 
 	}
 	defer tx.Rollback()
 
-	// 设置初始版本
-	form.Version = 1
 	form.Status = 1
 
 	// 插入表单配置

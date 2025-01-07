@@ -17,26 +17,27 @@ import (
 // @Security     Bearer
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
-// @Param        request body model.ConfigModel true "创建数据模型配置请求参数"
+// @Param        request body model.CreateModelReq true "创建数据模型配置请求参数"
 // @Success      201  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/models [post]
 func (api *ConfigAPI) CreateModel(c *gin.Context) {
-	var req model.ConfigModel
+	var req model.CreateModelReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
+		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	userID := c.GetUint("user_id")
-	id, err := api.configService.CreateModel(&req, userID)
+	appID := c.GetUint("app_id")
+	id, err := api.configService.CreateModel(appID, userID, &req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"ID": id})
+	utils.Success(c, gin.H{"id": id})
 }
 
 // @Summary      更新数据模型配置
@@ -48,60 +49,33 @@ func (api *ConfigAPI) CreateModel(c *gin.Context) {
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
-// @Param        request body model.ConfigModel true "更新数据模型配置请求参数"
-// @Success      200  {object}  model.ConfigModel
+// @Param        request body model.UpdateModelReq true "更新数据模型配置请求参数"
+// @Success      200  {object}  Response
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/models/{id} [put]
 func (api *ConfigAPI) UpdateModel(c *gin.Context) {
 	id := utils.ParseUint(c.Param("id"))
 	if id == 0 {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
+		utils.Error(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
-	var dataModel model.ConfigModel
+	var dataModel model.UpdateModelReq
 	if err := c.ShouldBindJSON(&dataModel); err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: err.Error()})
+		utils.Error(c, http.StatusBadRequest, err.Error())
 		return
 	}
 	dataModel.ID = uint(id)
 
 	userID := c.GetUint("user_id")
-	if err := api.configService.UpdateModel(&dataModel, userID); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+	appID := c.GetUint("app_id")
+	if err := api.configService.UpdateModel(appID, userID, &dataModel); err != nil {
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, dataModel)
-}
-
-// @Summary      获取数据模型配置列表
-// @Description  获取指定应用的数据模型配置列表
-// @Tags         ConfigModel
-// @Accept       json
-// @Produce      json
-// @Security     Bearer
-// @Param        Authorization header string true "Bearer token"
-// @Param        App-ID header string true "应用ID"
-// @Success      200  {array}   model.ConfigModel
-// @Failure      400  {object}  Response
-// @Failure      500  {object}  Response
-// @Router       /config/models [get]
-func (api *ConfigAPI) ListModels(c *gin.Context) {
-	appID, err := strconv.ParseUint(c.Query("app_id"), 10, 64)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid app_id"})
-		return
-	}
-
-	models, err := api.configService.ListModels(uint(appID))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, models)
+	utils.Success(c, nil)
 }
 
 // @Summary      获取数据模型配置详情
@@ -113,24 +87,24 @@ func (api *ConfigAPI) ListModels(c *gin.Context) {
 // @Param        Authorization header string true "Bearer token"
 // @Param        App-ID header string true "应用ID"
 // @Param        id path int true "配置ID"
-// @Success      200  {object}  model.ConfigModel
+// @Success      200  {object}  model.ModelResp
 // @Failure      400  {object}  Response
 // @Failure      500  {object}  Response
 // @Router       /config/models/{id} [get]
 func (api *ConfigAPI) GetModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
+		utils.Error(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	dataModel, err := api.configService.GetModel(uint(id))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.JSON(http.StatusOK, dataModel)
+	utils.Success(c, dataModel)
 }
 
 // @Summary      删除数据模型配置
@@ -149,14 +123,14 @@ func (api *ConfigAPI) GetModel(c *gin.Context) {
 func (api *ConfigAPI) DeleteModel(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, Response{Error: "invalid id"})
+		utils.Error(c, http.StatusBadRequest, "invalid id")
 		return
 	}
 
 	if err := api.configService.DeleteModel(uint(id)); err != nil {
-		c.JSON(http.StatusInternalServerError, Response{Error: err.Error()})
+		utils.Error(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	utils.Success(c, nil)
 }

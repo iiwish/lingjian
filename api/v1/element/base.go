@@ -30,8 +30,8 @@ func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	// 维度明细配置
 	router.GET("/dimension/:dim_id", api.GetDimensionItems)
 	router.POST("/dimension/:dim_id", api.CreateDimensionItem)
-	router.PUT("/dimension/:dim_id", api.UpdateDimensionItem)
-	router.PUT("/dimension/:dim_id/:id", api.UpdateDimensionItemSort)
+	router.PUT("/dimension/:dim_id/:id", api.UpdateDimensionItem)
+	router.PUT("/dimension/:dim_id/:id/sort", api.UpdateDimensionItemSort)
 	router.DELETE("/dimension/:dim_id", api.DeleteDimensionItems)
 
 	// 菜单明细配置
@@ -40,6 +40,7 @@ func (api *ElementAPI) RegisterRoutes(router *gin.RouterGroup) {
 	router.GET("/menu/:menu_id", api.GetMenuItems)
 	router.POST("/menu/:menu_id", api.CreateMenuItem)
 	router.PUT("/menu/:menu_id/:id", api.UpdateMenuItem)
+	router.PUT("/menu/:menu_id/:id/sort", api.UpdateMenuItemSort)
 	router.DELETE("/menu/:menu_id/:id", api.DeleteMenuItem)
 
 	// 数据表明细配置
