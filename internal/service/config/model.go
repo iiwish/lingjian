@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 
 	"github.com/iiwish/lingjian/internal/model"
+	"github.com/iiwish/lingjian/internal/service/element"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -66,6 +67,24 @@ func (s *ModelService) CreateModel(appID uint, userID uint, Req *model.CreateMod
 	id, err := result.LastInsertId()
 	if err != nil {
 		return 0, fmt.Errorf("get last insert id failed: %v", err)
+	}
+
+	// 创建对应的系统菜单的menu
+	menuService := element.NewMenuService(s.db)
+	menu := &model.CreateMenuItemReq{
+		ParentID:    Req.ParentID,
+		MenuName:    dataModel.DisplayName,
+		MenuCode:    dataModel.ModelName,
+		Description: dataModel.Description,
+		MenuType:    5, // 表示model类型
+		Status:      1,
+		IconPath:    "model",
+		SourceID:    uint(id),
+	}
+
+	err = menuService.CreateSysMenu(appID, userID, menu)
+	if err != nil {
+		return 0, fmt.Errorf("create menu failed: %v", err)
 	}
 
 	// 提交事务
