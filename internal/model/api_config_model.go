@@ -32,10 +32,11 @@ type ModelResp struct {
 
 // ModelConfigItemDim 数据模型配置项维度
 type ModelConfigItemDim struct {
-	Field  string `json:"field"`
-	DimID  uint   `json:"dim_id"`
-	ItemID uint   `json:"item_id"`
-	Type   string `json:"type"`
+	TableField string `json:"table_field"`
+	DimField   string `json:"dim_field"`
+	DimID      uint   `json:"dim_id"`
+	ItemID     uint   `json:"item_id"`
+	Type       string `json:"type"`
 }
 
 // ModelConfigItemRelField 定义关系字段映射
@@ -52,7 +53,7 @@ type ModelConfigItemRel struct {
 
 // ModelConfigItem 数据模型配置项
 type ModelConfigItem struct {
-	TableID       string               `json:"table_id"`
+	TableID       uint                 `json:"table_id"`
 	Dimensions    []ModelConfigItemDim `json:"dimensions"`
 	Relationships ModelConfigItemRel   `json:"relationships"`
 	Childrens     []ModelConfigItem    `json:"childrens"`

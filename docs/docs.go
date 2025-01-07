@@ -5685,21 +5685,24 @@ const docTemplate = `{
                     "$ref": "#/definitions/github_com_iiwish_lingjian_internal_model.ModelConfigItemRel"
                 },
                 "table_id": {
-                    "type": "string"
+                    "type": "integer"
                 }
             }
         },
         "github_com_iiwish_lingjian_internal_model.ModelConfigItemDim": {
             "type": "object",
             "properties": {
+                "dim_field": {
+                    "type": "string"
+                },
                 "dim_id": {
                     "type": "integer"
                 },
-                "field": {
-                    "type": "string"
-                },
                 "item_id": {
                     "type": "integer"
+                },
+                "table_field": {
+                    "type": "string"
                 },
                 "type": {
                     "type": "string"
