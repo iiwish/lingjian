@@ -3,7 +3,7 @@ package model
 // CreateModelReq 创建模型请求参数
 type CreateModelReq struct {
 	ParentID      uint            `json:"parent_id"`
-	ModelName     string          `json:"model_name"`
+	ModelCode     string          `json:"model_code"`
 	DisplayName   string          `json:"display_name"`
 	Description   string          `json:"description"`
 	Configuration ModelConfigItem `json:"configuration"`
@@ -13,7 +13,7 @@ type CreateModelReq struct {
 // UpdateModelReq 更新模型请求参数
 type UpdateModelReq struct {
 	ID            uint            `json:"id"`
-	ModelName     string          `json:"model_name"`
+	ModelCode     string          `json:"model_code"`
 	DisplayName   string          `json:"display_name"`
 	Description   string          `json:"description"`
 	Configuration ModelConfigItem `json:"configuration"`
@@ -23,7 +23,7 @@ type UpdateModelReq struct {
 // ModelResp 数据模型
 type ModelResp struct {
 	ID            uint            `json:"id"`
-	ModelName     string          `json:"model_name"`
+	ModelCode     string          `json:"model_code"`
 	DisplayName   string          `json:"display_name"`
 	Description   string          `json:"description"`
 	Configuration ModelConfigItem `json:"configuration"`

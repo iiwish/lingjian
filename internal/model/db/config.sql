@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS sys_config_dimensions (
 CREATE TABLE IF NOT EXISTS sys_config_models (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键ID',
     app_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '应用ID',
-    model_name VARCHAR(64) NOT NULL DEFAULT '' COMMENT '模型名称',
+    model_code VARCHAR(64) NOT NULL DEFAULT '' COMMENT '模型名称',
     display_name VARCHAR(64) NOT NULL DEFAULT '' COMMENT '显示名称',
     description VARCHAR(200) DEFAULT '' COMMENT '描述',
     configuration JSON COMMENT '模型配置，包含表关系、关联字段等',
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS sys_config_models (
     creator_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '创建人ID',
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     updater_id BIGINT UNSIGNED NOT NULL DEFAULT 0 COMMENT '更新人ID',
-    UNIQUE KEY uk_app_model (app_id, model_name) COMMENT '应用ID和模型名称唯一索引'
+    UNIQUE KEY uk_app_model (app_id, model_code) COMMENT '应用ID和模型名称唯一索引'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='数据模型配置' COLLATE=utf8mb4_general_ci;
 
 -- 表单配置

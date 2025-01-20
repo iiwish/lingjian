@@ -42,7 +42,7 @@ func (s *ModelService) CreateModel(appID uint, userID uint, Req *model.CreateMod
 
 	dataModel := &model.ConfigModel{
 		AppID:         appID,
-		ModelName:     Req.ModelName,
+		ModelCode:     Req.ModelCode,
 		DisplayName:   Req.DisplayName,
 		Description:   Req.Description,
 		Configuration: toJSONString2(Req.Configuration),
@@ -54,9 +54,9 @@ func (s *ModelService) CreateModel(appID uint, userID uint, Req *model.CreateMod
 	// 插入数据模型配置
 	result, err := tx.NamedExec(`
 		INSERT INTO sys_config_models (
-			app_id, model_name, display_name, discription, configuration,status, created_at, creator_id, updated_at, updater_id
+			app_id, model_code, display_name, discription, configuration,status, created_at, creator_id, updated_at, updater_id
 		) VALUES (
-			:app_id, :model_name, :display_name, :discription, :configuration, :status, NOW(), :creator_id, NOW(), :creator_id
+			:app_id, :model_code, :display_name, :discription, :configuration, :status, NOW(), :creator_id, NOW(), :creator_id
 		)
 	`, dataModel)
 	if err != nil {
@@ -74,7 +74,7 @@ func (s *ModelService) CreateModel(appID uint, userID uint, Req *model.CreateMod
 	menu := &model.CreateMenuItemReq{
 		ParentID:    Req.ParentID,
 		MenuName:    dataModel.DisplayName,
-		MenuCode:    dataModel.ModelName,
+		MenuCode:    dataModel.ModelCode,
 		Description: dataModel.Description,
 		MenuType:    5, // 表示model类型
 		Status:      1,
@@ -107,7 +107,7 @@ func (s *ModelService) UpdateModel(appID uint, userID uint, Req *model.UpdateMod
 	dataModel := &model.ConfigModel{
 		ID:            Req.ID,
 		AppID:         appID,
-		ModelName:     Req.ModelName,
+		ModelCode:     Req.ModelCode,
 		DisplayName:   Req.DisplayName,
 		Description:   Req.Description,
 		Configuration: toJSONString2(Req.Configuration),
@@ -155,7 +155,7 @@ func (s *ModelService) GetModel(id uint) (*model.ModelResp, error) {
 
 	resp := model.ModelResp{
 		ID:            dataModel.ID,
-		ModelName:     dataModel.ModelName,
+		ModelCode:     dataModel.ModelCode,
 		DisplayName:   dataModel.DisplayName,
 		Description:   dataModel.Description,
 		Configuration: configItem,
