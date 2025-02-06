@@ -33,20 +33,29 @@ LingJian是一个开源的低代码平台，支持多应用管理、可视化配
 ## 系统架构
 
 ```
-├── api             # API接口层
-│   └── v1          # V1版本接口
-├── cmd             # 主程序入口
-│   ├── server      # API服务器
-│   └── worker      # 任务处理器
-├── config          # 配置文件
-├── docs            # 文档
-├── internal        # 内部包
-│   ├── middleware  # 中间件
-│   ├── model       # 数据模型
-│   └── service     # 业务逻辑
-└── pkg             # 公共包
-    ├── queue       # 消息队列
-    └── utils       # 工具函数
+├── api                 # API接口层
+│   └── v1             # V1版本接口
+│       ├── auth       # 认证相关
+│       ├── config     # 配置管理
+│       ├── element    # 元素管理
+│       ├── rbac       # 权限管理
+│       └── task       # 任务管理
+├── cmd                # 主程序入口
+│   ├── server        # API服务器
+│   └── worker        # 任务处理器
+├── config            # 配置文件
+├── docs              # API文档
+├── internal          # 内部包
+│   ├── middleware    # 中间件
+│   ├── model        # 数据模型
+│   ├── service      # 业务逻辑
+│   └── test         # 测试用例
+└── pkg              # 公共包
+    ├── queue        # 消息队列
+    ├── redis        # Redis工具
+    ├── store        # 存储接口
+    └── utils        # 工具函数
+```
 ```
 
 ## 数据库设计
@@ -281,5 +290,4 @@ go test ./...
 
 ## 许可证
 
-Apache-2.0 license
-如果您将此项目用于商业用途，请遵守Apache2.0协议并保留作者技术支持声明。
+本项目采用 Apache-2.0 许可证 - 查看 [LICENSE](LICENSE) 文件了解详细信息。

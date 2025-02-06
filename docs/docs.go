@@ -5450,7 +5450,7 @@ const docTemplate = `{
                 "display_name": {
                     "type": "string"
                 },
-                "model_name": {
+                "model_code": {
                     "type": "string"
                 },
                 "parent_id": {
@@ -5749,7 +5749,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "model_name": {
+                "model_code": {
                     "type": "string"
                 },
                 "status": {
@@ -6240,7 +6240,7 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
-                "model_name": {
+                "model_code": {
                     "type": "string"
                 },
                 "status": {

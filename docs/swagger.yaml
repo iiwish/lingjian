@@ -310,7 +310,7 @@ definitions:
         type: string
       display_name:
         type: string
-      model_name:
+      model_code:
         type: string
       parent_id:
         type: integer
@@ -503,7 +503,7 @@ definitions:
         type: string
       id:
         type: integer
-      model_name:
+      model_code:
         type: string
       status:
         type: integer
@@ -836,7 +836,7 @@ definitions:
         type: string
       id:
         type: integer
-      model_name:
+      model_code:
         type: string
       status:
         description: 0:禁用 1:启用
