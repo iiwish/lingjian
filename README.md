@@ -1,3 +1,7 @@
+> ⚠️ **警示**: 该项目目前处于开发阶段，此版本仅用于求职展示。项目完成后此警示将被移除。
+> 
+> ⚠️ **Warning**: This project is under development. Current version is for job seeking purpose only. This warning will be removed once the project is completed.
+
 # LingJian 低代码平台
 
 LingJian是一个开源的低代码平台，支持多应用管理、可视化配置、权限控制等功能。
