@@ -53,12 +53,12 @@ func (s *ModelService) CreateModel(appID uint, userID uint, Req *model.CreateMod
 
 	// 插入数据模型配置
 	result, err := tx.NamedExec(`
-		INSERT INTO sys_config_models (
-			app_id, model_code, display_name, discription, configuration,status, created_at, creator_id, updated_at, updater_id
-		) VALUES (
-			:app_id, :model_code, :display_name, :discription, :configuration, :status, NOW(), :creator_id, NOW(), :creator_id
-		)
-	`, dataModel)
+    INSERT INTO sys_config_models (
+    app_id, model_code, display_name, description, configuration, status, created_at, creator_id, updated_at, updater_id
+    ) VALUES (
+    :app_id, :model_code, :display_name, :description, :configuration, :status, NOW(), :creator_id, NOW(), :creator_id
+    )
+    `, dataModel)
 	if err != nil {
 		return 0, fmt.Errorf("insert sys_config_models failed: %v", err)
 	}
