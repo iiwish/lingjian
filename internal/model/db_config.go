@@ -37,6 +37,7 @@ type ConfigDimension struct {
 type ConfigModel struct {
 	ID            uint             `db:"id" json:"id"`
 	AppID         uint             `db:"app_id" json:"app_id"`
+	ModelName     string           `db:"model_name" json:"model_name"`
 	ModelCode     string           `db:"model_code" json:"model_code"`
 	DisplayName   string           `db:"display_name" json:"display_name"`
 	Description   string           `db:"description" json:"description"`

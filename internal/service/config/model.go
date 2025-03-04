@@ -141,17 +141,24 @@ func (s *ModelService) UpdateModel(appID uint, userID uint, Req *model.UpdateMod
 
 // GetModel 获取数据模型配置
 func (s *ModelService) GetModel(id uint) (*model.ModelResp, error) {
+	fmt.Printf("开始获取模型配置，ID: %d\n", id)
+
 	var dataModel model.ConfigModel
 	err := s.db.Get(&dataModel, "SELECT * FROM sys_config_models WHERE id = ?", id)
 	if err != nil {
+		fmt.Printf("数据库查询失败，错误: %v\n", err)
 		return nil, fmt.Errorf("get model failed: %v", err)
 	}
+	fmt.Printf("数据库查询成功，获取到的数据: %+v\n", dataModel)
 
 	var configItem model.ModelConfigItem
+	fmt.Printf("开始解析configuration字段，原始数据: %s\n", dataModel.Configuration)
 	err = json.Unmarshal([]byte(dataModel.Configuration), &configItem)
 	if err != nil {
+		fmt.Printf("configuration解析失败，错误: %v\n", err)
 		return nil, fmt.Errorf("unmarshal configuration failed: %v", err)
 	}
+	fmt.Printf("configuration解析成功，解析后数据: %+v\n", configItem)
 
 	resp := model.ModelResp{
 		ID:            dataModel.ID,
@@ -161,6 +168,7 @@ func (s *ModelService) GetModel(id uint) (*model.ModelResp, error) {
 		Configuration: configItem,
 		Status:        dataModel.Status,
 	}
+	fmt.Printf("响应数据组装完成: %+v\n", resp)
 
 	return &resp, nil
 }
