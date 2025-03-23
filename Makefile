@@ -5,8 +5,23 @@ PROJECT_NAME := lingjian
 MAIN_SERVER := cmd/server/main.go
 MAIN_WORKER := cmd/worker/main.go
 BUILD_DIR := build
-BINARY_SERVER := $(BUILD_DIR)/server
-BINARY_WORKER := $(BUILD_DIR)/worker
+
+# 根据操作系统设置二进制文件名、路径分隔符和目录创建命令
+ifeq ($(OS),Windows_NT)
+    BINARY_SERVER := $(BUILD_DIR)/server.exe
+    BINARY_WORKER := $(BUILD_DIR)/worker.exe
+    # Windows下的执行前缀
+    EXEC_PREFIX := 
+    # Windows下的目录创建命令
+    MKDIR_CMD := if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
+else
+    BINARY_SERVER := $(BUILD_DIR)/server
+    BINARY_WORKER := $(BUILD_DIR)/worker
+    # Unix系统下的执行前缀
+    EXEC_PREFIX := ./
+    # Unix系统下的目录创建命令
+    MKDIR_CMD := mkdir -p $(BUILD_DIR)
+endif
 
 # Go相关配置
 GO := go
@@ -29,12 +44,12 @@ build: $(BINARY_SERVER) $(BINARY_WORKER)
 
 $(BINARY_SERVER):
 	@echo "Building server..."
-	@mkdir -p $(BUILD_DIR)
+	@$(MKDIR_CMD)
 	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BINARY_SERVER) $(MAIN_SERVER)
 
 $(BINARY_WORKER):
 	@echo "Building worker..."
-	@mkdir -p $(BUILD_DIR)
+	@$(MKDIR_CMD)
 	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BINARY_WORKER) $(MAIN_WORKER)
 
 # 清理
@@ -64,7 +79,7 @@ test-integration:
 # 测试覆盖率
 test-coverage:
 	@echo "Running tests with coverage..."
-	@mkdir -p $(BUILD_DIR)
+	@$(MKDIR_CMD)
 	@go test -v -coverprofile=$(BUILD_DIR)/coverage.out ./...
 	@go tool cover -html=$(BUILD_DIR)/coverage.out -o $(BUILD_DIR)/coverage.html
 	@echo "Coverage report generated at $(BUILD_DIR)/coverage.html"
@@ -86,14 +101,17 @@ lint:
 	fi
 
 # 运行服务器
-run-server: build
+run-server: 
+	@echo "Building server with latest changes..."
+	@$(MKDIR_CMD)
+	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $(BINARY_SERVER) $(MAIN_SERVER)
 	@echo "Running server..."
-	@$(BINARY_SERVER)
+	@$(EXEC_PREFIX)$(BINARY_SERVER)
 
 # 运行worker
 run-worker: build
 	@echo "Running worker..."
-	@$(BINARY_WORKER)
+	@$(EXEC_PREFIX)$(BINARY_WORKER)
 
 # 初始化数据库
 init-db:

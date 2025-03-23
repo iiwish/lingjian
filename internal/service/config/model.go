@@ -115,14 +115,14 @@ func (s *ModelService) UpdateModel(appID uint, userID uint, Req *model.UpdateMod
 		UpdaterID:     userID,
 	}
 
-	// 更新数据模型配置
+	// 更新数据模型配置·
 	_, err = tx.NamedExec(`
 		UPDATE sys_config_models SET 
 			app_id = :app_id,
-			model_name = :model_name,
 			display_name = :display_name,
-			discription = :discription,
+			description = :description,
 			configuration = :configuration,
+			status = :status,
 			updated_at = NOW(),
 			updater_id = :updater_id
 		WHERE id = :id
